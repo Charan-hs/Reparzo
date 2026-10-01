@@ -1,0 +1,38 @@
+{
+  "name": "reparzo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reparzo — Edge-native monorepo platform",
+  "workspaces": [
+    "backend",
+    "website"
+  ],
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,WEBSITE\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:website\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:website": "npm --prefix website run dev",
+    "build": "npm --prefix backend run build && npm --prefix website run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:website": "npm --prefix website run build",
+    "db:generate": "npm --prefix backend run db:generate",
+    "db:migrate": "npm --prefix backend run db:migrate",
+    "db:migrate:remote": "npm --prefix backend run db:migrate:remote",
+    "deploy:backend": "npm --prefix backend run deploy",
+    "deploy:website": "npm --prefix website run deploy",
+    "lint": "npm --prefix backend run lint && npm --prefix website run lint"
+  },
+  "keywords": [
+    "reparzo",
+    "cloudflare-workers",
+    "cloudflare-d1",
+    "drizzle-orm",
+    "react",
+    "vite",
+    "monorepo"
+  ],
+  "author": "Charan",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
