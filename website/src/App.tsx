@@ -1,72 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Navbar } from './components/layout/Navbar';
+import { BottomNav } from './components/layout/BottomNav';
 import { Footer } from './components/layout/Footer';
+import { FullScreenSearch } from './components/search/FullScreenSearch';
+import { LocationPickerModal } from './components/location/LocationPickerModal';
+import { UnifiedAuthModal } from './components/auth/UnifiedAuthModal';
+import { CategoryManagerModal } from './components/admin/CategoryManagerModal';
+import { CartDrawer } from './components/cart/CartDrawer';
+
 import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { PartnerDashboard } from './pages/PartnerDashboard';
 import { HealthPage } from './pages/HealthPage';
-import { BookingModal } from './pages/BookingModal';
-import { api, type ServiceItem } from './lib/api';
 
 export function App() {
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
-
-  useEffect(() => {
-    async function loadServices() {
-      try {
-        const data = await api.getServices();
-        setServices(data || []);
-      } catch (err) {
-        console.warn('Failed to load services from API:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadServices();
-  }, []);
-
-  const handleOpenBooking = (service?: ServiceItem) => {
-    setSelectedService(service || null);
-    setIsBookingOpen(true);
-  };
-
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/20 selection:text-cyan-300">
+      <div className="min-h-screen flex flex-col bg-[#080D1A] text-slate-100 font-sans selection:bg-[#4770DB]/30 selection:text-white">
         <Toaster position="bottom-right" theme="dark" richColors />
 
-        {/* Global Navbar */}
-        <Navbar onOpenBooking={() => handleOpenBooking()} />
+        {/* Global Navigation Header (Blinkit-inspired with Location & Search) */}
+        <Navbar />
 
-        {/* Page Content */}
+        {/* Full-Screen Search Overlay (Opens when user clicks search bar) */}
+        <FullScreenSearch />
+
+        {/* Location Picker Modal */}
+        <LocationPickerModal />
+
+        {/* Unified 3-Role Authentication Modal (Customer, Partner, Admin) */}
+        <UnifiedAuthModal />
+
+        {/* Admin Category Manager CMS */}
+        <CategoryManagerModal />
+
+        {/* Slide-over Cart Drawer */}
+        <CartDrawer />
+
+        {/* Main Routed Page Content */}
         <main className="flex-1">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <HomePage
-                  services={services}
-                  loading={loading}
-                  onSelectService={(s) => setSelectedService(s)}
-                  onOpenBooking={() => setIsBookingOpen(true)}
-                />
-              }
-            />
-            <Route
-              path="/services"
-              element={
-                <ServicesPage
-                  services={services}
-                  loading={loading}
-                  onSelectService={(s) => setSelectedService(s)}
-                  onOpenBooking={() => setIsBookingOpen(true)}
-                />
-              }
-            />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/cart" element={<CheckoutPage />} />
+            <Route path="/partner" element={<PartnerDashboard />} />
             <Route path="/health" element={<HealthPage />} />
           </Routes>
         </main>
@@ -74,13 +55,8 @@ export function App() {
         {/* Global Footer */}
         <Footer />
 
-        {/* Booking Modal */}
-        <BookingModal
-          isOpen={isBookingOpen}
-          onClose={() => setIsBookingOpen(false)}
-          selectedService={selectedService}
-          services={services}
-        />
+        {/* Mobile-First Bottom Navigation Dock with Floating Cart */}
+        <BottomNav />
       </div>
     </BrowserRouter>
   );
