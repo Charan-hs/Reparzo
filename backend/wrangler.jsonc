@@ -11,20 +11,14 @@
     {
       "binding": "DB",
       "database_name": "reparzo-db",
-      "database_id": "reparzo-local-db",
+      "database_id": "ce41f85c-b3c1-4205-84b5-37dc8b839820",
       "migrations_dir": "drizzle"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "CACHE",
-      "id": "reparzo-cache-id"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "MEDIA",
-      "bucket_name": "reparzo-media"
+      "id": "0c94d6a7ec64458187c2c18d04cd3228"
     }
   ],
   "vars": {
