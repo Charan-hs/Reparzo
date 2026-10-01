@@ -13,4 +13,4 @@ binding = "BACKEND"
 service = "reparzo-backend"
 
 [vars]
-API_FALLBACK_URL = "https://reparzo-backend.workers.dev"
+API_FALLBACK_URL = "https://reparzo-backend.reparzo-backend.workers.dev"
