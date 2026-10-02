@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './lib/firebase';
 import { Navbar } from './components/layout/Navbar';
 import { BottomNav } from './components/layout/BottomNav';
 import { Footer } from './components/layout/Footer';
@@ -26,6 +28,18 @@ function DashboardRouter() {
 }
 
 export function App() {
+  const { loginWithFirebaseUser, user } = useAppStore();
+
+  // Listen to Firebase Auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser && !user) {
+        loginWithFirebaseUser(firebaseUser);
+      }
+    });
+    return () => unsubscribe();
+  }, [loginWithFirebaseUser, user]);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col bg-[#080D1A] text-slate-100 font-sans selection:bg-[#4770DB]/30 selection:text-white">

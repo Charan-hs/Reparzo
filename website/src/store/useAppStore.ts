@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Category, Service, CartItem, UserProfile, UserRole, LocationData, OrderBooking } from '../types';
+import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
+import { signOutFirebase } from '../lib/firebase';
 
 export const INITIAL_CATEGORIES: Category[] = [
   {
@@ -358,6 +360,13 @@ interface AppState {
   setUser: (user: UserProfile | null) => void;
   setActiveRole: (role: UserRole) => void;
   loginSimulated: (role: UserRole, phoneOrEmail: string, name: string) => void;
+  loginWithFirebaseUser: (firebaseUser: {
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    photoURL: string | null;
+    phoneNumber: string | null;
+  }) => RecognizedAccount;
   logout: () => void;
 
   // Location
@@ -577,7 +586,34 @@ export const useAppStore = create<AppState>()(
         };
         set({ user: newUser, activeRole: role, isAuthModalOpen: false });
       },
-      logout: () => set({ user: null, activeRole: 'user' }),
+      loginWithFirebaseUser: (firebaseUser) => {
+        const email = firebaseUser.email || '';
+        const name = firebaseUser.displayName || (email ? email.split('@')[0] : 'Reparzo User');
+        const phone = firebaseUser.phoneNumber || '+91 98450 12345';
+        
+        // Auto-detect role from the Google Account identity
+        const detected = resolveUserByIdentifier(email || name);
+        const role = detected.role;
+
+        const newUser: UserProfile = {
+          id: firebaseUser.uid || `usr-${Date.now()}`,
+          name,
+          email,
+          phone,
+          role,
+          avatar: firebaseUser.photoURL || detected.avatar,
+          partnerStatus: role === 'partner' ? 'online' : undefined,
+          partnerRating: role === 'partner' ? 4.92 : undefined,
+          earningsToday: role === 'partner' ? 1420 : undefined,
+        };
+
+        set({ user: newUser, activeRole: role, isAuthModalOpen: false });
+        return detected;
+      },
+      logout: () => {
+        signOutFirebase().catch(() => {});
+        set({ user: null, activeRole: 'user' });
+      },
 
       // Location
       location: {
