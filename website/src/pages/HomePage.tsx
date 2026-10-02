@@ -15,7 +15,9 @@ import {
   Smile, 
   PhoneCall,
   Flame,
-  Award
+  Award,
+  Shield,
+  Wrench
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { BannerCarousel } from '../components/home/BannerCarousel';
@@ -39,6 +41,114 @@ export const HomePage: React.FC = () => {
     <div className="space-y-6 sm:space-y-12 pb-24 text-slate-900 bg-[#F8FAFC]">
       {/* ── 1. Infinite Banner Carousel (Themallige Style) ── */}
       <BannerCarousel />
+
+      {/* ── Role-Specific Operational Hub Banner ── */}
+      {user && (
+        <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          {user.role === 'admin' && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-[#0B132B] to-slate-900 border border-slate-800 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-[#E32402] text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-rose-600/30 flex-shrink-0">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                      SuperAdmin Session
+                    </span>
+                    <span className="text-xs text-slate-300">Reparzo Central Operations</span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-0.5">
+                    Welcome, {user.name}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Live telemetry: 24 active dispatches, 56 fleet partners online across Bangalore.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E32402] hover:bg-rose-600 text-white text-xs font-bold shadow-md shadow-rose-600/30 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Go to Admin Dashboard ➔</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {user.role === 'partner' && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-amber-950/40 border border-amber-500/30 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-amber-500/30 flex-shrink-0">
+                  <Wrench className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Partner Portal
+                    </span>
+                    <span className="text-xs text-emerald-400 font-bold">● Status: ONLINE</span>
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-0.5">
+                    Welcome, {user.name}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    You have 3 nearby repair orders waiting for acceptance in your neighborhood.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  onClick={() => navigate('/partner')}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/30 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Open Jobs Board ➔</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {user.role === 'user' && (
+            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200">
+                    Customer Account
+                  </span>
+                  <span className="text-xs font-bold text-slate-800">Verified Member</span>
+                </div>
+                <h3 className="text-lg font-black text-slate-900">
+                  Welcome back, {user.name.split(' ')[0]}!
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Verified technicians nearby in your area. Doorstep arrival in 18-25 minutes with 30-day warranty.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => {
+                    setActiveCategorySlug('all');
+                    navigate('/services');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+                >
+                  Book Doorstep Service ➔
+                </button>
+                <button
+                  onClick={() => navigate('/checkout')}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
+                >
+                  My Bookings
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* ── 2. Admin-Editable Category Grid ──────────── */}
       <CategorySection />

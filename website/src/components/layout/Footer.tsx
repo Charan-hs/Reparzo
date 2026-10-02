@@ -51,31 +51,25 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2 text-xs sm:text-sm text-slate-600">
               <li>
                 <button
-                  onClick={() => setAuthModalOpen(true, 'user')}
+                  onClick={() => setAuthModalOpen(true)}
                   className="hover:text-[#2563EB] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
-                  <User className="w-3.5 h-3.5 text-[#2563EB]" /> Customer Sign In
+                  <User className="w-3.5 h-3.5 text-[#2563EB]" /> Single Sign-On / Login
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => setAuthModalOpen(true, 'partner')}
-                  className="hover:text-[#2563EB] transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Wrench className="w-3.5 h-3.5 text-amber-500" /> Technician / Partner Login
-                </button>
+                <Link to="/partner" className="hover:text-[#2563EB] transition-colors flex items-center gap-1.5">
+                  <Wrench className="w-3.5 h-3.5 text-amber-500" /> Technician / Partner Board
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => setCategoryManagerOpen(true)}
-                  className="hover:text-[#2563EB] transition-colors flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Layers className="w-3.5 h-3.5 text-[#E32402]" /> Admin Category CMS
-                </button>
+                <Link to="/admin" className="hover:text-[#2563EB] transition-colors flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-[#E32402]" /> Executive Admin Portal
+                </Link>
               </li>
               <li>
                 <Link to="/health" className="hover:text-[#2563EB] transition-colors">
-                  System Health & Metrics
+                  System Health & Edge Telemetry
                 </Link>
               </li>
             </ul>

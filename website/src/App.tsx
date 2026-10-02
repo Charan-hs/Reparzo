@@ -14,7 +14,16 @@ import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { PartnerDashboard } from './pages/PartnerDashboard';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { HealthPage } from './pages/HealthPage';
+import { useAppStore } from './store/useAppStore';
+
+function DashboardRouter() {
+  const { user } = useAppStore();
+  if (user?.role === 'admin') return <AdminDashboard />;
+  if (user?.role === 'partner') return <PartnerDashboard />;
+  return <HomePage />;
+}
 
 export function App() {
   return (
@@ -44,10 +53,12 @@ export function App() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/partner" element={<PartnerDashboard />} />
+            <Route path="/dashboard" element={<DashboardRouter />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/cart" element={<CheckoutPage />} />
-            <Route path="/partner" element={<PartnerDashboard />} />
             <Route path="/health" element={<HealthPage />} />
           </Routes>
         </main>

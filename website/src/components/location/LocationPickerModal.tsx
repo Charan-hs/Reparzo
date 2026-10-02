@@ -88,35 +88,40 @@ export const LocationPickerModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 40 }}
           transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-          className="w-full max-w-lg bg-[#0E1B4D] rounded-t-3xl sm:rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]"
+          className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]"
         >
           {/* Header */}
-          <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#4770DB]" />
-                Select Service Location
-              </h3>
-              <p className="text-xs text-slate-300 mt-0.5">
-                Technicians dispatched from the nearest local hub
-              </p>
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-[#2563EB] flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  Select Service Location
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Technicians dispatched from the nearest local hub
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setLocationModalOpen(false)}
-              className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-xl hover:bg-slate-200/70 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Search Box */}
-          <div className="p-4 border-b border-slate-800/80 bg-slate-900/50">
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-white">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
               <input
@@ -124,38 +129,38 @@ export const LocationPickerModal: React.FC = () => {
                 value={searchLocation}
                 onChange={(e) => setSearchLocation(e.target.value)}
                 placeholder="Search area, landmark or pincode..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-700 text-white placeholder-slate-400 text-sm focus:border-[#4770DB] outline-none"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
               />
             </div>
           </div>
 
           {/* GPS Auto-detect Button */}
-          <div className="p-4 border-b border-slate-800">
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/40">
             <button
               onClick={handleUseCurrentLocation}
               disabled={isDetecting}
-              className="w-full p-3.5 rounded-2xl bg-gradient-to-r from-[#4770DB]/20 via-[#4770DB]/10 to-transparent border border-[#4770DB]/40 hover:border-[#4770DB] flex items-center justify-between group active:scale-[0.99] transition-all"
+              className="w-full p-3.5 rounded-2xl bg-white hover:bg-blue-50/40 border border-slate-200 hover:border-[#2563EB]/50 flex items-center justify-between group active:scale-[0.99] transition-all shadow-xs cursor-pointer"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#4770DB] text-white flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center shadow-xs">
                   <Navigation className={`w-5 h-5 ${isDetecting ? 'animate-spin' : ''}`} />
                 </div>
                 <div className="text-left">
-                  <span className="text-sm font-bold text-white block group-hover:text-cyan-300 transition-colors">
+                  <span className="text-sm font-bold text-slate-900 block group-hover:text-[#2563EB] transition-colors">
                     {isDetecting ? 'Locating GPS position...' : 'Use Current Location'}
                   </span>
-                  <span className="text-xs text-slate-300">Using high-precision device GPS</span>
+                  <span className="text-xs text-slate-500">Using high-precision device GPS</span>
                 </div>
               </div>
-              <span className="text-xs font-semibold text-[#4770DB] px-2.5 py-1 rounded-full bg-[#4770DB]/10 border border-[#4770DB]/20">
+              <span className="text-[11px] font-bold text-[#2563EB] px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 flex items-center gap-1">
                 ⚡ Fastest ETA
               </span>
             </button>
           </div>
 
           {/* Saved / Popular Locations List */}
-          <div className="p-4 overflow-y-auto space-y-2.5 flex-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block px-1 mb-2">
+          <div className="p-3.5 sm:p-4 overflow-y-auto space-y-2.5 flex-1 bg-[#F8FAFC]">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block px-1 mb-1">
               Popular Service Hubs in Bengaluru
             </span>
 
@@ -165,28 +170,36 @@ export const LocationPickerModal: React.FC = () => {
                 <div
                   key={idx}
                   onClick={() => setLocation(area)}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between shadow-xs ${
                     isSelected
-                      ? 'bg-[#4770DB]/20 border-[#4770DB] shadow-md'
-                      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60'
+                      ? 'bg-blue-50/80 border-[#2563EB]'
+                      : 'bg-white border-slate-200/90 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                      isSelected ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600'
+                    }`}>
                       {idx % 2 === 0 ? <Home className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white">{area.area}</h4>
-                      <p className="text-xs text-slate-300 line-clamp-1">{area.fullAddress}</p>
+                      <h4 className={`text-sm font-bold ${isSelected ? 'text-[#2563EB]' : 'text-slate-900'}`}>
+                        {area.area}
+                      </h4>
+                      <p className="text-xs text-slate-500 line-clamp-1">{area.fullAddress}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
+                      isSelected 
+                        ? 'text-[#2563EB] bg-white border-blue-200' 
+                        : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                    }`}>
                       ~{area.etaMinutes} mins
                     </span>
                     {isSelected && (
-                      <div className="w-5 h-5 rounded-full bg-[#4770DB] text-white flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-xs">
                         <Check className="w-3.5 h-3.5" />
                       </div>
                     )}

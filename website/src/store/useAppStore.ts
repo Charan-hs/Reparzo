@@ -375,7 +375,92 @@ interface AppState {
   // Orders
   orders: OrderBooking[];
   addOrder: (order: OrderBooking) => void;
+  updateOrderStatus: (orderId: string, status: OrderBooking['status']) => void;
 }
+
+export const INITIAL_ORDERS: OrderBooking[] = [
+  {
+    id: 'ORD-8492',
+    items: [
+      {
+        service: INITIAL_SERVICES[0],
+        quantity: 1,
+      },
+    ],
+    itemTotal: 499,
+    platformFee: 19,
+    discount: 400,
+    grandTotal: 518,
+    address: '14th Main, HSR Layout Sector 2, Bengaluru, Karnataka - 560102',
+    customerName: 'Charan H.S.',
+    customerPhone: '+91 98450 12345',
+    slot: {
+      type: 'instant',
+      dateLabel: 'Today',
+      timeSlot: 'Doorstep arrival in 25 mins',
+    },
+    paymentMethod: 'upi',
+    paymentStatus: 'paid',
+    status: 'in_progress',
+    createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+    technicianName: 'Sunil Gowda (Verified Partner)',
+    technicianPhone: '+91 98765 43210',
+  },
+  {
+    id: 'ORD-8488',
+    items: [
+      {
+        service: INITIAL_SERVICES[2],
+        quantity: 1,
+      },
+    ],
+    itemTotal: 349,
+    platformFee: 19,
+    discount: 250,
+    grandTotal: 368,
+    address: 'Flat 402, Green Glen Heights, Bellandur, Bengaluru - 560103',
+    customerName: 'Arun Prasad',
+    customerPhone: '+91 98111 22334',
+    slot: {
+      type: 'instant',
+      dateLabel: 'Today',
+      timeSlot: 'Doorstep arrival in 40 mins',
+    },
+    paymentMethod: 'cash',
+    paymentStatus: 'pending',
+    status: 'technician_assigned',
+    createdAt: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
+    technicianName: 'Rajesh Kumar',
+    technicianPhone: '+91 98444 55667',
+  },
+  {
+    id: 'ORD-8470',
+    items: [
+      {
+        service: INITIAL_SERVICES[7],
+        quantity: 1,
+      },
+    ],
+    itemTotal: 299,
+    platformFee: 19,
+    discount: 200,
+    grandTotal: 318,
+    address: 'House #22, 5th Cross, Koramangala 4th Block, Bengaluru',
+    customerName: 'Kavitha R.',
+    customerPhone: '+91 97444 88990',
+    slot: {
+      type: 'scheduled',
+      dateLabel: 'Yesterday',
+      timeSlot: '11:00 AM - 01:00 PM',
+    },
+    paymentMethod: 'upi',
+    paymentStatus: 'paid',
+    status: 'completed',
+    createdAt: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
+    technicianName: 'Sunil Gowda (Verified Partner)',
+    technicianPhone: '+91 98765 43210',
+  },
+];
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -513,8 +598,12 @@ export const useAppStore = create<AppState>()(
       setPartnerIsOnline: (online) => set({ partnerIsOnline: online }),
 
       // Orders
-      orders: [],
+      orders: INITIAL_ORDERS,
       addOrder: (order) => set((state) => ({ orders: [order, ...state.orders] })),
+      updateOrderStatus: (orderId, status) =>
+        set((state) => ({
+          orders: state.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
+        })),
     }),
     {
       name: 'reparzo-app-storage',

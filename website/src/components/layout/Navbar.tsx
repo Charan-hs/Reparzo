@@ -12,8 +12,7 @@ import {
   LogOut, 
   Layers,
   Menu,
-  X,
-  Zap
+  X
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -82,15 +81,22 @@ export const Navbar: React.FC = () => {
             </span>
             <span className="text-slate-600">|</span>
             {user?.role === 'admin' ? (
-              <button
-                onClick={() => setCategoryManagerOpen(true)}
-                className="text-cyan-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
+              <Link
+                to="/admin"
+                className="text-rose-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
               >
-                <Layers className="w-3 h-3" /> Admin CMS
-              </button>
+                <Shield className="w-3 h-3 text-[#E32402]" /> Admin Dashboard
+              </Link>
+            ) : user?.role === 'partner' ? (
+              <Link
+                to="/partner"
+                className="text-amber-300 hover:text-white font-bold flex items-center gap-1 cursor-pointer"
+              >
+                <Wrench className="w-3 h-3 text-amber-400" /> Partner Jobs Board
+              </Link>
             ) : (
               <button
-                onClick={() => setAuthModalOpen(true, 'partner')}
+                onClick={() => setAuthModalOpen(true)}
                 className="hover:text-white transition-colors cursor-pointer"
               >
                 Become a Partner / Technician
@@ -103,30 +109,28 @@ export const Navbar: React.FC = () => {
       {/* ── Main Navigation Row ────────────────────────── */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* Left: Brand Logo & Location Selector */}
-        <div className="flex items-center gap-2.5 sm:gap-6 flex-shrink-0">
+        {/* Left: Brand Logo & Location Selector (Stacked Blinkit-Style) */}
+        <div className="flex flex-col items-start justify-center flex-shrink-0">
           {/* Logo with official Reparzo image */}
-          <Link to="/" className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center group">
             <img
               src="/logo.png"
               alt="Reparzo"
-              className="h-7 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform"
+              className="h-5 sm:h-7.5 w-auto object-contain group-hover:scale-105 transition-transform"
             />
           </Link>
 
-          {/* Blinkit-Style Location Pill */}
+          {/* Location Picker directly below the logo */}
           <button
             onClick={() => setLocationModalOpen(true)}
-            className="flex flex-col text-left py-1 px-2.5 sm:px-3 rounded-xl sm:rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 transition-all cursor-pointer group"
+            className="flex items-center gap-1 mt-0.5 text-left cursor-pointer group max-w-[110px] sm:max-w-[200px]"
+            title="Change service location"
           >
-            <div className="flex items-center gap-1 text-[10px] font-extrabold text-[#2563EB] uppercase tracking-wider">
-              <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-              <span>{location.etaMinutes} Mins Doorstep</span>
-            </div>
-            <div className="flex items-center gap-1 text-xs font-bold text-slate-800 group-hover:text-[#2563EB] transition-colors">
-              <span className="truncate max-w-[105px] sm:max-w-[160px]">{location.area}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition-colors flex-shrink-0" />
-            </div>
+            <MapPin className="w-3 h-3 text-[#2563EB] group-hover:scale-110 transition-transform flex-shrink-0" />
+            <span className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-[#2563EB] transition-colors truncate">
+              {location.area}
+            </span>
+            <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-700 flex-shrink-0 transition-colors" />
           </button>
         </div>
 
@@ -154,7 +158,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Right Actions: Navigation Links, Role Switcher, Cart */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 mr-1">
             {navLinks.map((link) => {
@@ -188,6 +192,27 @@ export const Navbar: React.FC = () => {
           <div className="relative">
             {user ? (
               <div className="flex items-center gap-2">
+                {/* Role-Specific Quick Action Pill */}
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#E32402] border border-rose-200 text-xs font-bold transition-all shadow-xs"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Admin Portal</span>
+                  </Link>
+                )}
+
+                {user.role === 'partner' && (
+                  <Link
+                    to="/partner"
+                    className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all shadow-xs"
+                  >
+                    <Wrench className="w-3.5 h-3.5" />
+                    <span>Jobs Board</span>
+                  </Link>
+                )}
+
                 <button
                   onClick={() => setRoleMenuOpen(!roleMenuOpen)}
                   className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 transition-all cursor-pointer"
@@ -208,57 +233,82 @@ export const Navbar: React.FC = () => {
 
                 {/* Dropdown for role navigation & logout */}
                 {roleMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50">
                     <div className="px-4 py-2 border-b border-slate-100">
-                      <span className="text-xs font-bold text-slate-900 block">{user.name}</span>
-                      <span className="text-[11px] text-slate-500 block">{user.phone}</span>
+                      <span className="text-xs font-bold text-slate-900 block truncate">{user.name}</span>
+                      <span className="text-[11px] text-slate-500 block font-mono">{user.phone}</span>
+                      <span className={`inline-block mt-1 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
+                        user.role === 'admin' 
+                          ? 'bg-rose-50 text-[#E32402] border border-rose-200' 
+                          : user.role === 'partner'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-blue-50 text-[#2563EB] border border-blue-200'
+                      }`}>
+                        Role: {user.role.toUpperCase()}
+                      </span>
                     </div>
 
-                    {user.role === 'admin' && (
-                      <button
-                        onClick={() => {
-                          setRoleMenuOpen(false);
-                          setCategoryManagerOpen(true);
-                        }}
-                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
-                      >
-                        <Layers className="w-3.5 h-3.5 text-[#E32402]" />
-                        <span>Manage Categories</span>
-                      </button>
-                    )}
+                    {/* Direct Role Dashboard Links */}
+                    <div className="py-1">
+                      {user.role === 'admin' && (
+                        <>
+                          <Link
+                            to="/admin"
+                            onClick={() => setRoleMenuOpen(false)}
+                            className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                          >
+                            <Shield className="w-3.5 h-3.5 text-[#E32402]" />
+                            <span>Executive Admin Dashboard</span>
+                          </Link>
+                          <button
+                            onClick={() => {
+                              setRoleMenuOpen(false);
+                              setCategoryManagerOpen(true);
+                            }}
+                            className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer"
+                          >
+                            <Layers className="w-3.5 h-3.5 text-[#E32402]" />
+                            <span>Manage Categories CMS</span>
+                          </button>
+                        </>
+                      )}
 
-                    {user.role === 'partner' && (
-                      <Link
-                        to="/partner"
-                        onClick={() => setRoleMenuOpen(false)}
-                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
-                      >
-                        <Wrench className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Partner Jobs Board</span>
-                      </Link>
-                    )}
+                      {user.role === 'partner' && (
+                        <Link
+                          to="/partner"
+                          onClick={() => setRoleMenuOpen(false)}
+                          className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                        >
+                          <Wrench className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Partner Jobs Board</span>
+                        </Link>
+                      )}
+
+                      {user.role === 'user' && (
+                        <Link
+                          to="/"
+                          onClick={() => setRoleMenuOpen(false)}
+                          className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                        >
+                          <User className="w-3.5 h-3.5 text-[#2563EB]" />
+                          <span>Customer Home & Orders</span>
+                        </Link>
+                      )}
+                    </div>
 
                     <div className="border-t border-slate-100 my-1"></div>
 
-                    {/* Switch Role Quick Tester */}
-                    <div className="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Switch Role Mode
-                    </div>
-                    {(['user', 'partner', 'admin'] as const).map((r) => (
-                      <button
-                        key={r}
-                        onClick={() => {
-                          setActiveRole(r);
-                          setRoleMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-1.5 text-left text-xs flex items-center justify-between cursor-pointer ${activeRole === r ? 'text-[#2563EB] font-bold bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}
-                      >
-                        <span className="capitalize">{r === 'user' ? 'Customer' : r}</span>
-                        {activeRole === r && <span className="text-[10px]">● Active</span>}
-                      </button>
-                    ))}
-
-                    <div className="border-t border-slate-100 my-1"></div>
+                    {/* Switch Account using the Unified Login Screen */}
+                    <button
+                      onClick={() => {
+                        setRoleMenuOpen(false);
+                        setAuthModalOpen(true);
+                      }}
+                      className="w-full px-4 py-2 text-left text-xs font-bold text-[#2563EB] hover:bg-blue-50 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Switch Account (Login Modal)</span>
+                    </button>
 
                     <button
                       onClick={() => {
@@ -275,10 +325,10 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <button
-                onClick={() => setAuthModalOpen(true, 'user')}
-                className="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-[#0E1B4D] hover:bg-[#16255c] text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer"
+                onClick={() => setAuthModalOpen(true)}
+                className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5 transition-all active:scale-95 shadow-xs cursor-pointer"
               >
-                <User className="w-3.5 h-3.5 text-cyan-300" />
+                <User className="w-3.5 h-3.5 text-white flex-shrink-0" />
                 <span>Login</span>
               </button>
             )}
@@ -287,11 +337,12 @@ export const Navbar: React.FC = () => {
           {/* Blinkit-Style Cart Trigger Button */}
           <button
             onClick={() => setCartDrawerOpen(true)}
-            className={`py-1.5 sm:py-2 px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-xs ${
+            className={`p-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-xs ${
               totalItems > 0
                 ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-emerald-500/20'
                 : 'bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200/70'
             }`}
+            aria-label="View Cart"
           >
             <div className="relative">
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />

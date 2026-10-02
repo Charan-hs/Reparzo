@@ -32,7 +32,7 @@ interface PartnerJob {
 }
 
 export const PartnerDashboard: React.FC = () => {
-  const { user, partnerIsOnline, setPartnerIsOnline } = useAppStore();
+  const { user, partnerIsOnline, setPartnerIsOnline, setAuthModalOpen } = useAppStore();
 
   const [jobs, setJobs] = useState<PartnerJob[]>([
     {
@@ -98,9 +98,60 @@ export const PartnerDashboard: React.FC = () => {
     }
   };
 
+  // If user is not partner, show friendly partner gate
+  if (user?.role !== 'partner') {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 text-slate-900">
+        <div className="max-w-md w-full p-8 rounded-3xl bg-white border border-slate-200 text-center shadow-xl space-y-5">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center mx-auto shadow-md">
+            <Wrench className="w-8 h-8" />
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">Partner Access Required</h1>
+            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+              This dashboard is for verified Reparzo technicians to accept nearby repair jobs, start GPS navigation, and track daily payouts.
+            </p>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-left text-xs text-slate-700">
+            <span className="font-bold text-slate-900 block mb-0.5">Demo Partner Account:</span>
+            <span>Mobile: <strong className="text-amber-700 font-mono">98765 43210</strong> (Auto-detected as Partner)</span>
+          </div>
+
+          <button
+            onClick={() => setAuthModalOpen(true, 'partner')}
+            className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
+          >
+            Open Unified Login Screen ➔
+          </button>
+
+          <a
+            href="/"
+            className="inline-block text-xs text-slate-400 hover:text-slate-700 transition-colors"
+          >
+            ← Return to Customer Storefront
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-10 px-4 sm:px-6 lg:px-8 text-slate-900">
       <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Top Storefront link */}
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span className="font-bold text-amber-600 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            Active Partner Fleet Session
+          </span>
+          <a href="/" className="hover:text-[#2563EB] font-bold flex items-center gap-1">
+            <span>View Customer Storefront</span>
+            <span>→</span>
+          </a>
+        </div>
         
         {/* Top Partner Profile & Status Toggle */}
         <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">

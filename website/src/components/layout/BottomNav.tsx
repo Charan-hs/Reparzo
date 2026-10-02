@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Grid, Calendar, User, ShoppingBag } from 'lucide-react';
+import { Home, Grid, Calendar, User, ShoppingBag, Shield, Wrench } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 export const BottomNav: React.FC = () => {
@@ -13,9 +13,10 @@ export const BottomNav: React.FC = () => {
     { label: 'Services', icon: Grid, path: '/services' },
     { label: 'Bookings', icon: Calendar, path: '/checkout' },
     { 
-      label: user ? user.name.split(' ')[0] : 'Account', 
-      icon: User, 
-      action: () => (user ? null : setAuthModalOpen(true, 'user')) 
+      label: user ? (user.role === 'admin' ? 'Admin' : user.role === 'partner' ? 'Partner' : user.name.split(' ')[0]) : 'Account', 
+      icon: user?.role === 'admin' ? Shield : user?.role === 'partner' ? Wrench : User, 
+      path: user?.role === 'admin' ? '/admin' : user?.role === 'partner' ? '/partner' : undefined,
+      action: user ? undefined : () => setAuthModalOpen(true)
     },
   ];
 
@@ -74,7 +75,7 @@ export const BottomNav: React.FC = () => {
             return (
               <Link
                 key={idx}
-                to={item.path}
+                to={item.path || '/'}
                 className={`flex flex-col items-center justify-center py-1 transition-all ${
                   isActive ? 'text-[#2563EB]' : 'text-slate-500 hover:text-slate-900'
                 }`}
