@@ -75,9 +75,9 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4 text-slate-300">
-            <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Cloudflare Edge Active
+              Live in Bengaluru
             </span>
             <span className="text-slate-600">|</span>
             {user?.role === 'admin' ? (

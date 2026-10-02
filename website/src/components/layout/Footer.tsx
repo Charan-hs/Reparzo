@@ -24,8 +24,8 @@ export const Footer: React.FC = () => {
               Bengaluru's premier on-demand home & vehicle repair platform. Verified technicians at your doorstep in 60-90 minutes with upfront transparent rates.
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Server className="w-3.5 h-3.5 text-[#2563EB]" />
-              <span>Edge-native architecture via Cloudflare Workers & D1</span>
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Licensed, background-verified technicians with 30-day warranty</span>
             </div>
           </div>
 
