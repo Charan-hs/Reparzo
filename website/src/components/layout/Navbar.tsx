@@ -232,20 +232,22 @@ export const Navbar: React.FC = () => {
                 </button>
 
                 {/* Dropdown for role navigation & logout */}
+                {/* Dropdown for role navigation & logout */}
                 {roleMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-slate-200 shadow-2xl py-2 z-50">
                     <div className="px-4 py-2 border-b border-slate-100">
                       <span className="text-xs font-bold text-slate-900 block truncate">{user.name}</span>
-                      <span className="text-[11px] text-slate-500 block font-mono">{user.phone}</span>
-                      <span className={`inline-block mt-1 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md ${
-                        user.role === 'admin' 
-                          ? 'bg-rose-50 text-[#E32402] border border-rose-200' 
-                          : user.role === 'partner'
-                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                          : 'bg-blue-50 text-[#2563EB] border border-blue-200'
-                      }`}>
-                        Role: {user.role.toUpperCase()}
-                      </span>
+                      <span className="text-[11px] text-slate-500 block font-mono">{user.phone || user.email}</span>
+                      {user.role === 'admin' && (
+                        <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-50 text-[#E32402] border border-rose-200">
+                          Administrator
+                        </span>
+                      )}
+                      {user.role === 'partner' && (
+                        <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                          Service Partner
+                        </span>
+                      )}
                     </div>
 
                     {/* Direct Role Dashboard Links */}
@@ -284,31 +286,17 @@ export const Navbar: React.FC = () => {
                         </Link>
                       )}
 
-                      {user.role === 'user' && (
-                        <Link
-                          to="/"
-                          onClick={() => setRoleMenuOpen(false)}
-                          className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
-                        >
-                          <User className="w-3.5 h-3.5 text-[#2563EB]" />
-                          <span>Customer Home & Orders</span>
-                        </Link>
-                      )}
+                      <Link
+                        to="/checkout"
+                        onClick={() => setRoleMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <User className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>My Bookings & Orders</span>
+                      </Link>
                     </div>
 
                     <div className="border-t border-slate-100 my-1"></div>
-
-                    {/* Switch Account using the Unified Login Screen */}
-                    <button
-                      onClick={() => {
-                        setRoleMenuOpen(false);
-                        setAuthModalOpen(true);
-                      }}
-                      className="w-full px-4 py-2 text-left text-xs font-bold text-[#2563EB] hover:bg-blue-50 flex items-center gap-2 cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Switch Account (Login Modal)</span>
-                    </button>
 
                     <button
                       onClick={() => {

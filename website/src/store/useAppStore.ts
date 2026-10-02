@@ -652,6 +652,13 @@ export const useAppStore = create<AppState>()(
         recentSearches: state.recentSearches,
         orders: state.orders,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Clear out legacy mock user from earlier development sessions
+        if (state?.user && (state.user.phone?.includes('98450') || state.user.name?.includes('Charan H.S.') || state.user.name === 'Charan H S')) {
+          state.user = null;
+          state.activeRole = 'user';
+        }
+      },
     }
   )
 );

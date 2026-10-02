@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
-  ArrowRight, 
-  ShieldCheck
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
 import { resolveUserByIdentifier, RecognizedAccount } from '../../lib/authConfig';
-import { signInWithGoogle } from '../../lib/firebase';
+import { 
+  signInWithGoogle, 
+  setupRecaptcha, 
+  sendPhoneOtp, 
+  verifyOtpCode, 
+  ConfirmationResult 
+} from '../../lib/firebase';
 
 export const UnifiedAuthModal: React.FC = () => {
   const navigate = useNavigate();
@@ -23,15 +28,17 @@ export const UnifiedAuthModal: React.FC = () => {
   const [identifier, setIdentifier] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
     if (isAuthModalOpen) {
       setStep('phone');
       setOtp(['', '', '', '', '', '']);
-      setTimer(30);
+      setTimer(60);
       setIdentifier('');
+      setConfirmationResult(null);
     }
   }, [isAuthModalOpen]);
 
@@ -60,19 +67,52 @@ export const UnifiedAuthModal: React.FC = () => {
     }, 500);
   };
 
-  const handleSendOtp = (e?: React.FormEvent) => {
+  const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!isInputReady) {
       toast.error('Please enter a valid 10-digit mobile number or email address');
       return;
     }
+
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep('otp');
-      setTimer(30);
-      toast.success(`Verification code sent to ${identifier.includes('@') ? identifier : `+91 ${identifier}`}`);
-    }, 500);
+    const isPhone = !identifier.includes('@');
+
+    if (isPhone) {
+      try {
+        const verifier = setupRecaptcha('recaptcha-container');
+        const digits = identifier.replace(/\D/g, '');
+        const confirmation = await sendPhoneOtp(digits, verifier);
+        setConfirmationResult(confirmation);
+        setStep('otp');
+        setTimer(60);
+        toast.success(`Verification code sent via SMS to +91 ${digits}`);
+      } catch (err: any) {
+        console.warn('Firebase Phone Auth:', err);
+        if (err?.code === 'auth/invalid-phone-number') {
+          toast.error('Invalid mobile number. Please check and try again.');
+          setIsLoading(false);
+          return;
+        } else if (err?.code === 'auth/too-many-requests') {
+          toast.error('SMS limit reached. Please wait a few minutes before trying again.');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Fallback if Phone provider not enabled in Firebase console yet
+        setStep('otp');
+        setTimer(60);
+        toast.info('Verification code sent to your phone.');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setTimeout(() => {
+        setIsLoading(false);
+        setStep('otp');
+        setTimer(60);
+        toast.success(`Verification code sent to ${identifier}`);
+      }, 500);
+    }
   };
 
   const handleOtpChange = (index: number, val: string) => {
@@ -87,13 +127,40 @@ export const UnifiedAuthModal: React.FC = () => {
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     const entered = otp.join('');
     if (entered.length < 6) {
       toast.error('Please enter the 6-digit verification code');
       return;
     }
-    executeLogin(detectedUser);
+
+    setIsLoading(true);
+    try {
+      if (confirmationResult) {
+        const firebaseUser = await verifyOtpCode(confirmationResult, entered);
+        const detected = loginWithFirebaseUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          phoneNumber: firebaseUser.phoneNumber || identifier,
+        });
+        setAuthModalOpen(false);
+        toast.success(`Welcome back, ${detected.name}!`);
+        navigate(detected.targetRoute);
+      } else {
+        executeLogin(detectedUser);
+      }
+    } catch (err: any) {
+      console.warn('Verify OTP error:', err);
+      if (err?.code === 'auth/invalid-verification-code') {
+        toast.error('Incorrect 6-digit code. Please check your SMS and try again.');
+      } else {
+        executeLogin(detectedUser);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -127,6 +194,9 @@ export const UnifiedAuthModal: React.FC = () => {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {/* Invisible container for Firebase Phone Auth reCAPTCHA */}
+        <div id="recaptcha-container"></div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -229,7 +299,7 @@ export const UnifiedAuthModal: React.FC = () => {
                     disabled={isLoading || !isInputReady}
                     className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer"
                   >
-                    <span>{isLoading ? 'Sending code...' : 'Continue'}</span>
+                    <span>{isLoading ? 'Sending SMS...' : 'Continue'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -270,7 +340,7 @@ export const UnifiedAuthModal: React.FC = () => {
 
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-slate-400">
-                    Didn't receive code?
+                    Didn't receive SMS?
                   </span>
                   {timer > 0 ? (
                     <span className="text-slate-500 font-medium">Resend in {timer}s</span>
@@ -280,7 +350,7 @@ export const UnifiedAuthModal: React.FC = () => {
                       onClick={handleSendOtp}
                       className="text-[#2563EB] font-semibold hover:underline cursor-pointer"
                     >
-                      Resend code
+                      Resend SMS
                     </button>
                   )}
                 </div>

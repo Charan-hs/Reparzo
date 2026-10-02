@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
-import { PRESET_ACCOUNTS } from '../lib/authConfig';
 import type { OrderBooking } from '../types';
 
 export const AdminDashboard: React.FC = () => {
