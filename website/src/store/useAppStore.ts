@@ -113,7 +113,7 @@ export const INITIAL_SERVICES: Service[] = [
       '30-day post service cooling warranty',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/ac-service.jpg',
     isPopular: true,
   },
   {
@@ -135,7 +135,7 @@ export const INITIAL_SERVICES: Service[] = [
       '60-day gas leakage protection guarantee',
     ],
     warrantyDays: 60,
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/ac-service.jpg',
     isPopular: true,
   },
   {
@@ -157,7 +157,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Free foam water spray & tyre pressure check',
     ],
     warrantyDays: 15,
-    image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/bike-service.jpg',
     isPopular: true,
   },
   {
@@ -178,7 +178,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Minor cable, fuse & spark plug inspection',
     ],
     warrantyDays: 7,
-    image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/bike-service.jpg',
   },
   {
     id: 'srv-home-shift-1bhk',
@@ -199,7 +199,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Zero damage transit guarantee & floor protection',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/home-shifting.jpg',
     isPopular: true,
   },
   {
@@ -221,7 +221,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Safety certificate & 30-day rework warranty',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/electrical-service.jpg',
     isPopular: true,
   },
   {
@@ -242,7 +242,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Water pressure checking & no-mess cleanup',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/banner-1.png',
     isPopular: true,
   },
   {
@@ -264,7 +264,7 @@ export const INITIAL_SERVICES: Service[] = [
       '30-day warranty on spare replacements',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/banner-2.png',
   },
   {
     id: 'srv-wash-drum',
@@ -284,7 +284,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Door seal gasket & inlet valve test',
     ],
     warrantyDays: 30,
-    image: 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/banner-3.png',
   },
   {
     id: 'srv-tank-clean',
@@ -305,7 +305,7 @@ export const INITIAL_SERVICES: Service[] = [
       'UV wand microbial disinfection',
     ],
     warrantyDays: 60,
-    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&w=600&q=80',
+    image: '/banners/banner-1.png',
     isPopular: true,
   },
 ];

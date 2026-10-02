@@ -36,8 +36,8 @@ export const HomePage: React.FC = () => {
   const popularServices = services.filter((s) => s.isPopular);
 
   return (
-    <div className="space-y-6 sm:space-y-12 pb-24 text-slate-100 bg-[#080D1A]">
-      {/* ── 1. Infinite Banner Carousel (Blinkit / Zetlod Style) ── */}
+    <div className="space-y-6 sm:space-y-12 pb-24 text-slate-900 bg-[#F8FAFC]">
+      {/* ── 1. Infinite Banner Carousel (Themallige Style) ── */}
       <BannerCarousel />
 
       {/* ── 2. Admin-Editable Category Grid ──────────── */}
@@ -48,14 +48,14 @@ export const HomePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-2">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#E32402] bg-[#E32402]/10 px-2.5 py-0.5 rounded-full border border-[#E32402]/20 flex items-center gap-1">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#E32402] bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5" /> High Demand Today
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Most Booked Doorstep Repairs
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
               Fixed transparent pricing with zero surprise charges.
             </p>
           </div>
@@ -65,14 +65,14 @@ export const HomePage: React.FC = () => {
               setActiveCategorySlug('all');
               navigate('/services');
             }}
-            className="self-start sm:self-auto text-xs sm:text-sm font-bold text-[#4770DB] hover:text-white flex items-center gap-1 transition-colors"
+            className="self-start sm:self-auto text-xs sm:text-sm font-bold text-[#2563EB] hover:text-[#1d4ed8] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>Browse All {services.length} Services</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Popular Service Cards Carousel/Grid */}
+        {/* Popular Service Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {popularServices.map((service) => {
             const cartItem = cart.find((i) => i.service.id === service.id);
@@ -81,17 +81,18 @@ export const HomePage: React.FC = () => {
             return (
               <div
                 key={service.id}
-                className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800 hover:border-[#4770DB]/50 transition-all flex flex-col justify-between group shadow-sm hover:shadow-xl hover:-translate-y-1"
+                className="p-4 rounded-3xl bg-white border border-slate-200/90 hover:border-[#2563EB]/40 transition-all flex flex-col justify-between group shadow-xs hover:shadow-xl hover:-translate-y-1"
               >
                 <div>
                   {/* Image with zoom */}
-                  <div className="relative h-40 sm:h-44 rounded-2xl overflow-hidden mb-3 border border-slate-700/80">
+                  <div className="relative h-40 sm:h-44 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100">
                     <img
                       src={service.image}
                       alt={service.title}
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-2.5 left-2.5 bg-[#080D1A]/80 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase text-[#4770DB] border border-[#4770DB]/30">
+                    <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase text-[#2563EB] border border-slate-200 shadow-xs">
                       {service.categoryTitle}
                     </div>
                     <div className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-1">
@@ -102,32 +103,32 @@ export const HomePage: React.FC = () => {
                   {/* Title & Rating */}
                   <div className="flex items-center gap-1.5 mb-1">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span className="text-xs font-bold text-white">{service.rating}</span>
+                    <span className="text-xs font-bold text-slate-800">{service.rating}</span>
                     <span className="text-[11px] text-slate-400">({service.reviewsCount})</span>
                   </div>
 
-                  <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-1">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors line-clamp-1">
                     {service.title}
                   </h3>
 
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">
                     {service.description}
                   </p>
                 </div>
 
                 {/* Price and Add Button */}
-                <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-lg font-mono font-black text-white">
+                      <span className="text-lg font-mono font-black text-slate-900">
                         ₹{service.price}
                       </span>
-                      <span className="text-xs font-mono text-slate-500 line-through">
+                      <span className="text-xs font-mono text-slate-400 line-through">
                         ₹{service.originalPrice}
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold text-emerald-400">
-                      30-Day Warranty
+                    <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
+                      <CheckCircle2 className="w-2.5 h-2.5" /> 30-Day Warranty
                     </span>
                   </div>
 
@@ -136,16 +137,16 @@ export const HomePage: React.FC = () => {
                     {quantity === 0 ? (
                       <button
                         onClick={() => addToCart(service)}
-                        className="px-4 py-2 rounded-xl bg-[#4770DB] hover:bg-[#385cc4] text-white font-extrabold text-xs uppercase tracking-wider shadow-md shadow-[#4770DB]/20 active:scale-90 transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/40 font-extrabold text-xs uppercase tracking-wider active:scale-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add</span>
                       </button>
                     ) : (
-                      <div className="flex items-center bg-[#0E1B4D] border border-[#4770DB] rounded-xl overflow-hidden shadow-sm">
+                      <div className="flex items-center bg-[#2563EB] border border-[#2563EB] rounded-xl overflow-hidden shadow-sm">
                         <button
                           onClick={() => updateQuantity(service.id, quantity - 1)}
-                          className="p-1.5 hover:bg-slate-800 text-white active:scale-90 transition-transform cursor-pointer"
+                          className="p-1.5 hover:bg-blue-700 text-white active:scale-90 transition-transform cursor-pointer"
                           aria-label="Decrease"
                         >
                           <Minus className="w-3.5 h-3.5" />
@@ -155,7 +156,7 @@ export const HomePage: React.FC = () => {
                         </span>
                         <button
                           onClick={() => updateQuantity(service.id, quantity + 1)}
-                          className="p-1.5 hover:bg-slate-800 text-white active:scale-90 transition-transform cursor-pointer"
+                          className="p-1.5 hover:bg-blue-700 text-white active:scale-90 transition-transform cursor-pointer"
                           aria-label="Increase"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -170,49 +171,49 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── 4. Live Metrics Strip (Zetlod & Mallige Standards) ── */}
-      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0E1B4D] via-[#142357] to-[#0E1B4D] border border-slate-800 shadow-2xl">
+      {/* ── 4. Live Metrics Strip ── */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
           <div className="text-center max-w-xl mx-auto mb-8">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#4770DB]">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
               Why Bengaluru Chooses Reparzo
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
               Engineered for Speed, Trust & Precision
             </h2>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">
-              <div className="text-2xl sm:text-4xl font-black font-mono text-[#4770DB]">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+              <div className="text-2xl sm:text-4xl font-black font-mono text-[#2563EB]">
                 18–25m
               </div>
-              <div className="text-xs font-bold text-white mt-1">Average Arrival</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Technicians in every neighborhood</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Average Arrival</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Technicians in every neighborhood</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">
-              <div className="text-2xl sm:text-4xl font-black font-mono text-emerald-400">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+              <div className="text-2xl sm:text-4xl font-black font-mono text-emerald-600">
                 30 Days
               </div>
-              <div className="text-xs font-bold text-white mt-1">Free Rework Warranty</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">On every service & repair job</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Free Rework Warranty</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">On every service & repair job</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">
-              <div className="text-2xl sm:text-4xl font-black font-mono text-amber-400">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+              <div className="text-2xl sm:text-4xl font-black font-mono text-amber-500">
                 4.9 ★
               </div>
-              <div className="text-xs font-bold text-white mt-1">Customer Rating</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Based on 18,400+ reviews</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Customer Rating</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Based on 18,400+ reviews</div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">
-              <div className="text-2xl sm:text-4xl font-black font-mono text-purple-400">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+              <div className="text-2xl sm:text-4xl font-black font-mono text-purple-600">
                 100%
               </div>
-              <div className="text-xs font-bold text-white mt-1">Background Verified</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Police & skill verified technicians</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Background Verified</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Police & skill verified technicians</div>
             </div>
           </div>
         </div>
@@ -221,41 +222,41 @@ export const HomePage: React.FC = () => {
       {/* ── 5. How It Works (Blinkit 3-Step Flow) ─────── */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
         <div className="text-center max-w-xl mx-auto mb-10">
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#4770DB]">
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
             Simple & Transparent
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
             How Doorstep Repair Works
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 relative">
-            <div className="w-12 h-12 rounded-2xl bg-[#4770DB]/20 text-[#4770DB] border border-[#4770DB]/30 flex items-center justify-center font-mono font-black text-lg mb-4">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm relative">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] border border-blue-200 flex items-center justify-center font-mono font-black text-lg mb-4">
               01
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Select Your Repair</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Select Your Repair</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
               Choose from AC, bike, plumbing, electrical, and appliance care with upfront price quotes.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 relative">
-            <div className="w-12 h-12 rounded-2xl bg-[#E32402]/20 text-[#E32402] border border-[#E32402]/30 flex items-center justify-center font-mono font-black text-lg mb-4">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm relative">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#E32402] border border-rose-200 flex items-center justify-center font-mono font-black text-lg mb-4">
               02
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Technician Arrives</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Technician Arrives</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
               A certified local partner reaches your doorstep in 60-90 minutes equipped with diagnostic tools.
             </p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 relative">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-lg mb-4">
+          <div className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm relative">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center font-mono font-black text-lg mb-4">
               03
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Test & Pay After</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Test & Pay After</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
               Verify the work with our digital checklist. Pay via UPI or Cash only after 100% satisfaction.
             </p>
           </div>
@@ -264,22 +265,22 @@ export const HomePage: React.FC = () => {
 
       {/* ── 6. Partner Onboarding Callout ─────────────── */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#0E1B4D] to-slate-900 border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#0E1B4D] via-[#142563] to-[#0E1B4D] border border-blue-900 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="max-w-xl text-left">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-400 mb-2 block">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-300 mb-2 block">
               Join The Reparzo Network
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-white">
               Are you an AC, Bike, or Electrical Technician?
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 mt-2">
+            <p className="text-xs sm:text-sm text-slate-200 mt-2 leading-relaxed">
               Partner with Reparzo to get steady daily repair jobs in your neighborhood. Earn up to ₹45,000/month with zero lead commissions.
             </p>
           </div>
 
           <button
             onClick={() => setAuthModalOpen(true, 'partner')}
-            className="w-full md:w-auto px-8 py-3.5 rounded-2xl bg-[#4770DB] hover:bg-[#385cc4] text-white text-xs sm:text-sm font-bold shadow-xl shadow-[#4770DB]/30 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+            className="w-full md:w-auto px-8 py-3.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs sm:text-sm font-bold shadow-xl shadow-blue-500/30 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
           >
             Register as Service Partner ➔
           </button>

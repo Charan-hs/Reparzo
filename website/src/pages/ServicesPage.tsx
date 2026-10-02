@@ -12,7 +12,8 @@ import {
   ArrowUpDown,
   Filter,
   Check,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import type { Service, Category, CartItem } from '../types';
@@ -69,24 +70,24 @@ export const ServicesPage: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#080D1A] pb-24 text-slate-100">
+    <div className="min-h-screen bg-[#F8FAFC] pb-24 text-slate-900">
       {/* ── Page Header Strip ─────────────────────────── */}
-      <div className="bg-[#0E1B4D] border-b border-slate-800 py-6 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white border-b border-slate-200 py-6 px-4 sm:px-6 lg:px-8 shadow-xs">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#4770DB]">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                 Reparzo Verified Catalog
               </span>
-              <span className="text-slate-500">•</span>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" /> 30-Day Post-Repair Warranty
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Professional Home & Vehicle Repair
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Standardized rate cards, genuine spare parts, and zero hidden inspection charges.
             </p>
           </div>
@@ -99,7 +100,7 @@ export const ServicesPage: React.FC = () => {
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               placeholder="Filter services by name or problem..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-400 text-sm focus:border-[#4770DB] outline-none"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
             />
           </div>
         </div>
@@ -111,7 +112,7 @@ export const ServicesPage: React.FC = () => {
           
           {/* 1. Left Sticky Rail: Categories */}
           <aside className="w-full md:w-64 flex-shrink-0 md:sticky md:top-24 z-20">
-            <div className="p-3 rounded-2xl bg-[#0E1B4D]/60 border border-slate-800 backdrop-blur-md">
+            <div className="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 px-3 mb-2 block">
                 Categories
               </span>
@@ -131,14 +132,14 @@ export const ServicesPage: React.FC = () => {
                       onClick={() => setActiveCategorySlug(cat.slug)}
                       className={`py-2 px-3.5 rounded-xl text-xs font-bold text-left whitespace-nowrap md:whitespace-normal flex items-center justify-between transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#4770DB] text-white shadow-md shadow-[#4770DB]/20'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                          ? 'bg-[#2563EB] text-white shadow-md shadow-blue-500/20'
+                          : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                     >
                       <span className="truncate">{cat.title}</span>
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full font-mono ml-2 ${
-                          isSelected ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                          isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
                         }`}
                       >
                         {count}
@@ -150,33 +151,40 @@ export const ServicesPage: React.FC = () => {
             </div>
           </aside>
 
-          {/* 2. Right Content Area: Service Cards Grid */}
-          <main className="flex-1 w-full min-w-0">
+          {/* 2. Right Main Grid: Services */}
+          <main className="flex-1 w-full">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Showing {displayedServices.length} {displayedServices.length === 1 ? 'Service' : 'Services'}
-              </span>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-slate-900 capitalize">
+                  {activeCategorySlug === 'all'
+                    ? 'All Verified Services'
+                    : categories.find((c: Category) => c.slug === activeCategorySlug)?.title}
+                </h2>
+                <span className="text-xs font-mono font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  {displayedServices.length} found
+                </span>
+              </div>
             </div>
 
             {displayedServices.length === 0 ? (
-              <div className="p-12 text-center rounded-3xl bg-slate-900/60 border border-slate-800">
-                <Sparkles className="w-8 h-8 text-slate-500 mx-auto mb-3" />
-                <h4 className="text-lg font-bold text-white mb-1">No services found</h4>
-                <p className="text-xs text-slate-400 mb-4">
-                  Try clearing your search query or selecting a different category from the left.
+              <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500">
+                <Search className="w-10 h-10 mx-auto text-slate-400 mb-3" />
+                <h3 className="text-base font-bold text-slate-800">No matching services found</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  Try searching with generic terms like "ac", "water", "bike", or choose another category from the left.
                 </p>
                 <button
                   onClick={() => {
                     setSearchFilter('');
                     setActiveCategorySlug('all');
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#4770DB] text-white text-xs font-bold"
+                  className="mt-4 px-4 py-2 bg-[#2563EB] text-white text-xs font-bold rounded-xl shadow-xs"
                 >
-                  Reset Filters
+                  Clear Filters
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {displayedServices.map((service: Service) => {
                   const cartItem = cart.find((i: CartItem) => i.service.id === service.id);
                   const quantity = cartItem?.quantity || 0;
@@ -184,100 +192,104 @@ export const ServicesPage: React.FC = () => {
                   return (
                     <div
                       key={service.id}
-                      className="p-4 sm:p-5 rounded-3xl bg-slate-900/70 hover:bg-slate-900 border border-slate-800 hover:border-[#4770DB]/50 transition-all flex flex-col justify-between group shadow-sm hover:shadow-xl"
+                      className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/90 hover:border-[#2563EB]/40 transition-all flex flex-col justify-between group shadow-xs hover:shadow-xl hover:-translate-y-1"
                     >
-                      {/* Top: Image, Category Tag, Title, Duration */}
                       <div>
-                        <div className="flex gap-4 items-start">
+                        {/* Image Preview & Category Badge */}
+                        <div 
+                          onClick={() => setSelectedServiceModal(service)}
+                          className="relative h-44 rounded-2xl overflow-hidden mb-3 border border-slate-100 bg-slate-100 cursor-pointer"
+                        >
                           <img
                             src={service.image}
                             alt={service.title}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border border-slate-700/80 group-hover:scale-105 transition-transform flex-shrink-0 cursor-pointer"
-                            onClick={() => setSelectedServiceModal(service)}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#4770DB] bg-[#4770DB]/10 px-2 py-0.5 rounded border border-[#4770DB]/20">
-                                {service.categoryTitle}
-                              </span>
-                              <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-                                <Star className="w-3 h-3 fill-emerald-400" /> {service.rating}
-                              </span>
-                            </div>
-
-                            <h3
-                              onClick={() => setSelectedServiceModal(service)}
-                              className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors cursor-pointer line-clamp-1"
-                            >
-                              {service.title}
-                            </h3>
-
-                            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3.5 h-3.5 text-cyan-400" /> {service.durationMinutes} mins
-                              </span>
-                              <span>•</span>
-                              <span className="text-emerald-400 font-medium">
-                                {service.warrantyDays}-day warranty
-                              </span>
-                            </div>
+                          <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase text-[#2563EB] border border-slate-200 shadow-xs">
+                            {service.categoryTitle}
+                          </div>
+                          <div className="absolute bottom-2.5 left-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-[10px] font-bold text-white flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-cyan-400" /> {service.durationMinutes} mins
                           </div>
                         </div>
 
-                        {/* Bullet Highlights */}
+                        {/* Rating Row */}
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                            <span className="text-xs font-bold text-amber-700">{service.rating}</span>
+                          </div>
+                          <span className="text-[11px] text-slate-400">
+                            ({service.reviewsCount} reviews)
+                          </span>
+                        </div>
+
+                        {/* Title & Description */}
+                        <h3 
+                          onClick={() => setSelectedServiceModal(service)}
+                          className="text-base font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors line-clamp-1 cursor-pointer"
+                        >
+                          {service.title}
+                        </h3>
+
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                          {service.description}
+                        </p>
+
+                        {/* Service Highlights / Bullet points */}
                         <div className="mt-3 space-y-1">
-                          {service.inclusions.slice(0, 2).map((inc: string, i: number) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-slate-300">
-                              <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                              <span className="truncate">{inc}</span>
+                          {(service.inclusions || []).slice(0, 2).map((feat: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-1.5 text-[11px] text-slate-600">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                              <span className="truncate">{feat}</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Bottom Row: Price & Blinkit Add Counter */}
-                      <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between">
+                      {/* Footer: Price & Add to Cart Counter */}
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                         <div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-xl font-mono font-black text-white">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-lg font-mono font-black text-slate-900">
                               ₹{service.price}
                             </span>
                             <span className="text-xs font-mono text-slate-400 line-through">
                               ₹{service.originalPrice}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
-                            Save ₹{service.originalPrice - service.price}
+                          <span className="text-[10px] font-bold text-emerald-600 block">
+                            30-Day Warranty
                           </span>
                         </div>
 
-                        {/* Blinkit Quick Add Button */}
+                        {/* Blinkit Quick Add Button / Counter */}
                         <div>
                           {quantity === 0 ? (
                             <button
                               onClick={() => addToCart(service)}
-                              className="px-5 py-2 rounded-xl bg-[#4770DB] hover:bg-[#385cc4] text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-[#4770DB]/20 active:scale-90 transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/40 font-extrabold text-xs uppercase tracking-wider active:scale-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>Add</span>
                             </button>
                           ) : (
-                            <div className="flex items-center bg-[#0E1B4D] border-2 border-[#4770DB] rounded-xl overflow-hidden shadow-lg shadow-[#4770DB]/20">
+                            <div className="flex items-center bg-[#2563EB] border border-[#2563EB] rounded-xl overflow-hidden shadow-sm">
                               <button
                                 onClick={() => updateQuantity(service.id, quantity - 1)}
-                                className="p-2 hover:bg-slate-800 text-white active:scale-90 transition-transform cursor-pointer"
-                                aria-label="Decrease quantity"
+                                className="p-1.5 hover:bg-blue-700 text-white active:scale-90 transition-transform cursor-pointer"
+                                aria-label="Decrease"
                               >
                                 <Minus className="w-3.5 h-3.5" />
                               </button>
-                              <span className="px-3 text-xs font-mono font-black text-white">
+                              <span className="px-2 text-xs font-mono font-bold text-white">
                                 {quantity}
                               </span>
                               <button
                                 onClick={() => updateQuantity(service.id, quantity + 1)}
-                                className="p-2 hover:bg-slate-800 text-white active:scale-90 transition-transform cursor-pointer"
-                                aria-label="Increase quantity"
+                                className="p-1.5 hover:bg-blue-700 text-white active:scale-90 transition-transform cursor-pointer"
+                                aria-label="Increase"
                               >
                                 <Plus className="w-3.5 h-3.5" />
                               </button>
@@ -294,11 +306,11 @@ export const ServicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Detail Modal (When user taps service) ─────── */}
+      {/* ── Detailed Service Inspection Modal ─────────── */}
       {selectedServiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-lg bg-[#0E1B4D] rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[90dvh]">
-            <div className="relative h-48 sm:h-56">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden text-slate-900">
+            <div className="relative h-56 sm:h-64">
               <img
                 src={selectedServiceModal.image}
                 alt={selectedServiceModal.title}
@@ -306,81 +318,74 @@ export const ServicesPage: React.FC = () => {
               />
               <button
                 onClick={() => setSelectedServiceModal(null)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black/90 transition-colors"
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
-              <div className="absolute bottom-3 left-3 bg-[#080D1A]/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white border border-white/20">
+              <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-[#2563EB] border border-slate-200">
                 {selectedServiceModal.categoryTitle}
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 flex-1">
-              <div>
-                <h3 className="text-xl font-bold text-white">{selectedServiceModal.title}</h3>
-                <div className="flex items-center gap-3 text-xs text-slate-300 mt-1">
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-emerald-400" /> {selectedServiceModal.rating} ({selectedServiceModal.reviewsCount} reviews)
-                  </span>
-                  <span>•</span>
-                  <span>{selectedServiceModal.durationMinutes} mins service time</span>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                  <span className="text-sm font-bold text-slate-900">{selectedServiceModal.rating}</span>
+                  <span className="text-xs text-slate-400">({selectedServiceModal.reviewsCount} verified customer reviews)</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-slate-500">
+                  <Clock className="w-3.5 h-3.5 text-blue-500" />
+                  <span>{selectedServiceModal.durationMinutes} mins</span>
                 </div>
               </div>
 
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <h2 className="text-xl font-black text-slate-900 mb-2">
+                {selectedServiceModal.title}
+              </h2>
+
+              <p className="text-xs sm:text-sm text-slate-600 mb-4 leading-relaxed">
                 {selectedServiceModal.description}
               </p>
 
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  What is included in this repair:
+              <div className="space-y-2 mb-6">
+                <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                  What is included:
                 </h4>
-                <div className="space-y-2">
-                  {selectedServiceModal.inclusions.map((item: string, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-200">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
+                {(selectedServiceModal.inclusions || []).map((feat: string, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>{feat}</span>
+                  </div>
+                ))}
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                  <div>
-                    <span className="text-xs font-bold text-white block">
-                      Reparzo 30-Day Guarantee
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-mono font-black text-slate-900">
+                      ₹{selectedServiceModal.price}
                     </span>
-                    <span className="text-[11px] text-slate-400">
-                      Free rework if any issue persists within 30 days
+                    <span className="text-sm font-mono text-slate-400 line-through">
+                      ₹{selectedServiceModal.originalPrice}
                     </span>
                   </div>
+                  <span className="text-xs font-bold text-emerald-600">
+                    30-Day Free Rework Warranty Included
+                  </span>
                 </div>
-              </div>
-            </div>
 
-            {/* Modal Bottom CTA */}
-            <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between">
-              <div>
-                <span className="text-2xl font-mono font-black text-white">
-                  ₹{selectedServiceModal.price}
-                </span>
-                <span className="text-xs font-mono text-slate-400 line-through ml-2">
-                  ₹{selectedServiceModal.originalPrice}
-                </span>
+                <button
+                  onClick={() => {
+                    addToCart(selectedServiceModal);
+                    setSelectedServiceModal(null);
+                    setCartDrawerOpen(true);
+                  }}
+                  className="px-6 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+                >
+                  Book Service Now
+                </button>
               </div>
-
-              <button
-                onClick={() => {
-                  addToCart(selectedServiceModal);
-                  setSelectedServiceModal(null);
-                  setCartDrawerOpen(true);
-                }}
-                className="px-6 py-3 rounded-full bg-[#4770DB] hover:bg-[#385cc4] text-white text-xs font-bold active:scale-95 transition-all shadow-lg shadow-[#4770DB]/20"
-              >
-                Add to Cart & View
-              </button>
             </div>
           </div>
         </div>

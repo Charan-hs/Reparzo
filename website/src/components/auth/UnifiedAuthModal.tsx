@@ -115,46 +115,46 @@ export const UnifiedAuthModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-          className="w-full max-w-md bg-[#0E1B4D] rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col relative"
+          className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col relative text-slate-900"
         >
           {/* Close button */}
           <button
             onClick={() => setAuthModalOpen(false)}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-900/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Modal Header & Brand */}
-          <div className="p-6 pb-4 border-b border-slate-800 bg-gradient-to-b from-[#152355] to-transparent">
+          <div className="p-6 pb-4 border-b border-slate-100 bg-slate-50">
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#4770DB] animate-pulse"></span>
-              <span className="text-xs uppercase font-extrabold tracking-widest text-[#4770DB]">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-pulse"></span>
+              <span className="text-xs uppercase font-extrabold tracking-widest text-[#2563EB]">
                 Unified Reparzo Access
               </span>
             </div>
-            <h3 className="text-2xl font-extrabold text-white">
+            <h3 className="text-2xl font-extrabold text-slate-900">
               {step === 'phone' ? 'Sign In or Register' : 'Verify Mobile OTP'}
             </h3>
-            <p className="text-xs text-slate-300 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Select your role to access customized portal features
             </p>
 
             {/* 3-Role Switcher Tabs */}
-            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-950/80 border border-slate-800 mt-4">
+            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200 mt-4">
               <button
                 type="button"
                 onClick={() => setSelectedRole('user')}
-                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   selectedRole === 'user'
-                    ? 'bg-[#4770DB] text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#2563EB] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
@@ -163,10 +163,10 @@ export const UnifiedAuthModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedRole('partner')}
-                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   selectedRole === 'partner'
-                    ? 'bg-[#4770DB] text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#2563EB] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Wrench className="w-3.5 h-3.5" />
@@ -175,10 +175,10 @@ export const UnifiedAuthModal: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedRole('admin')}
-                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   selectedRole === 'admin'
-                    ? 'bg-[#E32402] text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-[#E32402] text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Shield className="w-3.5 h-3.5" />
@@ -188,11 +188,11 @@ export const UnifiedAuthModal: React.FC = () => {
           </div>
 
           {/* Modal Body */}
-          <div className="p-6 space-y-5">
+          <div className="p-6 space-y-5 bg-white">
             {/* Role Purpose Callout */}
-            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-start gap-2.5">
-              <Sparkles className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-slate-300 leading-relaxed">
+            <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-slate-600 leading-relaxed">
                 {selectedRole === 'user' &&
                   'Book verified doorstep technicians in 60-90 mins with transparent pricing and 30-day warranty.'}
                 {selectedRole === 'partner' &&
@@ -209,7 +209,7 @@ export const UnifiedAuthModal: React.FC = () => {
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-md cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-xs cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path
@@ -234,21 +234,21 @@ export const UnifiedAuthModal: React.FC = () => {
 
                 {/* Divider */}
                 <div className="flex items-center gap-3">
-                  <div className="h-px bg-slate-800 flex-1"></div>
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                  <div className="h-px bg-slate-200 flex-1"></div>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                     OR PHONE OTP
                   </span>
-                  <div className="h-px bg-slate-800 flex-1"></div>
+                  <div className="h-px bg-slate-200 flex-1"></div>
                 </div>
 
                 {/* Mobile Input Form */}
                 <form onSubmit={handleSendOtp} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
                       Enter Mobile Number
                     </label>
-                    <div className="flex items-center rounded-2xl bg-slate-900 border border-slate-700/80 focus-within:border-[#4770DB] focus-within:ring-2 focus-within:ring-[#4770DB]/20 overflow-hidden transition-all">
-                      <div className="px-3.5 py-3.5 bg-slate-800/80 border-r border-slate-700/80 text-white font-mono font-bold text-sm flex items-center gap-1.5">
+                    <div className="flex items-center rounded-2xl bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/20 overflow-hidden transition-all">
+                      <div className="px-3.5 py-3.5 bg-slate-100 border-r border-slate-200 text-slate-800 font-mono font-bold text-sm flex items-center gap-1.5">
                         <span>🇮🇳</span>
                         <span>+91</span>
                       </div>
@@ -258,7 +258,7 @@ export const UnifiedAuthModal: React.FC = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                         placeholder="98765 43210"
-                        className="flex-1 px-4 py-3.5 bg-transparent text-white placeholder-slate-500 font-mono text-base outline-none"
+                        className="flex-1 px-4 py-3.5 bg-transparent text-slate-900 placeholder-slate-400 font-mono text-base outline-none"
                       />
                     </div>
                   </div>
@@ -266,7 +266,7 @@ export const UnifiedAuthModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading || phone.length < 10}
-                    className="w-full py-3.5 rounded-2xl bg-[#4770DB] hover:bg-[#395ec4] disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-[#4770DB]/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
+                    className="w-full py-3.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                   >
                     <span>{isLoading ? 'Sending Code...' : 'Get 6-Digit OTP'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -277,16 +277,16 @@ export const UnifiedAuthModal: React.FC = () => {
               /* OTP Verification Step */
               <div className="space-y-5">
                 <div className="text-center">
-                  <p className="text-xs text-slate-300">
+                  <p className="text-xs text-slate-500">
                     Enter the 6-digit verification code sent to
                   </p>
                   <div className="flex items-center justify-center gap-2 mt-1">
-                    <span className="font-mono font-bold text-white text-sm">
+                    <span className="font-mono font-bold text-slate-900 text-sm">
                       +91 {phone}
                     </span>
                     <button
                       onClick={() => setStep('phone')}
-                      className="text-xs text-[#4770DB] hover:underline"
+                      className="text-xs text-[#2563EB] hover:underline cursor-pointer"
                     >
                       Change
                     </button>
@@ -308,7 +308,7 @@ export const UnifiedAuthModal: React.FC = () => {
                           document.getElementById(`otp-box-${idx - 1}`)?.focus();
                         }
                       }}
-                      className="w-12 h-14 rounded-2xl bg-slate-900 border border-slate-700 text-center font-mono text-xl font-bold text-white focus:border-[#4770DB] focus:ring-2 focus:ring-[#4770DB]/30 outline-none transition-all"
+                      className="w-12 h-14 rounded-2xl bg-slate-50 border border-slate-200 text-center font-mono text-xl font-bold text-slate-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 outline-none transition-all"
                     />
                   ))}
                 </div>
@@ -318,19 +318,19 @@ export const UnifiedAuthModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSimulateAutoFill}
-                    className="text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1"
+                    className="text-[#2563EB] hover:text-[#1d4ed8] font-medium flex items-center gap-1 cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Auto-fill OTP (Demo)</span>
                   </button>
 
-                  <span className="text-slate-400">
+                  <span className="text-slate-500">
                     {timer > 0 ? (
                       `Resend code in ${timer}s`
                     ) : (
                       <button
                         onClick={handleSendOtp}
-                        className="text-[#4770DB] font-bold hover:underline"
+                        className="text-[#2563EB] font-bold hover:underline cursor-pointer"
                       >
                         Resend OTP
                       </button>
@@ -342,7 +342,7 @@ export const UnifiedAuthModal: React.FC = () => {
                   type="button"
                   onClick={handleVerifyOtp}
                   disabled={isLoading || otp.join('').length < 6}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#4770DB] to-blue-600 hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-[#4770DB]/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer"
                 >
                   <span>{isLoading ? 'Verifying...' : `Login as ${selectedRole.toUpperCase()}`}</span>
                   <CheckCircle2 className="w-4 h-4" />
@@ -352,8 +352,8 @@ export const UnifiedAuthModal: React.FC = () => {
           </div>
 
           {/* Footer Guarantee */}
-          <div className="p-4 border-t border-slate-800/80 bg-slate-950/60 text-center flex items-center justify-center gap-2 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="p-4 border-t border-slate-100 bg-slate-50 text-center flex items-center justify-center gap-2 text-xs text-slate-500">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>256-bit encrypted secure session powered by Cloudflare Workers</span>
           </div>
         </motion.div>
