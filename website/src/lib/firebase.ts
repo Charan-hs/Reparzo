@@ -74,21 +74,27 @@ export function formatToE164(rawPhone: string): string {
 /**
  * Setup RecaptchaVerifier for Web Phone Authentication
  * Follows official guide: https://firebase.google.com/docs/auth/web/phone-auth
+ * Prevents "reCAPTCHA has already been rendered in this element" errors.
  */
 export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier {
   if (typeof window === 'undefined') {
     throw new Error('Recaptcha must be initialized in browser');
   }
 
-  // Clear existing verifier if any to prevent "Recaptcha has already been rendered"
+  // 1. If an existing verifier is already initialized and valid, reuse it
   if ((window as any).recaptchaVerifier) {
-    try {
-      (window as any).recaptchaVerifier.clear();
-      (window as any).recaptchaVerifier = null;
-    } catch (_) {}
+    return (window as any).recaptchaVerifier;
   }
 
-  const container = document.getElementById(containerId) || document.body;
+  // 2. Ensure container exists in DOM and clean any stale widget nodes
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    document.body.appendChild(container);
+  } else {
+    container.innerHTML = '';
+  }
 
   const verifier = new RecaptchaVerifier(auth, container, {
     size: 'invisible',
@@ -96,7 +102,6 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       // reCAPTCHA solved - will proceed with phone auth
     },
     'expired-callback': () => {
-      // Response expired. Ask user to solve reCAPTCHA again.
       resetRecaptcha();
     }
   });
@@ -106,14 +111,20 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
 }
 
 /**
- * Reset active reCAPTCHA verifier
+ * Reset active reCAPTCHA verifier and clean container DOM
  */
 export function resetRecaptcha(): void {
-  if (typeof window !== 'undefined' && (window as any).recaptchaVerifier) {
-    try {
-      (window as any).recaptchaVerifier.clear();
+  if (typeof window !== 'undefined') {
+    if ((window as any).recaptchaVerifier) {
+      try {
+        (window as any).recaptchaVerifier.clear();
+      } catch (_) {}
       (window as any).recaptchaVerifier = null;
-    } catch (_) {}
+    }
+    const container = document.getElementById('recaptcha-container');
+    if (container) {
+      container.innerHTML = '';
+    }
   }
 }
 

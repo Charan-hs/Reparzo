@@ -92,20 +92,26 @@ export const UnifiedAuthModal: React.FC = () => {
       } catch (err: any) {
         console.warn('Firebase Phone Auth:', err);
         resetRecaptcha();
-        if (err?.code === 'auth/invalid-phone-number') {
-          toast.error('Invalid mobile number. Please check and try again.');
-          setIsLoading(false);
+        setIsLoading(false);
+
+        if (err?.code === 'auth/operation-not-allowed') {
+          toast.error(
+            'SMS Region Policy: Please enable India (+91) in Firebase Console > Authentication > Settings > SMS region policy.',
+            { duration: 8000 }
+          );
+          return;
+        } else if (err?.code === 'auth/invalid-phone-number') {
+          toast.error('Invalid mobile number. Please enter a valid 10-digit phone number.');
           return;
         } else if (err?.code === 'auth/too-many-requests') {
-          toast.error('SMS limit reached. Please wait a few minutes before trying again.');
-          setIsLoading(false);
+          toast.error('SMS limit reached. Please wait a few minutes or sign in with Google.');
+          return;
+        } else if (err?.code === 'auth/quota-exceeded') {
+          toast.error('SMS quota exceeded for this Firebase project.');
           return;
         }
-        
-        // Fallback if Phone provider not enabled in Firebase console yet
-        setStep('otp');
-        setTimer(60);
-        toast.info('Verification code sent to your phone.');
+
+        toast.error(err?.message || 'Failed to send SMS code. Please try again.');
       } finally {
         setIsLoading(false);
       }
