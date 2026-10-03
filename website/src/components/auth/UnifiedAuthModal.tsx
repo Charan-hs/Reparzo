@@ -82,7 +82,7 @@ export const UnifiedAuthModal: React.FC = () => {
 
     if (isPhone) {
       try {
-        const verifier = setupRecaptcha('recaptcha-container');
+        const verifier = await setupRecaptcha('recaptcha-container');
         const digits = identifier.replace(/\D/g, '');
         const confirmation = await sendPhoneOtp(digits, verifier);
         setConfirmationResult(confirmation);
@@ -90,11 +90,17 @@ export const UnifiedAuthModal: React.FC = () => {
         setTimer(60);
         toast.success(`Verification code sent via SMS to +91 ${digits}`);
       } catch (err: any) {
-        console.warn('Firebase Phone Auth:', err);
+        console.warn('Firebase Phone Auth error:', err);
         resetRecaptcha();
         setIsLoading(false);
 
-        if (err?.code === 'auth/billing-not-enabled') {
+        if (err?.code === 'auth/invalid-app-credential' || err?.code === 'auth/unauthorized-domain') {
+          toast.error(
+            `Domain Unauthorized: Please add "${window.location.hostname}" in Firebase Console > Authentication > Settings > Authorized Domains.`,
+            { duration: 10000 }
+          );
+          return;
+        } else if (err?.code === 'auth/billing-not-enabled') {
           toast.error(
             'Firebase Billing Required: Real SMS delivery requires the Blaze plan. For testing, add this number to "Phone numbers for testing" in Firebase Console.',
             { duration: 9000 }

@@ -76,17 +76,20 @@ export function formatToE164(rawPhone: string): string {
  * Follows official guide: https://firebase.google.com/docs/auth/web/phone-auth
  * Prevents "reCAPTCHA has already been rendered in this element" errors.
  */
-export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier {
+export async function setupRecaptcha(containerId: string = 'recaptcha-container'): Promise<RecaptchaVerifier> {
   if (typeof window === 'undefined') {
     throw new Error('Recaptcha must be initialized in browser');
   }
 
-  // 1. If an existing verifier is already initialized and valid, reuse it
+  // 1. Clear any existing verifier to prevent stale widget state (same pattern as Zetlod & Mallige)
   if ((window as any).recaptchaVerifier) {
-    return (window as any).recaptchaVerifier;
+    try {
+      (window as any).recaptchaVerifier.clear();
+    } catch (_) {}
+    (window as any).recaptchaVerifier = null;
   }
 
-  // 2. Ensure container exists in DOM and clean any stale widget nodes
+  // 2. Ensure container exists in DOM
   let container = document.getElementById(containerId);
   if (!container) {
     container = document.createElement('div');
@@ -96,7 +99,8 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
     container.innerHTML = '';
   }
 
-  const verifier = new RecaptchaVerifier(auth, container, {
+  // 3. Initialize with the container ID string as per Firebase spec & Zetlod reference
+  const verifier = new RecaptchaVerifier(auth, containerId, {
     size: 'invisible',
     callback: () => {
       // reCAPTCHA solved - will proceed with phone auth
@@ -105,6 +109,9 @@ export function setupRecaptcha(containerId: string = 'recaptcha-container'): Rec
       resetRecaptcha();
     }
   });
+
+  // 4. Explicitly render the verifier before sending OTP
+  await verifier.render();
 
   (window as any).recaptchaVerifier = verifier;
   return verifier;
