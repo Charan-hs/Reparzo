@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
-import { NotFoundError } from '../utils/AppError';
+import { NotFoundError, BadRequestError } from '../utils/AppError';
 import { successResponse } from '../utils/response';
 
 export const mediaRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -14,6 +14,67 @@ const MIME_TYPES: Record<string, string> = {
   gif: 'image/gif',
   avif: 'image/avif',
 };
+
+// POST /api/media/upload - Upload and store an image in Cloudflare R2
+mediaRoutes.post('/upload', async (c) => {
+  if (!c.env.MEDIA) {
+    throw new NotFoundError('Media storage (Cloudflare R2) is not bound to this Worker environment.');
+  }
+
+  const contentTypeHeader = c.req.header('content-type') || '';
+  let filename = '';
+  let buffer: ArrayBuffer;
+  let mimeType = 'image/webp';
+
+  if (contentTypeHeader.includes('multipart/form-data')) {
+    const formData = await c.req.formData();
+    const file = formData.get('file') as File | null;
+    if (!file) {
+      throw new BadRequestError('No file provided in form-data.');
+    }
+    filename = (formData.get('filename') as string) || file.name || `banner-${Date.now()}.webp`;
+    mimeType = file.type || 'image/webp';
+    buffer = await file.arrayBuffer();
+  } else {
+    // Direct binary stream/body
+    buffer = await c.req.arrayBuffer();
+    if (!buffer || buffer.byteLength === 0) {
+      throw new BadRequestError('Upload payload is empty.');
+    }
+    filename = c.req.header('x-filename') || `banner-${Date.now()}.webp`;
+    mimeType = contentTypeHeader || 'image/webp';
+  }
+
+  // Clean filename: remove unsafe chars, enforce clean extension
+  let cleanName = filename.toLowerCase().replace(/[^a-z0-9.-]/g, '-').replace(/-+/g, '-');
+  if (!cleanName.endsWith('.webp') && mimeType.includes('webp')) {
+    cleanName = cleanName.replace(/\.[^/.]+$/, '') + '.webp';
+  }
+
+  const key = `banners/${Date.now()}-${cleanName}`;
+
+  await c.env.MEDIA.put(key, buffer, {
+    httpMetadata: {
+      contentType: mimeType,
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+  });
+
+  return c.json(
+    successResponse(
+      {
+        key,
+        url: `/api/media/${key}`,
+        size: buffer.byteLength,
+        contentType: mimeType,
+      },
+      {
+        timestamp: Date.now(),
+      }
+    ),
+    201
+  );
+});
 
 // GET /api/media/list - List stored assets in R2
 mediaRoutes.get('/list', async (c) => {

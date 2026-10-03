@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
 import type { Category, SubCategory } from '../../types';
+import { ImageUploader, AVAILABLE_BANNERS } from './ImageUploader';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Wind,
@@ -39,16 +40,6 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 const AVAILABLE_ICONS = ['Wind', 'Bike', 'Truck', 'Zap', 'Droplet', 'Sparkles', 'Shirt', 'Waves', 'Wrench'];
-
-const AVAILABLE_BANNERS = [
-  { label: 'AC Service Banner', url: '/banners/ac-service.jpg' },
-  { label: 'Bike Periodic Service', url: '/banners/bike-service.jpg' },
-  { label: 'Home Shifting & Movers', url: '/banners/home-shifting.jpg' },
-  { label: 'Electrical & Wiring', url: '/banners/electrical-service.jpg' },
-  { label: 'Promotional Banner 1', url: '/banners/banner-1.png' },
-  { label: 'Promotional Banner 2', url: '/banners/banner-2.png' },
-  { label: 'Promotional Banner 3', url: '/banners/banner-3.png' },
-];
 
 const GRADIENTS = [
   { label: 'Blue to Cyan', value: 'from-blue-600 to-cyan-500' },
@@ -760,28 +751,12 @@ export const CategoryManagerModal: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Banner Image Selection */}
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
-                    <div className="flex gap-2 items-center">
-                      <select
-                        value={subImage}
-                        onChange={(e) => setSubImage(e.target.value)}
-                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
-                      >
-                        {AVAILABLE_BANNERS.map((b) => (
-                          <option key={b.url} value={b.url}>{b.label} ({b.url})</option>
-                        ))}
-                      </select>
-                      {subImage && (
-                        <img
-                          src={subImage}
-                          alt="preview"
-                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  <ImageUploader
+                    value={subImage}
+                    onChange={setSubImage}
+                    label="Subcategory Image (Cloudflare R2)"
+                  />
 
                   <div>
                     <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
@@ -924,28 +899,12 @@ export const CategoryManagerModal: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Banner Image Selection */}
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
-                    <div className="flex gap-2 items-center">
-                      <select
-                        value={editingSubCategory.image || AVAILABLE_BANNERS[0].url}
-                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, image: e.target.value })}
-                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
-                      >
-                        {AVAILABLE_BANNERS.map((b) => (
-                          <option key={b.url} value={b.url}>{b.label} ({b.url})</option>
-                        ))}
-                      </select>
-                      {editingSubCategory.image && (
-                        <img
-                          src={editingSubCategory.image}
-                          alt="preview"
-                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  <ImageUploader
+                    value={editingSubCategory.image || AVAILABLE_BANNERS[0].url}
+                    onChange={(url) => setEditingSubCategory({ ...editingSubCategory, image: url })}
+                    label="Subcategory Image (Cloudflare R2)"
+                  />
 
                   <div>
                     <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
@@ -1067,27 +1026,12 @@ export const CategoryManagerModal: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
-                    <div className="flex gap-2 items-center">
-                      <select
-                        value={newCatImage}
-                        onChange={(e) => setNewCatImage(e.target.value)}
-                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
-                      >
-                        {AVAILABLE_BANNERS.map((b) => (
-                          <option key={b.url} value={b.url}>{b.label}</option>
-                        ))}
-                      </select>
-                      {newCatImage && (
-                        <img
-                          src={newCatImage}
-                          alt="preview"
-                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  <ImageUploader
+                    value={newCatImage}
+                    onChange={setNewCatImage}
+                    label="Category Banner (Cloudflare R2)"
+                  />
 
                   <div>
                     <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
@@ -1185,27 +1129,12 @@ export const CategoryManagerModal: React.FC = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
-                    <div className="flex gap-2 items-center">
-                      <select
-                        value={editingCategory.image || AVAILABLE_BANNERS[0].url}
-                        onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
-                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
-                      >
-                        {AVAILABLE_BANNERS.map((b) => (
-                          <option key={b.url} value={b.url}>{b.label}</option>
-                        ))}
-                      </select>
-                      {editingCategory.image && (
-                        <img
-                          src={editingCategory.image}
-                          alt="preview"
-                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
-                        />
-                      )}
-                    </div>
-                  </div>
+                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  <ImageUploader
+                    value={editingCategory.image || AVAILABLE_BANNERS[0].url}
+                    onChange={(url) => setEditingCategory({ ...editingCategory, image: url })}
+                    label="Category Banner (Cloudflare R2)"
+                  />
 
                   <div>
                     <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
