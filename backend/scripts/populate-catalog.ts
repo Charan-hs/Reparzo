@@ -38,7 +38,7 @@ function generateCatalogSql(): string {
 
   for (const cat of INITIAL_CATEGORIES) {
     lines.push(
-      `INSERT OR REPLACE INTO categories (id, slug, title, icon_name, description, badge, bg_gradient, is_active, display_order, created_at, updated_at) VALUES (` +
+      `INSERT INTO categories (id, slug, title, icon_name, description, badge, bg_gradient, is_active, display_order, created_at, updated_at) VALUES (` +
       `${escapeSql(cat.id)}, ` +
       `${escapeSql(cat.slug)}, ` +
       `${escapeSql(cat.title)}, ` +
@@ -50,7 +50,16 @@ function generateCatalogSql(): string {
       `${cat.order || 0}, ` +
       `strftime('%s', 'now'), ` +
       `strftime('%s', 'now')` +
-      `);`
+      `) ON CONFLICT(id) DO UPDATE SET ` +
+      `slug = excluded.slug, ` +
+      `title = excluded.title, ` +
+      `icon_name = excluded.icon_name, ` +
+      `description = excluded.description, ` +
+      `badge = excluded.badge, ` +
+      `bg_gradient = excluded.bg_gradient, ` +
+      `is_active = excluded.is_active, ` +
+      `display_order = excluded.display_order, ` +
+      `updated_at = strftime('%s', 'now');`
     );
   }
 
@@ -58,7 +67,7 @@ function generateCatalogSql(): string {
 
   for (const sub of INITIAL_SUBCATEGORIES) {
     lines.push(
-      `INSERT OR REPLACE INTO sub_categories (id, category_id, category_slug, title, slug, icon_name, description, badge, starting_price, original_price, duration_minutes, warranty_days, is_active, display_order, features, created_at, updated_at) VALUES (` +
+      `INSERT INTO sub_categories (id, category_id, category_slug, title, slug, icon_name, description, badge, starting_price, original_price, duration_minutes, warranty_days, is_active, display_order, features, created_at, updated_at) VALUES (` +
       `${escapeSql(sub.id)}, ` +
       `${escapeSql(sub.categoryId)}, ` +
       `${escapeSql(sub.categorySlug)}, ` +
@@ -76,7 +85,22 @@ function generateCatalogSql(): string {
       `${escapeSql(sub.features || [])}, ` +
       `strftime('%s', 'now'), ` +
       `strftime('%s', 'now')` +
-      `);`
+      `) ON CONFLICT(id) DO UPDATE SET ` +
+      `category_id = excluded.category_id, ` +
+      `category_slug = excluded.category_slug, ` +
+      `title = excluded.title, ` +
+      `slug = excluded.slug, ` +
+      `icon_name = excluded.icon_name, ` +
+      `description = excluded.description, ` +
+      `badge = excluded.badge, ` +
+      `starting_price = excluded.starting_price, ` +
+      `original_price = excluded.original_price, ` +
+      `duration_minutes = excluded.duration_minutes, ` +
+      `warranty_days = excluded.warranty_days, ` +
+      `is_active = excluded.is_active, ` +
+      `display_order = excluded.display_order, ` +
+      `features = excluded.features, ` +
+      `updated_at = strftime('%s', 'now');`
     );
   }
 
@@ -92,7 +116,7 @@ function generateCatalogSql(): string {
     const subId = sub?.id || null;
 
     lines.push(
-      `INSERT OR REPLACE INTO services (id, slug, title, description, category, category_id, category_slug, category_title, sub_category_id, sub_category_slug, sub_category_title, price_estimated, original_price, duration_minutes, icon, rating, reviews_count, inclusions, warranty_days, image, is_popular, is_active, metadata, created_at, updated_at) VALUES (` +
+      `INSERT INTO services (id, slug, title, description, category, category_id, category_slug, category_title, sub_category_id, sub_category_slug, sub_category_title, price_estimated, original_price, duration_minutes, icon, rating, reviews_count, inclusions, warranty_days, image, is_popular, is_active, metadata, created_at, updated_at) VALUES (` +
       `${escapeSql(srv.id)}, ` +
       `${escapeSql(srv.slug)}, ` +
       `${escapeSql(srv.title)}, ` +
@@ -118,7 +142,29 @@ function generateCatalogSql(): string {
       `${escapeSql({})}, ` +
       `strftime('%s', 'now'), ` +
       `strftime('%s', 'now')` +
-      `);`
+      `) ON CONFLICT(id) DO UPDATE SET ` +
+      `slug = excluded.slug, ` +
+      `title = excluded.title, ` +
+      `description = excluded.description, ` +
+      `category = excluded.category, ` +
+      `category_id = excluded.category_id, ` +
+      `category_slug = excluded.category_slug, ` +
+      `category_title = excluded.category_title, ` +
+      `sub_category_id = excluded.sub_category_id, ` +
+      `sub_category_slug = excluded.sub_category_slug, ` +
+      `sub_category_title = excluded.sub_category_title, ` +
+      `price_estimated = excluded.price_estimated, ` +
+      `original_price = excluded.original_price, ` +
+      `duration_minutes = excluded.duration_minutes, ` +
+      `icon = excluded.icon, ` +
+      `rating = excluded.rating, ` +
+      `reviews_count = excluded.reviews_count, ` +
+      `inclusions = excluded.inclusions, ` +
+      `warranty_days = excluded.warranty_days, ` +
+      `image = excluded.image, ` +
+      `is_popular = excluded.is_popular, ` +
+      `is_active = excluded.is_active, ` +
+      `updated_at = strftime('%s', 'now');`
     );
   }
 
@@ -184,6 +230,22 @@ function discoverImages(): ImageAsset[] {
   return assets;
 }
 
+function runWithRetry(cmd: string, maxRetries = 3, delayMs = 1500): string {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return execSync(cmd, { cwd: backendDir, env: { ...process.env, CI: 'true' }, stdio: 'pipe' }).toString();
+    } catch (err: unknown) {
+      lastErr = err;
+      if (attempt < maxRetries) {
+        console.log(`     ⚠️ Transient error on attempt ${attempt}. Retrying in ${delayMs}ms...`);
+        execSync(`sleep ${delayMs / 1000}`);
+      }
+    }
+  }
+  throw lastErr;
+}
+
 async function uploadImagesToR2(target: 'remote' | 'local' | 'both') {
   const images = discoverImages();
   console.log(`\n📸 Discovered ${images.length} images to sync with Cloudflare R2:`);
@@ -199,7 +261,7 @@ async function uploadImagesToR2(target: 'remote' | 'local' | 'both') {
       try {
         const flag = tgt === 'remote' ? '--remote' : '--local';
         const cmd = `npx wrangler r2 object put "reparzo-media/${img.relKey}" --file="${img.absPath}" --content-type="${img.mime}" ${flag}`;
-        execSync(cmd, { cwd: backendDir, stdio: 'pipe' });
+        runWithRetry(cmd, 3, 1000);
         console.log(`  ✅ [${tgt}] Uploaded: reparzo-media/${img.relKey}`);
       } catch (err: unknown) {
         console.error(`  ❌ [${tgt}] Failed uploading ${img.relKey}:`, err instanceof Error ? err.message : String(err));
@@ -223,9 +285,8 @@ async function populateDatabases(target: 'remote' | 'local' | 'both') {
     console.log(`\n🗄️  Executing seed on Cloudflare D1 [${tgt.toUpperCase()}] (database: reparzo-db)...`);
     try {
       const flag = tgt === 'remote' ? '--remote' : '--local';
-      // Set CI=true so non-interactive execution proceeds without prompt
       const cmd = `CI=true npx wrangler d1 execute reparzo-db ${flag} --file="drizzle/seed_catalog.sql"`;
-      const output = execSync(cmd, { cwd: backendDir, env: { ...process.env, CI: 'true' } }).toString();
+      const output = runWithRetry(cmd, 3, 2000);
       console.log(`  ✅ [${tgt}] D1 catalog populated successfully!`);
       const lines = output.trim().split('\n');
       console.log(`     ${lines[lines.length - 1] || 'Success'}`);
