@@ -10,7 +10,10 @@
     "deploy": "wrangler deploy",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply reparzo-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply reparzo-db --remote"
+    "db:migrate:remote": "CI=true wrangler d1 migrations apply reparzo-db --remote",
+    "db:populate": "tsx scripts/populate-catalog.ts",
+    "db:populate:local": "tsx scripts/populate-catalog.ts --local",
+    "db:populate:remote": "tsx scripts/populate-catalog.ts --remote"
   },
   "keywords": [
     "reparzo",

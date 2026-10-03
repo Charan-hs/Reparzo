@@ -17,6 +17,9 @@
     "db:generate": "npm --prefix backend run db:generate",
     "db:migrate": "npm --prefix backend run db:migrate",
     "db:migrate:remote": "npm --prefix backend run db:migrate:remote",
+    "db:populate": "npm --prefix backend run db:populate",
+    "db:populate:local": "npm --prefix backend run db:populate:local",
+    "db:populate:remote": "npm --prefix backend run db:populate:remote",
     "deploy:backend": "npm --prefix backend run deploy",
     "deploy:website": "npm --prefix website run deploy",
     "lint": "npm --prefix backend run lint && npm --prefix website run lint"
