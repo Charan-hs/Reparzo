@@ -54,27 +54,50 @@ export async function signInWithGoogle(): Promise<FirebaseUser> {
 }
 
 /**
- * Setup RecaptchaVerifier for Phone Authentication
+ * Format phone number to strict E.164 standard (e.g. +919876543210)
  */
-export function setupRecaptcha(containerId: string): RecaptchaVerifier {
+export function formatToE164(rawPhone: string): string {
+  const clean = rawPhone.trim();
+  if (clean.startsWith('+')) {
+    return `+${clean.replace(/\D/g, '')}`;
+  }
+  const digits = clean.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `+91${digits}`;
+  }
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+${digits}`;
+  }
+  return `+${digits}`;
+}
+
+/**
+ * Setup RecaptchaVerifier for Web Phone Authentication
+ * Follows official guide: https://firebase.google.com/docs/auth/web/phone-auth
+ */
+export function setupRecaptcha(containerId: string = 'recaptcha-container'): RecaptchaVerifier {
   if (typeof window === 'undefined') {
     throw new Error('Recaptcha must be initialized in browser');
   }
 
-  // Clear existing verifier if any
+  // Clear existing verifier if any to prevent "Recaptcha has already been rendered"
   if ((window as any).recaptchaVerifier) {
     try {
       (window as any).recaptchaVerifier.clear();
+      (window as any).recaptchaVerifier = null;
     } catch (_) {}
   }
 
-  const verifier = new RecaptchaVerifier(auth, containerId, {
+  const container = document.getElementById(containerId) || document.body;
+
+  const verifier = new RecaptchaVerifier(auth, container, {
     size: 'invisible',
     callback: () => {
       // reCAPTCHA solved - will proceed with phone auth
     },
     'expired-callback': () => {
-      // reCAPTCHA expired
+      // Response expired. Ask user to solve reCAPTCHA again.
+      resetRecaptcha();
     }
   });
 
@@ -83,22 +106,31 @@ export function setupRecaptcha(containerId: string): RecaptchaVerifier {
 }
 
 /**
- * Send real SMS OTP to phone number via Firebase Phone Auth
+ * Reset active reCAPTCHA verifier
+ */
+export function resetRecaptcha(): void {
+  if (typeof window !== 'undefined' && (window as any).recaptchaVerifier) {
+    try {
+      (window as any).recaptchaVerifier.clear();
+      (window as any).recaptchaVerifier = null;
+    } catch (_) {}
+  }
+}
+
+/**
+ * Send real SMS verification code to phone number via Firebase Phone Auth
+ * Returns ConfirmationResult for code confirmation
  */
 export async function sendPhoneOtp(
   rawPhone: string,
   verifier: RecaptchaVerifier
 ): Promise<ConfirmationResult> {
-  const digits = rawPhone.replace(/\D/g, '');
-  const formattedPhone = rawPhone.startsWith('+') 
-    ? rawPhone 
-    : (digits.length === 10 ? `+91${digits}` : `+${digits}`);
-
+  const formattedPhone = formatToE164(rawPhone);
   return await signInWithPhoneNumber(auth, formattedPhone, verifier);
 }
 
 /**
- * Verify 6-digit SMS OTP code
+ * Verify 6-digit SMS OTP code against Firebase ConfirmationResult
  */
 export async function verifyOtpCode(
   confirmationResult: ConfirmationResult,

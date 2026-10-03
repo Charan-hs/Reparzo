@@ -11,6 +11,7 @@ import { resolveUserByIdentifier, RecognizedAccount } from '../../lib/authConfig
 import { 
   signInWithGoogle, 
   setupRecaptcha, 
+  resetRecaptcha,
   sendPhoneOtp, 
   verifyOtpCode, 
   ConfirmationResult 
@@ -39,6 +40,8 @@ export const UnifiedAuthModal: React.FC = () => {
       setTimer(60);
       setIdentifier('');
       setConfirmationResult(null);
+    } else {
+      resetRecaptcha();
     }
   }, [isAuthModalOpen]);
 
@@ -88,6 +91,7 @@ export const UnifiedAuthModal: React.FC = () => {
         toast.success(`Verification code sent via SMS to +91 ${digits}`);
       } catch (err: any) {
         console.warn('Firebase Phone Auth:', err);
+        resetRecaptcha();
         if (err?.code === 'auth/invalid-phone-number') {
           toast.error('Invalid mobile number. Please check and try again.');
           setIsLoading(false);
@@ -194,9 +198,6 @@ export const UnifiedAuthModal: React.FC = () => {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-        {/* Invisible container for Firebase Phone Auth reCAPTCHA */}
-        <div id="recaptcha-container"></div>
-
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
