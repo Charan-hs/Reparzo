@@ -94,9 +94,15 @@ export const UnifiedAuthModal: React.FC = () => {
         resetRecaptcha();
         setIsLoading(false);
 
-        if (err?.code === 'auth/operation-not-allowed') {
+        if (err?.code === 'auth/billing-not-enabled') {
           toast.error(
-            'SMS Region Policy: Please enable India (+91) in Firebase Console > Authentication > Settings > SMS region policy.',
+            'Firebase Billing Required: Real SMS delivery requires the Blaze plan. For testing, add this number to "Phone numbers for testing" in Firebase Console.',
+            { duration: 9000 }
+          );
+          return;
+        } else if (err?.code === 'auth/operation-not-allowed') {
+          toast.error(
+            'SMS Provider / Region Policy: Enable "Phone" and India (+91) in Firebase Console > Authentication.',
             { duration: 8000 }
           );
           return;
@@ -107,7 +113,7 @@ export const UnifiedAuthModal: React.FC = () => {
           toast.error('SMS limit reached. Please wait a few minutes or sign in with Google.');
           return;
         } else if (err?.code === 'auth/quota-exceeded') {
-          toast.error('SMS quota exceeded for this Firebase project.');
+          toast.error('SMS quota exceeded for this Firebase project. Real SMS requires Blaze billing plan.');
           return;
         }
 
