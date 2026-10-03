@@ -30,11 +30,12 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export const CategorySection: React.FC = () => {
-  const { categories, setActiveCategorySlug, user, setCategoryManagerOpen } = useAppStore();
+  const { categories, setActiveCategorySlug, setActiveSubCategorySlug, user, setCategoryManagerOpen } = useAppStore();
   const navigate = useNavigate();
 
   const handleCategoryClick = (category: Category) => {
     setActiveCategorySlug(category.slug);
+    setActiveSubCategorySlug('all');
     navigate(`/services?category=${category.slug}`);
   };
 

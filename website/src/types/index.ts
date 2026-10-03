@@ -1,5 +1,23 @@
 export type UserRole = 'user' | 'partner' | 'admin';
 
+export interface SubCategory {
+  id: string;
+  categoryId: string;
+  categorySlug: string;
+  title: string;
+  slug: string;
+  iconName?: string;
+  description: string;
+  badge?: string;
+  startingPrice: number;
+  originalPrice?: number;
+  durationMinutes: number;
+  warrantyDays: number;
+  isActive: boolean;
+  order: number;
+  features?: string[];
+}
+
 export interface Category {
   id: string;
   title: string;
@@ -10,6 +28,7 @@ export interface Category {
   bgGradient: string;
   isActive: boolean;
   order: number;
+  subCategories?: SubCategory[];
 }
 
 export interface Service {
@@ -18,6 +37,8 @@ export interface Service {
   title: string;
   categorySlug: string;
   categoryTitle: string;
+  subCategorySlug?: string;
+  subCategoryTitle?: string;
   description: string;
   price: number;
   originalPrice: number;
