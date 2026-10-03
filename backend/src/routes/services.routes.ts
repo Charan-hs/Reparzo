@@ -32,13 +32,31 @@ servicesRoutes.get('/', async (c) => {
     .from(services)
     .where(and(...conditions));
 
+  function formatServiceRow(row: any) {
+    let inclusions = row.inclusions;
+    if (typeof inclusions === 'string') {
+      try {
+        inclusions = JSON.parse(inclusions);
+      } catch {
+        inclusions = [];
+      }
+    }
+    return {
+      ...row,
+      price: row.priceEstimated,
+      inclusions: inclusions || [],
+    };
+  }
+
+  const formattedRows = rows.map(formatServiceRow);
+
   return c.json(
-    successResponse(rows, {
+    successResponse(formattedRows, {
       timestamp: Date.now(),
       pagination: {
         page: 1,
-        limit: rows.length,
-        total: rows.length,
+        limit: formattedRows.length,
+        total: formattedRows.length,
       },
     })
   );
@@ -62,5 +80,20 @@ servicesRoutes.get('/:idOrSlug', async (c) => {
     throw new NotFoundError(`Service '${idOrSlug}' not found.`);
   }
 
-  return c.json(successResponse(service));
+  let inclusions = service.inclusions;
+  if (typeof inclusions === 'string') {
+    try {
+      inclusions = JSON.parse(inclusions);
+    } catch {
+      inclusions = [];
+    }
+  }
+
+  const formatted = {
+    ...service,
+    price: service.priceEstimated,
+    inclusions: inclusions || [],
+  };
+
+  return c.json(successResponse(formatted));
 });

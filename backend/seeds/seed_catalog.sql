@@ -1,6 +1,6 @@
 -- ==========================================================================
 -- REPARZO CATALOG SEED SCRIPT (Categories, Subcategories, Services)
--- Generated: 2026-10-03T16:50:36.846Z
+-- Generated: 2026-10-03T22:44:57.089Z
 -- Source: website/src/store/useAppStore.ts
 -- ==========================================================================
 

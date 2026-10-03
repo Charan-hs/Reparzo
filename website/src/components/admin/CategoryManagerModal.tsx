@@ -1,17 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
   Plus, 
   Edit2, 
   Trash2, 
-  Check, 
-  Sparkles, 
   Layers, 
-  ShieldAlert, 
   Clock, 
   ShieldCheck, 
-  IndianRupee, 
   Search, 
   ChevronLeft, 
   ChevronRight, 
@@ -21,11 +17,10 @@ import {
   Truck, 
   Zap, 
   Droplet, 
+  Sparkles, 
   Shirt, 
   Waves,
-  Eye,
-  EyeOff,
-  Tag
+  Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
@@ -45,6 +40,27 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 const AVAILABLE_ICONS = ['Wind', 'Bike', 'Truck', 'Zap', 'Droplet', 'Sparkles', 'Shirt', 'Waves', 'Wrench'];
 
+const AVAILABLE_BANNERS = [
+  { label: 'AC Service Banner', url: '/banners/ac-service.jpg' },
+  { label: 'Bike Periodic Service', url: '/banners/bike-service.jpg' },
+  { label: 'Home Shifting & Movers', url: '/banners/home-shifting.jpg' },
+  { label: 'Electrical & Wiring', url: '/banners/electrical-service.jpg' },
+  { label: 'Promotional Banner 1', url: '/banners/banner-1.png' },
+  { label: 'Promotional Banner 2', url: '/banners/banner-2.png' },
+  { label: 'Promotional Banner 3', url: '/banners/banner-3.png' },
+];
+
+const GRADIENTS = [
+  { label: 'Blue to Cyan', value: 'from-blue-600 to-cyan-500' },
+  { label: 'Indigo to Blue', value: 'from-indigo-600 to-blue-500' },
+  { label: 'Amber to Orange', value: 'from-amber-600 to-orange-500' },
+  { label: 'Amber to Yellow', value: 'from-amber-500 to-yellow-400' },
+  { label: 'Cyan to Sky', value: 'from-cyan-600 to-sky-500' },
+  { label: 'Blue to Indigo', value: 'from-blue-700 to-indigo-600' },
+  { label: 'Teal to Emerald', value: 'from-teal-600 to-emerald-500' },
+  { label: 'Sky to Blue', value: 'from-sky-600 to-blue-600' },
+];
+
 export const CategoryManagerModal: React.FC = () => {
   const { 
     isCategoryManagerOpen, 
@@ -63,24 +79,29 @@ export const CategoryManagerModal: React.FC = () => {
   const [selectedCatId, setSelectedCatId] = useState<string>(categories[0]?.id || 'cat-ac');
   const [catSearch, setCatSearch] = useState('');
   const [subSearch, setSubSearch] = useState('');
-  // Mobile tab state: 'categories' (Step 1) | 'subcategories' (Step 2)
   const [mobileTab, setMobileTab] = useState<'categories' | 'subcategories'>('categories');
 
-  // Modals & form states
+  // Category Modals & Forms
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCatTitle, setNewCatTitle] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
   const [newCatBadge, setNewCatBadge] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('Wrench');
+  const [newCatGradient, setNewCatGradient] = useState(GRADIENTS[0].value);
+  const [newCatImage, setNewCatImage] = useState(AVAILABLE_BANNERS[0].url);
 
+  // SubCategory Modals & Forms
   const [editingSubCategory, setEditingSubCategory] = useState<SubCategory | null>(null);
+  const [editSubFeatures, setEditSubFeatures] = useState('');
   const [isAddingSubCategory, setIsAddingSubCategory] = useState(false);
 
-  // SubCategory Form State
+  // SubCategory Add Form State
   const [subTitle, setSubTitle] = useState('');
   const [subDesc, setSubDesc] = useState('');
   const [subBadge, setSubBadge] = useState('');
+  const [subIcon, setSubIcon] = useState('Wrench');
+  const [subImage, setSubImage] = useState('/banners/ac-service.jpg');
   const [subStartingPrice, setSubStartingPrice] = useState<number>(499);
   const [subOriginalPrice, setSubOriginalPrice] = useState<number>(799);
   const [subDuration, setSubDuration] = useState<number>(45);
@@ -108,15 +129,19 @@ export const CategoryManagerModal: React.FC = () => {
   });
 
   // ── Category Handlers ──
-  const handleSaveCategoryEdit = (e: React.FormEvent) => {
+  const handleSaveCategoryEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCategory) return;
-    updateCategory(editingCategory.id, editingCategory);
-    toast.success(`Category "${editingCategory.title}" updated!`);
+    const ok = await updateCategory(editingCategory.id, editingCategory);
+    if (ok) {
+      toast.success(`Category "${editingCategory.title}" updated in database!`);
+    } else {
+      toast.warning(`Updated locally`);
+    }
     setEditingCategory(null);
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
+  const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatTitle.trim()) {
       toast.error('Category title is required');
@@ -124,35 +149,39 @@ export const CategoryManagerModal: React.FC = () => {
     }
 
     const slug = newCatTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    addCategory({
+    const created = await addCategory({
       title: newCatTitle.trim(),
       slug,
       iconName: newCatIcon,
       description: newCatDesc.trim() || 'Verified doorstep repair & care service.',
-      badge: newCatBadge.trim() || 'New',
-      bgGradient: 'from-blue-600 to-indigo-600',
+      badge: newCatBadge.trim() || undefined,
+      bgGradient: newCatGradient,
+      image: newCatImage,
       isActive: true,
       order: categories.length + 1,
     });
 
-    toast.success(`Category "${newCatTitle}" created!`);
+    if (created) {
+      toast.success(`Category "${newCatTitle}" created and saved to database!`);
+      setSelectedCatId(created.id);
+    }
     setNewCatTitle('');
     setNewCatDesc('');
     setNewCatBadge('');
     setIsAddingCategory(false);
   };
 
-  const handleDeleteCategory = (id: string, title: string) => {
+  const handleDeleteCategory = async (id: string, title: string) => {
     if (categories.length <= 1) {
       toast.error('At least one category is required.');
       return;
     }
-    deleteCategory(id);
+    await deleteCategory(id);
     if (selectedCatId === id) {
       const fallback = categories.find((c) => c.id !== id);
       if (fallback) setSelectedCatId(fallback.id);
     }
-    toast.info(`Category "${title}" removed.`);
+    toast.info(`Category "${title}" deleted from database.`);
   };
 
   // ── SubCategory Handlers ──
@@ -160,6 +189,8 @@ export const CategoryManagerModal: React.FC = () => {
     setSubTitle('');
     setSubDesc('');
     setSubBadge('Instant Arrival');
+    setSubIcon(currentCategory?.iconName || 'Wrench');
+    setSubImage(currentCategory?.image || AVAILABLE_BANNERS[0].url);
     setSubStartingPrice(399);
     setSubOriginalPrice(699);
     setSubDuration(45);
@@ -168,7 +199,7 @@ export const CategoryManagerModal: React.FC = () => {
     setIsAddingSubCategory(true);
   };
 
-  const handleCreateSubCategory = (e: React.FormEvent) => {
+  const handleCreateSubCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subTitle.trim() || !currentCategory) {
       toast.error('Subcategory title is required');
@@ -178,12 +209,13 @@ export const CategoryManagerModal: React.FC = () => {
     const slug = subTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const featuresList = subFeatures.split(',').map((f) => f.trim()).filter(Boolean);
 
-    addSubCategory({
+    await addSubCategory({
       categoryId: currentCategory.id,
       categorySlug: currentCategory.slug,
       title: subTitle.trim(),
       slug,
-      iconName: currentCategory.iconName,
+      iconName: subIcon,
+      image: subImage,
       description: subDesc.trim() || `Professional ${subTitle} by verified technicians with standard rate cards.`,
       badge: subBadge.trim() || 'Starts ₹' + subStartingPrice,
       startingPrice: Number(subStartingPrice) || 299,
@@ -195,25 +227,44 @@ export const CategoryManagerModal: React.FC = () => {
       features: featuresList,
     });
 
-    toast.success(`Subcategory "${subTitle}" added to ${currentCategory.title}!`);
+    toast.success(`Subcategory "${subTitle}" published to ${currentCategory.title}!`);
     setIsAddingSubCategory(false);
   };
 
   const openEditSubModal = (sub: SubCategory) => {
     setEditingSubCategory({ ...sub });
+    setEditSubFeatures(Array.isArray(sub.features) ? sub.features.join(', ') : '');
   };
 
-  const handleSaveSubCategoryEdit = (e: React.FormEvent) => {
+  const handleSaveSubCategoryEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSubCategory) return;
-    updateSubCategory(editingSubCategory.id, editingSubCategory);
-    toast.success(`Subcategory "${editingSubCategory.title}" updated!`);
+
+    const featuresList = editSubFeatures
+      ? editSubFeatures.split(',').map((f) => f.trim()).filter(Boolean)
+      : editingSubCategory.features || [];
+
+    const payload: Partial<SubCategory> = {
+      ...editingSubCategory,
+      features: featuresList,
+      startingPrice: Number(editingSubCategory.startingPrice) || 299,
+      originalPrice: editingSubCategory.originalPrice ? Number(editingSubCategory.originalPrice) : undefined,
+      durationMinutes: Number(editingSubCategory.durationMinutes) || 45,
+      warrantyDays: Number(editingSubCategory.warrantyDays) || 30,
+    };
+
+    const ok = await updateSubCategory(editingSubCategory.id, payload);
+    if (ok) {
+      toast.success(`Subcategory "${editingSubCategory.title}" updated in database!`);
+    } else {
+      toast.warning(`Updated locally`);
+    }
     setEditingSubCategory(null);
   };
 
-  const handleDeleteSubCategory = (id: string, title: string) => {
-    deleteSubCategory(id);
-    toast.info(`Subcategory "${title}" deleted.`);
+  const handleDeleteSubCategory = async (id: string, title: string) => {
+    await deleteSubCategory(id);
+    toast.info(`Subcategory "${title}" deleted from database.`);
   };
 
   return (
@@ -224,7 +275,7 @@ export const CategoryManagerModal: React.FC = () => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.98, y: 10 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full h-full md:h-[92vh] md:max-h-[860px] md:max-w-6xl bg-white rounded-none md:rounded-3xl border-0 md:border border-slate-200 shadow-2xl overflow-hidden flex flex-col text-slate-900"
+          className="w-full h-full md:h-[92vh] md:max-h-[880px] md:max-w-6xl bg-white rounded-none md:rounded-3xl border-0 md:border border-slate-200 shadow-2xl overflow-hidden flex flex-col text-slate-900"
         >
           {/* ── Top Master Header ─────────────────────────── */}
           <header className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
@@ -235,14 +286,14 @@ export const CategoryManagerModal: React.FC = () => {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
-                    Admin Category & Subcategory CMS
+                    Admin Catalog Manager (Cloudflare D1 & R2)
                   </h3>
                   <span className="hidden sm:inline-flex text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200 uppercase tracking-wider">
-                    2-Step Hierarchy
+                    Live Persistence
                   </span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-slate-500 hidden sm:block">
-                  Blinkit-style dual-rail catalog management: Click any category to inspect, reorder, and configure its subcategories in real-time.
+                  Dual-rail category & subcategory manager with instant synchronization to Reparzo D1 database.
                 </p>
               </div>
             </div>
@@ -256,7 +307,7 @@ export const CategoryManagerModal: React.FC = () => {
             </button>
           </header>
 
-          {/* ── Mobile Dual-Rail Tab Switcher (Visible only on < md screens) ── */}
+          {/* ── Mobile Dual-Rail Tab Switcher ── */}
           <div className="flex md:hidden items-center border-b border-slate-200 bg-slate-100/90 p-2 gap-2 flex-shrink-0">
             <button
               type="button"
@@ -288,12 +339,11 @@ export const CategoryManagerModal: React.FC = () => {
           <div className="flex flex-1 overflow-hidden">
             {/* ── LEFT STATIC RAIL: Categories List ───────── */}
             <aside className={`w-full md:w-72 lg:w-80 flex-shrink-0 bg-slate-50/90 border-r border-slate-200/80 flex-col h-full overflow-hidden ${mobileTab === 'categories' ? 'flex' : 'hidden md:flex'}`}>
-
               {/* Left Rail Header & Search */}
               <div className="p-3.5 border-b border-slate-200/80 space-y-2 bg-white">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                    Step 1: Categories ({categories.length})
+                    Parent Categories ({categories.length})
                   </span>
                   <button
                     onClick={() => setIsAddingCategory(true)}
@@ -311,7 +361,7 @@ export const CategoryManagerModal: React.FC = () => {
                     value={catSearch}
                     onChange={(e) => setCatSearch(e.target.value)}
                     placeholder="Search categories..."
-                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-[#2563EB] transition-colors"
+                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs text-slate-900 font-semibold placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
                   />
                 </div>
               </div>
@@ -338,7 +388,6 @@ export const CategoryManagerModal: React.FC = () => {
                           : 'hover:bg-slate-200/60 border border-transparent'
                       }`}
                     >
-                      {/* Active Left Indicator Bar */}
                       {isSelected && (
                         <motion.div
                           layoutId="activeCategoryRailPill"
@@ -407,13 +456,11 @@ export const CategoryManagerModal: React.FC = () => {
 
             {/* ── RIGHT DYNAMIC WORKSPACE: Subcategories & Variables ───────── */}
             <main className={`flex-1 flex-col h-full bg-[#F8FAFC] overflow-hidden ${mobileTab === 'subcategories' ? 'flex' : 'hidden md:flex'}`}>
-
               {currentCategory ? (
                 <>
                   {/* Category Banner Bar */}
                   <div className="p-4 sm:p-5 border-b border-slate-200/90 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                     <div>
-                      {/* Mobile Back Button to Categories */}
                       <button
                         type="button"
                         onClick={() => setMobileTab('categories')}
@@ -465,10 +512,7 @@ export const CategoryManagerModal: React.FC = () => {
                   <div className="px-6 py-3 border-b border-slate-200/80 bg-white/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-slate-800">
-                        Step 2: Subcategories ({currentSubCategories.length})
-                      </span>
-                      <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full font-medium">
-                        Shown in Blinkit-style left selector for customer
+                        Subcategories for {currentCategory.title} ({currentSubCategories.length})
                       </span>
                     </div>
 
@@ -479,12 +523,12 @@ export const CategoryManagerModal: React.FC = () => {
                         value={subSearch}
                         onChange={(e) => setSubSearch(e.target.value)}
                         placeholder="Search subcategories..."
-                        className="w-full pl-8 pr-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:border-[#2563EB]"
+                        className="w-full pl-8 pr-3 py-1 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 font-semibold placeholder-slate-400 outline-none focus:border-[#2563EB]"
                       />
                     </div>
                   </div>
 
-                  {/* Subcategories List Area with Smooth Motion */}
+                  {/* Subcategories List Area */}
                   <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
                     {currentSubCategories.length === 0 ? (
                       <div className="p-12 text-center rounded-3xl bg-white border border-dashed border-slate-300 space-y-3">
@@ -494,7 +538,7 @@ export const CategoryManagerModal: React.FC = () => {
                         <div>
                           <h4 className="text-sm font-bold text-slate-800">No subcategories created yet</h4>
                           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                            Every Blinkit-style category has dedicated subcategories for specific problems and services.
+                            Add subcategories to organize specific repair services, pricing rate cards, and inclusions.
                           </p>
                         </div>
                         <button
@@ -518,12 +562,18 @@ export const CategoryManagerModal: React.FC = () => {
                               transition={{ duration: 0.2, delay: idx * 0.03 }}
                               className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between space-y-3"
                             >
-                              {/* Sub Header & Badges */}
                               <div>
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  {sub.image && (
+                                    <img
+                                      src={sub.image}
+                                      alt={sub.title}
+                                      className="w-14 h-14 rounded-xl object-cover border border-slate-200 flex-shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5 flex-wrap">
-                                      <h4 className="text-sm font-extrabold text-slate-900">{sub.title}</h4>
+                                      <h4 className="text-sm font-extrabold text-slate-900 truncate">{sub.title}</h4>
                                       {sub.badge && (
                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
                                           {sub.badge}
@@ -537,7 +587,7 @@ export const CategoryManagerModal: React.FC = () => {
                                         {sub.isActive ? 'Active' : 'Disabled'}
                                       </span>
                                     </div>
-                                    <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
+                                    <span className="text-[10px] font-mono text-slate-400 block mt-0.5 truncate">
                                       slug: /{sub.slug}
                                     </span>
                                   </div>
@@ -560,7 +610,7 @@ export const CategoryManagerModal: React.FC = () => {
                                   </div>
                                 </div>
 
-                                <p className="text-xs text-slate-600 mt-2 line-clamp-2 leading-relaxed">
+                                <p className="text-xs text-slate-600 font-medium mt-2 line-clamp-2 leading-relaxed">
                                   {sub.description}
                                 </p>
                               </div>
@@ -571,17 +621,17 @@ export const CategoryManagerModal: React.FC = () => {
                                   <span>Starts ₹{sub.startingPrice}</span>
                                   {sub.originalPrice && sub.originalPrice > sub.startingPrice && (
                                     <span className="text-slate-400 line-through text-[10px]">
-                                      ₹{sub.originalPrice}
+                                      MRP ₹{sub.originalPrice}
                                     </span>
                                   )}
                                 </div>
 
-                                <div className="flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 text-[11px]">
+                                <div className="flex items-center gap-1 text-slate-600 font-semibold bg-slate-50 px-2 py-1 rounded-lg border border-slate-200 text-[11px]">
                                   <Clock className="w-3 h-3 text-slate-400" />
                                   <span>{sub.durationMinutes} Mins</span>
                                 </div>
 
-                                <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 text-[11px] font-semibold">
+                                <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 text-[11px] font-bold">
                                   <ShieldCheck className="w-3 h-3" />
                                   <span>{sub.warrantyDays}d Warranty</span>
                                 </div>
@@ -593,7 +643,7 @@ export const CategoryManagerModal: React.FC = () => {
                                   {sub.features.map((feat, i) => (
                                     <span
                                       key={i}
-                                      className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600"
+                                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/60"
                                     >
                                       ✓ {feat}
                                     </span>
@@ -607,457 +657,609 @@ export const CategoryManagerModal: React.FC = () => {
                     )}
                   </div>
                 </>
-              ) : (
-                <div className="flex-1 flex items-center justify-center p-8 text-center text-slate-400">
-                  Select a category from the left rail to view subcategories.
-                </div>
-              )}
+              ) : null}
             </main>
           </div>
 
-          {/* ── Footer ────────────────────────────────────── */}
-          <footer className="px-4 sm:px-6 py-3 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex items-center justify-between flex-shrink-0 gap-2">
-            <span className="flex items-center gap-1.5 text-amber-600 font-semibold text-[11px] sm:text-xs truncate">
-              <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <span className="truncate">Live changes reflect immediately on website catalog.</span>
-            </span>
-            <button
-              onClick={() => setCategoryManagerOpen(false)}
-              className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold transition-colors cursor-pointer text-xs flex-shrink-0"
-            >
-              Close CMS
-            </button>
-          </footer>
-        </motion.div>
-
-        {/* ── Modal: Add SubCategory Form ────────────────── */}
-        {isAddingSubCategory && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold">
-                    +
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">
-                      Add Subcategory to {currentCategory?.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-400">Configure all rate card variables</p>
-                  </div>
-                </div>
-                <button onClick={() => setIsAddingSubCategory(false)} className="text-slate-400 hover:text-slate-800">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateSubCategory} className="space-y-3">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Subcategory Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={subTitle}
-                    onChange={(e) => setSubTitle(e.target.value)}
-                    placeholder="e.g. Copper Brazing & Leak Seal"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
+          {/* ── Modal: Add SubCategory Form ────────────────── */}
+          {isAddingSubCategory && (
+            <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto text-slate-900"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Add Subcategory to {currentCategory?.title}
+                  </h4>
+                  <button onClick={() => setIsAddingSubCategory(false)} className="text-slate-400 hover:text-slate-800">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <form onSubmit={handleCreateSubCategory} className="space-y-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Badge Tag</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Subcategory Title *</label>
                     <input
                       type="text"
-                      value={subBadge}
-                      onChange={(e) => setSubBadge(e.target.value)}
-                      placeholder="e.g. 50% OFF Rush"
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Duration (Mins)</label>
-                    <input
-                      type="number"
-                      value={subDuration}
-                      onChange={(e) => setSubDuration(Number(e.target.value))}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Starting Price (₹) *</label>
-                    <input
-                      type="number"
                       required
-                      value={subStartingPrice}
-                      onChange={(e) => setSubStartingPrice(Number(e.target.value))}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
+                      value={subTitle}
+                      onChange={(e) => setSubTitle(e.target.value)}
+                      placeholder="e.g. Foam Jet Deep Cleaning"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-sm outline-none focus:border-[#2563EB]"
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Badge</label>
+                      <input
+                        type="text"
+                        value={subBadge}
+                        onChange={(e) => setSubBadge(e.target.value)}
+                        placeholder="e.g. 50% OFF Rush"
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Icon</label>
+                      <select
+                        value={subIcon}
+                        onChange={(e) => setSubIcon(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_ICONS.map((icon) => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Starting Price (₹) *</label>
+                      <input
+                        type="number"
+                        required
+                        value={subStartingPrice}
+                        onChange={(e) => setSubStartingPrice(Number(e.target.value))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Original Price MRP (₹)</label>
+                      <input
+                        type="number"
+                        value={subOriginalPrice}
+                        onChange={(e) => setSubOriginalPrice(Number(e.target.value))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Duration (Minutes)</label>
+                      <input
+                        type="number"
+                        value={subDuration}
+                        onChange={(e) => setSubDuration(Number(e.target.value))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Warranty (Days)</label>
+                      <input
+                        type="number"
+                        value={subWarranty}
+                        onChange={(e) => setSubWarranty(Number(e.target.value))}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Banner Image Selection */}
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Warranty Days</label>
-                    <input
-                      type="number"
-                      value={subWarranty}
-                      onChange={(e) => setSubWarranty(Number(e.target.value))}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={subImage}
+                        onChange={(e) => setSubImage(e.target.value)}
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_BANNERS.map((b) => (
+                          <option key={b.url} value={b.url}>{b.label} ({b.url})</option>
+                        ))}
+                      </select>
+                      {subImage && (
+                        <img
+                          src={subImage}
+                          alt="preview"
+                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={subDesc}
+                      onChange={(e) => setSubDesc(e.target.value)}
+                      placeholder="Short summary of work done under this subcategory..."
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs outline-none focus:border-[#2563EB]"
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={subDesc}
-                    onChange={(e) => setSubDesc(e.target.value)}
-                    placeholder="Short summary of work done under this subcategory..."
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">
-                    Features / Inclusions (Comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={subFeatures}
-                    onChange={(e) => setSubFeatures(e.target.value)}
-                    placeholder="e.g. Foam spray, Gas level check, 30d warranty"
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingSubCategory(false)}
-                    className="px-4 py-2 rounded-xl text-xs text-slate-500 hover:text-slate-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-sm"
-                  >
-                    Publish Subcategory
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-
-        {/* ── Modal: Edit SubCategory Form ───────────────── */}
-        {editingSubCategory && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-slate-900">
-                  Edit Subcategory Variables ({editingSubCategory.title})
-                </h4>
-                <button onClick={() => setEditingSubCategory(null)} className="text-slate-400 hover:text-slate-800">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveSubCategoryEdit} className="space-y-3">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingSubCategory.title}
-                    onChange={(e) => setEditingSubCategory({ ...editingSubCategory, title: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Badge</label>
-                    <input
-                      type="text"
-                      value={editingSubCategory.badge || ''}
-                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, badge: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Starting Price (₹)</label>
-                    <input
-                      type="number"
-                      value={editingSubCategory.startingPrice}
-                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, startingPrice: Number(e.target.value) })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Duration (Minutes)</label>
-                    <input
-                      type="number"
-                      value={editingSubCategory.durationMinutes}
-                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, durationMinutes: Number(e.target.value) })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Warranty (Days)</label>
-                    <input
-                      type="number"
-                      value={editingSubCategory.warrantyDays}
-                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, warrantyDays: Number(e.target.value) })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={editingSubCategory.description}
-                    onChange={(e) => setEditingSubCategory({ ...editingSubCategory, description: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-xs font-bold text-slate-700">Active Visibility on Storefront</span>
-                  <input
-                    type="checkbox"
-                    checked={editingSubCategory.isActive}
-                    onChange={(e) => setEditingSubCategory({ ...editingSubCategory, isActive: e.target.checked })}
-                    className="w-4 h-4 accent-[#2563EB] cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingSubCategory(null)}
-                    className="px-4 py-2 rounded-xl text-xs text-slate-500 hover:text-slate-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#2563EB] text-white text-xs font-bold shadow-sm"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-
-        {/* ── Modal: Add Category Form ───────────────────── */}
-        {isAddingCategory && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-slate-900">Create New Parent Category</h4>
-                <button onClick={() => setIsAddingCategory(false)} className="text-slate-400 hover:text-slate-800">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateCategory} className="space-y-3">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Category Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={newCatTitle}
-                    onChange={(e) => setNewCatTitle(e.target.value)}
-                    placeholder="e.g. Chimney & Kitchen Hood"
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Badge</label>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Features / Inclusions (Comma separated)
+                    </label>
                     <input
                       type="text"
-                      value={newCatBadge}
-                      onChange={(e) => setNewCatBadge(e.target.value)}
-                      placeholder="e.g. New Launch"
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
+                      value={subFeatures}
+                      onChange={(e) => setSubFeatures(e.target.value)}
+                      placeholder="e.g. Antimicrobial Foam, Gas check, 30-Day Warranty"
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs outline-none focus:border-[#2563EB]"
                     />
                   </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Icon</label>
-                    <select
-                      value={newCatIcon}
-                      onChange={(e) => setNewCatIcon(e.target.value)}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    >
-                      {AVAILABLE_ICONS.map((icon) => (
-                        <option key={icon} value={icon}>{icon}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={newCatDesc}
-                    onChange={(e) => setNewCatDesc(e.target.value)}
-                    placeholder="Short description of this category..."
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingCategory(false)}
-                    className="px-4 py-2 rounded-xl text-xs text-slate-500 hover:text-slate-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#2563EB] text-white text-xs font-bold shadow-sm"
-                  >
-                    Create Category
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-
-        {/* ── Modal: Edit Category Form ──────────────────── */}
-        {editingCategory && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h4 className="text-sm font-bold text-slate-900">Edit Parent Category</h4>
-                <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-slate-800">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveCategoryEdit} className="space-y-3">
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingCategory.title}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, title: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Badge</label>
-                    <input
-                      type="text"
-                      value={editingCategory.badge || ''}
-                      onChange={(e) => setEditingCategory({ ...editingCategory, badge: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600 block mb-1">Icon</label>
-                    <select
-                      value={editingCategory.iconName}
-                      onChange={(e) => setEditingCategory({ ...editingCategory, iconName: e.target.value })}
-                      className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                    >
-                      {AVAILABLE_ICONS.map((icon) => (
-                        <option key={icon} value={icon}>{icon}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Description</label>
-                  <textarea
-                    rows={2}
-                    value={editingCategory.description}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-xs font-bold text-slate-700">Active Visibility</span>
-                  <input
-                    type="checkbox"
-                    checked={editingCategory.isActive}
-                    onChange={(e) => setEditingCategory({ ...editingCategory, isActive: e.target.checked })}
-                    className="w-4 h-4 accent-[#2563EB] cursor-pointer"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleDeleteCategory(editingCategory.id, editingCategory.title);
-                      setEditingCategory(null);
-                    }}
-                    className="text-xs text-rose-600 hover:text-rose-700 font-bold"
-                  >
-                    Delete Category
-                  </button>
-
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2 pt-2">
                     <button
                       type="button"
-                      onClick={() => setEditingCategory(null)}
-                      className="px-3 py-1.5 rounded-xl text-xs text-slate-500"
+                      onClick={() => setIsAddingSubCategory(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-1.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold"
+                      className="px-5 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-sm"
                     >
-                      Save
+                      Publish Subcategory
                     </button>
                   </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+
+          {/* ── Modal: Edit SubCategory Form ───────────────── */}
+          {editingSubCategory && (
+            <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto text-slate-900"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-sm font-bold text-slate-900">
+                    Edit Subcategory ({editingSubCategory.title})
+                  </h4>
+                  <button onClick={() => setEditingSubCategory(null)} className="text-slate-400 hover:text-slate-800">
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
+
+                <form onSubmit={handleSaveSubCategoryEdit} className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingSubCategory.title}
+                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, title: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-sm outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Badge</label>
+                      <input
+                        type="text"
+                        value={editingSubCategory.badge || ''}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, badge: e.target.value })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Icon</label>
+                      <select
+                        value={editingSubCategory.iconName || 'Wrench'}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, iconName: e.target.value })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_ICONS.map((icon) => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Starting Price (₹) *</label>
+                      <input
+                        type="number"
+                        required
+                        value={editingSubCategory.startingPrice}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, startingPrice: Number(e.target.value) })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Original Price MRP (₹)</label>
+                      <input
+                        type="number"
+                        value={editingSubCategory.originalPrice || ''}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, originalPrice: e.target.value ? Number(e.target.value) : undefined })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Duration (Minutes)</label>
+                      <input
+                        type="number"
+                        value={editingSubCategory.durationMinutes}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, durationMinutes: Number(e.target.value) })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Warranty (Days)</label>
+                      <input
+                        type="number"
+                        value={editingSubCategory.warrantyDays}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, warrantyDays: Number(e.target.value) })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Banner Image Selection */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={editingSubCategory.image || AVAILABLE_BANNERS[0].url}
+                        onChange={(e) => setEditingSubCategory({ ...editingSubCategory, image: e.target.value })}
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_BANNERS.map((b) => (
+                          <option key={b.url} value={b.url}>{b.label} ({b.url})</option>
+                        ))}
+                      </select>
+                      {editingSubCategory.image && (
+                        <img
+                          src={editingSubCategory.image}
+                          alt="preview"
+                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={editingSubCategory.description}
+                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, description: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Features / Inclusions (Comma separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={editSubFeatures}
+                      onChange={(e) => setEditSubFeatures(e.target.value)}
+                      placeholder="e.g. Antimicrobial Foam, Gas check, 30-Day Warranty"
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-xs font-bold text-slate-700">Active Visibility on Storefront</span>
+                    <input
+                      type="checkbox"
+                      checked={editingSubCategory.isActive}
+                      onChange={(e) => setEditingSubCategory({ ...editingSubCategory, isActive: e.target.checked })}
+                      className="w-4 h-4 accent-[#2563EB] cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSubCategory(null)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-[#2563EB] text-white text-xs font-bold shadow-sm"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+
+          {/* ── Modal: Add Category Form ───────────────────── */}
+          {isAddingCategory && (
+            <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto text-slate-900"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-sm font-bold text-slate-900">Create Parent Category</h4>
+                  <button onClick={() => setIsAddingCategory(false)} className="text-slate-400 hover:text-slate-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateCategory} className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Category Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newCatTitle}
+                      onChange={(e) => setNewCatTitle(e.target.value)}
+                      placeholder="e.g. Chimney & Kitchen Hood"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-sm outline-none focus:border-[#2563EB]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Badge</label>
+                      <input
+                        type="text"
+                        value={newCatBadge}
+                        onChange={(e) => setNewCatBadge(e.target.value)}
+                        placeholder="e.g. New Launch"
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Icon</label>
+                      <select
+                        value={newCatIcon}
+                        onChange={(e) => setNewCatIcon(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_ICONS.map((icon) => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Theme Gradient</label>
+                    <select
+                      value={newCatGradient}
+                      onChange={(e) => setNewCatGradient(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    >
+                      {GRADIENTS.map((g) => (
+                        <option key={g.value} value={g.value}>{g.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={newCatImage}
+                        onChange={(e) => setNewCatImage(e.target.value)}
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_BANNERS.map((b) => (
+                          <option key={b.url} value={b.url}>{b.label}</option>
+                        ))}
+                      </select>
+                      {newCatImage && (
+                        <img
+                          src={newCatImage}
+                          alt="preview"
+                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={newCatDesc}
+                      onChange={(e) => setNewCatDesc(e.target.value)}
+                      placeholder="Short description of this category..."
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCategory(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 rounded-xl bg-[#2563EB] text-white text-xs font-bold shadow-sm"
+                    >
+                      Create Category
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+
+          {/* ── Modal: Edit Category Form ──────────────────── */}
+          {editingCategory && (
+            <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto text-slate-900"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-sm font-bold text-slate-900">Edit Parent Category</h4>
+                  <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-slate-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveCategoryEdit} className="space-y-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Title *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingCategory.title}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, title: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Badge</label>
+                      <input
+                        type="text"
+                        value={editingCategory.badge || ''}
+                        onChange={(e) => setEditingCategory({ ...editingCategory, badge: e.target.value })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Icon</label>
+                      <select
+                        value={editingCategory.iconName}
+                        onChange={(e) => setEditingCategory({ ...editingCategory, iconName: e.target.value })}
+                        className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_ICONS.map((icon) => (
+                          <option key={icon} value={icon}>{icon}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Theme Gradient</label>
+                    <select
+                      value={editingCategory.bgGradient}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, bgGradient: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    >
+                      {GRADIENTS.map((g) => (
+                        <option key={g.value} value={g.value}>{g.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Banner Image (Cloudflare R2)</label>
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={editingCategory.image || AVAILABLE_BANNERS[0].url}
+                        onChange={(e) => setEditingCategory({ ...editingCategory, image: e.target.value })}
+                        className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                      >
+                        {AVAILABLE_BANNERS.map((b) => (
+                          <option key={b.url} value={b.url}>{b.label}</option>
+                        ))}
+                      </select>
+                      {editingCategory.image && (
+                        <img
+                          src={editingCategory.image}
+                          alt="preview"
+                          className="w-9 h-9 rounded-lg object-cover border border-slate-200"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={editingCategory.description}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, description: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <span className="text-xs font-bold text-slate-700">Active Visibility</span>
+                    <input
+                      type="checkbox"
+                      checked={editingCategory.isActive}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, isActive: e.target.checked })}
+                      className="w-4 h-4 accent-[#2563EB] cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleDeleteCategory(editingCategory.id, editingCategory.title);
+                        setEditingCategory(null);
+                      }}
+                      className="text-xs text-rose-600 hover:text-rose-700 font-bold"
+                    >
+                      Delete Category
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCategory(null)}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-1.5 rounded-xl bg-[#2563EB] text-white text-xs font-bold"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </motion.div>
       </div>
     </AnimatePresence>
   );

@@ -20,6 +20,7 @@ export const subCategories = sqliteTable(
     originalPrice: real('original_price'),
     durationMinutes: integer('duration_minutes').default(45).notNull(),
     warrantyDays: integer('warranty_days').default(30).notNull(),
+    image: text('image'),
     isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
     order: integer('display_order').default(0).notNull(),
     features: text('features', { mode: 'json' }).$type<string[]>(),

@@ -3,1036 +3,39 @@ import { persist } from 'zustand/middleware';
 import type { Category, SubCategory, Service, CartItem, UserProfile, UserRole, LocationData, OrderBooking } from '../types';
 import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
 import { signOutFirebase } from '../lib/firebase';
+import { 
+  INITIAL_CATEGORIES, 
+  INITIAL_SUBCATEGORIES, 
+  INITIAL_SERVICES, 
+  INITIAL_ORDERS 
+} from '../data/fallbackCatalog';
 
-export const INITIAL_CATEGORIES: Category[] = [
-  {
-    id: 'cat-ac',
-    title: 'AC Services',
-    slug: 'ac-services',
-    iconName: 'Wind',
-    description: 'Jet wash service, gas recharge, cooling repair & installation',
-    badge: '50% OFF Rush',
-    bgGradient: 'from-blue-600 to-cyan-500',
-    isActive: true,
-    order: 1,
-  },
-  {
-    id: 'cat-bike',
-    title: 'Bike Service',
-    slug: 'bike-service',
-    iconName: 'Bike',
-    description: 'Doorstep 24-point checkup, engine oil change, brake tuning',
-    badge: 'Starts ₹199',
-    bgGradient: 'from-indigo-600 to-blue-500',
-    isActive: true,
-    order: 2,
-  },
-  {
-    id: 'cat-home-shift',
-    title: 'Home Shifting',
-    slug: 'home-shifting',
-    iconName: 'Truck',
-    description: 'Verified packers & movers, intra-city shifting & fragile packing',
-    badge: 'Insured Move',
-    bgGradient: 'from-amber-600 to-orange-500',
-    isActive: true,
-    order: 3,
-  },
-  {
-    id: 'cat-electrical',
-    title: 'Electrical Services',
-    slug: 'electrical-services',
-    iconName: 'Zap',
-    description: 'MCB tripping, switchboard wiring, fan & inverter installation',
-    badge: '60 Min Arrival',
-    bgGradient: 'from-amber-500 to-yellow-400',
-    isActive: true,
-    order: 4,
-  },
-  {
-    id: 'cat-plumbing',
-    title: 'Plumbing Services',
-    slug: 'plumbing-services',
-    iconName: 'Droplet',
-    description: 'Tap & pipe leaks, blockages, bathroom fitting & motor pump fix',
-    badge: 'Expert Plumber',
-    bgGradient: 'from-cyan-600 to-sky-500',
-    isActive: true,
-    order: 5,
-  },
-  {
-    id: 'cat-refrigerator',
-    title: 'Refrigerator Care',
-    slug: 'refrigerator-services',
-    iconName: 'Sparkles',
-    description: 'Single & double door cooling, gas leakage, compressor check',
-    badge: '30-Day Warranty',
-    bgGradient: 'from-blue-700 to-indigo-600',
-    isActive: true,
-    order: 6,
-  },
-  {
-    id: 'cat-washing',
-    title: 'Washing Machines',
-    slug: 'washing-machine-services',
-    iconName: 'Shirt',
-    description: 'Top & front load drum spin, water intake & motor repair',
-    badge: 'All Brands',
-    bgGradient: 'from-teal-600 to-emerald-500',
-    isActive: true,
-    order: 7,
-  },
-  {
-    id: 'cat-water-tank',
-    title: 'Water Tank Cleaning',
-    slug: 'water-tank-services',
-    iconName: 'Waves',
-    description: 'High-pressure anti-bacterial deep cleaning & sludge removal',
-    badge: 'Eco Safe',
-    bgGradient: 'from-sky-600 to-blue-600',
-    isActive: true,
-    order: 8,
-  },
-];
+// Re-export fallback constants for backwards-compatibility with scripts and types
+export { INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_SERVICES, INITIAL_ORDERS };
 
-export const INITIAL_SERVICES: Service[] = [
-  // ── 1. AC Services ──
-  {
-    id: 'srv-ac-deep',
-    slug: 'ac-foam-jet-service',
-    title: 'AC Foam Jet Deep Service',
-    categorySlug: 'ac-services',
-    categoryTitle: 'AC Services',
-    subCategorySlug: 'ac-foam-jet-service',
-    subCategoryTitle: 'AC Foam Jet Deep Cleaning',
-    description: 'Thorough 2X deeper foam & pressure jet cleaning of indoor and outdoor coils, filters and drain tray. Restores cooling & cuts electricity bill.',
-    price: 499,
-    originalPrice: 899,
-    durationMinutes: 45,
-    rating: 4.88,
-    reviewsCount: 3410,
-    inclusions: [
-      'Indoor unit jet wash & antimicrobial foam treatment',
-      'Outdoor condenser unit water pressure spray',
-      'Gas pressure level check & filter sterilization',
-      '30-day post service cooling warranty',
-    ],
-    warrantyDays: 30,
-    image: '/banners/ac-service.jpg',
-    isPopular: true,
-  },
-  {
-    id: 'srv-ac-gas',
-    slug: 'ac-gas-leak-refill',
-    title: 'AC Gas Leak Fix & Complete Refill',
-    categorySlug: 'ac-services',
-    categoryTitle: 'AC Services',
-    subCategorySlug: 'ac-gas-leak-refill',
-    subCategoryTitle: 'AC Gas Leak Fix & Complete Refill',
-    description: 'Complete nitrogen pressure leak detection, copper brazing repair, vacuum purging and precision scale gas refill (R32 / R410A).',
-    price: 1499,
-    originalPrice: 2199,
-    durationMinutes: 60,
-    rating: 4.92,
-    reviewsCount: 1840,
-    inclusions: [
-      'Nitrogen leak testing & joint tightening',
-      'Moisture vacuum flush before refill',
-      '100% pure certified refrigerant by weight',
-      '60-day gas leakage protection guarantee',
-    ],
-    warrantyDays: 60,
-    image: '/banners/ac-service.jpg',
-    isPopular: true,
-  },
-  {
-    id: 'srv-ac-install',
-    slug: 'ac-install-uninstall',
-    title: 'Split / Window AC Installation & Dismount',
-    categorySlug: 'ac-services',
-    categoryTitle: 'AC Services',
-    subCategorySlug: 'ac-install-uninstall',
-    subCategoryTitle: 'AC Installation & Uninstallation',
-    description: 'Precision wall mounting, core drill hole, copper piping layout, vibration-free stand setup and thorough cooling verification.',
-    price: 799,
-    originalPrice: 1299,
-    durationMinutes: 75,
-    rating: 4.86,
-    reviewsCount: 920,
-    inclusions: [
-      'Core drill hole & metal anchor wall mounting',
-      'Copper flare jointing with leak sealant',
-      'Drainage slope verification & wiring',
-      'Zero vibration guarantee & cooling test',
-    ],
-    warrantyDays: 30,
-    image: '/banners/ac-service.jpg',
-  },
-  {
-    id: 'srv-ac-repair',
-    slug: 'ac-repairs-diagnostics',
-    title: 'AC Breakdown & PCB Circuit Repair',
-    categorySlug: 'ac-services',
-    categoryTitle: 'AC Services',
-    subCategorySlug: 'ac-repairs-diagnostics',
-    subCategoryTitle: 'AC Repairs & PCB Circuit Diagnostics',
-    description: 'Resolution of water leakage, compressor tripping, fan motor breakdown, sensor errors, and PCB circuit board repair.',
-    price: 399,
-    originalPrice: 699,
-    durationMinutes: 45,
-    rating: 4.89,
-    reviewsCount: 1140,
-    inclusions: [
-      'Multi-meter PCB & capacitor diagnostic test',
-      'Fan blower motor & thermistor inspection',
-      'Drainage tray leak sealing',
-      'Zero inspection fee if repair approved',
-    ],
-    warrantyDays: 30,
-    image: '/banners/ac-service.jpg',
-  },
+export interface AppState {
+  // Backend Catalog State & Async Sync
+  isLoadingCatalog: boolean;
+  catalogError: string | null;
+  fetchCatalog: () => Promise<void>;
 
-  // ── 2. Bike Service ──
-  {
-    id: 'srv-bike-gen',
-    slug: 'bike-doorstep-general-service',
-    title: 'Doorstep Bike Periodic Service',
-    categorySlug: 'bike-service',
-    categoryTitle: 'Bike Service',
-    subCategorySlug: 'bike-doorstep-general-service',
-    subCategoryTitle: 'Doorstep Bike Periodic Service',
-    description: 'Complete 24-point inspection at your doorstep: engine oil flush, spark plug clean, carburetor tune, brake pad check & chain lubrication.',
-    price: 349,
-    originalPrice: 599,
-    durationMinutes: 60,
-    rating: 4.85,
-    reviewsCount: 5210,
-    inclusions: [
-      'Engine oil replacement labour & filter cleaning',
-      'Front and rear brake shoe inspection & setting',
-      'Drive chain clean, tension setting & lube',
-      'Free foam water spray & tyre pressure check',
-    ],
-    warrantyDays: 15,
-    image: '/banners/bike-service.jpg',
-    isPopular: true,
-  },
-  {
-    id: 'srv-bike-oil',
-    slug: 'bike-engine-oil-change',
-    title: 'Motul / Castrol Engine Oil & Filter Flush',
-    categorySlug: 'bike-service',
-    categoryTitle: 'Bike Service',
-    subCategorySlug: 'bike-engine-oil-change',
-    subCategoryTitle: 'Engine Oil & Filter Replacement',
-    description: '100% genuine brand sealed can (Motul / Castrol) with magnetic drain plug cleaning, new oil filter, and eco-friendly old oil disposal.',
-    price: 449,
-    originalPrice: 650,
-    durationMinutes: 30,
-    rating: 4.93,
-    reviewsCount: 2390,
-    inclusions: [
-      'Sealed genuine brand engine oil bottle',
-      'Magnetic sump plug de-sludging',
-      'Oil strainer clean & gasket renewal',
-      'Smooth gear shift verification',
-    ],
-    warrantyDays: 30,
-    image: '/banners/bike-service.jpg',
-  },
-  {
-    id: 'srv-bike-brakes',
-    slug: 'bike-brakes-clutch-tuning',
-    title: 'Brakes, Disc Calipers & Clutch Tuning',
-    categorySlug: 'bike-service',
-    categoryTitle: 'Bike Service',
-    subCategorySlug: 'bike-brakes-clutch-tuning',
-    subCategoryTitle: 'Brakes, Disc & Clutch Tuning',
-    description: 'Brake shoe replacement, disc brake caliper de-glaze, brake fluid bleed, clutch play adjustment, and cable lubrication.',
-    price: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    rating: 4.87,
-    reviewsCount: 1680,
-    inclusions: [
-      'Front disc brake caliper cleaning & pad renewal',
-      'Rear drum brake shoe de-glaze & spring check',
-      'Clutch friction point tuning & cable oiling',
-      'Road test & emergency stopping test',
-    ],
-    warrantyDays: 30,
-    image: '/banners/bike-service.jpg',
-  },
-  {
-    id: 'srv-bike-inspect',
-    slug: 'bike-breakdown-inspection',
-    title: 'Quick Bike Breakdown & Jumpstart',
-    categorySlug: 'bike-service',
-    categoryTitle: 'Bike Service',
-    subCategorySlug: 'bike-breakdown-inspection',
-    subCategoryTitle: 'Breakdown & Jumpstart Assistance',
-    description: 'Instant mobile mechanic arrival within 45 mins. Battery jumpstart, tubeless puncture fix, clutch cable fix, and ignition check.',
-    price: 199,
-    originalPrice: 349,
-    durationMinutes: 30,
-    rating: 4.9,
-    reviewsCount: 1420,
-    inclusions: [
-      'Instant doorstep arrival in under 45 mins',
-      'Battery voltage testing & booster jumpstart',
-      'Minor cable, fuse & spark plug inspection',
-    ],
-    warrantyDays: 7,
-    image: '/banners/bike-service.jpg',
-  },
-
-  // ── 3. Home Shifting ──
-  {
-    id: 'srv-home-shift-1bhk',
-    slug: 'home-shifting-1bhk',
-    title: '1 BHK Intra-City Home Relocation',
-    categorySlug: 'home-shifting',
-    categoryTitle: 'Home Shifting',
-    subCategorySlug: 'home-shifting-1bhk',
-    subCategoryTitle: '1 BHK Intra-City Home Relocation',
-    description: 'Dedicated mini-truck, 3 verified packing specialists, bubble wrap for electronics, loading, safe transport and room-wise unloading.',
-    price: 3499,
-    originalPrice: 4500,
-    durationMinutes: 180,
-    rating: 4.79,
-    reviewsCount: 890,
-    inclusions: [
-      'Free pre-move video assessment & quotation',
-      '3-layer bubble wrapping for furniture & TV',
-      'Toll & fuel included within 20 km radius',
-      'Zero damage transit guarantee & floor protection',
-    ],
-    warrantyDays: 30,
-    image: '/banners/home-shifting.jpg',
-    isPopular: true,
-  },
-  {
-    id: 'srv-home-shift-2bhk',
-    slug: 'home-shifting-2bhk',
-    title: '2 BHK / 3 BHK Premium Relocation',
-    categorySlug: 'home-shifting',
-    categoryTitle: 'Home Shifting',
-    subCategorySlug: 'home-shifting-2bhk',
-    subCategoryTitle: '2 BHK / 3 BHK Premium Relocation',
-    description: 'Large covered container truck, 5 senior packers, wardrobe cartons, fragile crockery boxes, bed dismantling, and complete room assembly.',
-    price: 6999,
-    originalPrice: 8999,
-    durationMinutes: 360,
-    rating: 4.88,
-    reviewsCount: 640,
-    inclusions: [
-      'Covered large container truck with hydraulic gate',
-      'Heavy appliance bubble wrap & thermocol padding',
-      'Wardrobe boxes for clothes & bubble wraps for crockery',
-      'Dismantling & reassembly of beds & tables',
-    ],
-    warrantyDays: 30,
-    image: '/banners/home-shifting.jpg',
-  },
-  {
-    id: 'srv-home-shift-mini',
-    slug: 'home-shifting-mini',
-    title: 'Few Items / Mini-Truck Shifting',
-    categorySlug: 'home-shifting',
-    categoryTitle: 'Home Shifting',
-    subCategorySlug: 'home-shifting-mini',
-    subCategoryTitle: 'Few Items / Mini-Truck Shifting',
-    description: 'Move single bulky items like sofa, refrigerator, washing machine, or bed with dedicated loading helpers.',
-    price: 1199,
-    originalPrice: 1800,
-    durationMinutes: 90,
-    rating: 4.82,
-    reviewsCount: 1250,
-    inclusions: [
-      'Tata Ace / Bolero pickup truck',
-      '2 trained loading & unloading helpers',
-      'Heavy ratchet strap tie-down safety',
-      'Instant 60-90 min doorstep dispatch',
-    ],
-    warrantyDays: 30,
-    image: '/banners/home-shifting.jpg',
-  },
-
-  // ── 4. Electrical Services ──
-  {
-    id: 'srv-elec-mcb',
-    slug: 'mcb-wiring-short-circuit-fix',
-    title: 'Short Circuit & MCB Tripping Repair',
-    categorySlug: 'electrical-services',
-    categoryTitle: 'Electrical Services',
-    subCategorySlug: 'mcb-wiring-short-circuit-fix',
-    subCategoryTitle: 'Short Circuit & MCB Tripping Fix',
-    description: 'Master electrician diagnosis for continuous MCB trip, burnt wires, loose phase connections, and heavy appliance load balancing.',
-    price: 249,
-    originalPrice: 399,
-    durationMinutes: 40,
-    rating: 4.91,
-    reviewsCount: 2180,
-    inclusions: [
-      'Multi-meter circuit continuity & ground testing',
-      'Loose termination tightening in distribution box',
-      'Load redistribution across phases',
-      'Safety certificate & 30-day rework warranty',
-    ],
-    warrantyDays: 30,
-    image: '/banners/electrical-service.jpg',
-    isPopular: true,
-  },
-  {
-    id: 'srv-elec-switch',
-    slug: 'switchboard-wiring-repair',
-    title: 'Switchboard, Socket & Light Fixture Fix',
-    categorySlug: 'electrical-services',
-    categoryTitle: 'Electrical Services',
-    subCategorySlug: 'switchboard-wiring-repair',
-    subCategoryTitle: 'Switchboard, Socket & Light Fixture Fix',
-    description: 'Repair of sparked switches, loose sockets, LED tube lights, fancy chandeliers, and concealed wire routing.',
-    price: 149,
-    originalPrice: 249,
-    durationMinutes: 30,
-    rating: 4.86,
-    reviewsCount: 1540,
-    inclusions: [
-      'Anchor / Havells genuine modular switch renewal',
-      'Earthing continuity & voltage resistance check',
-      'Concealed junction box alignment',
-      'No wall marks & clean finish guarantee',
-    ],
-    warrantyDays: 30,
-    image: '/banners/electrical-service.jpg',
-  },
-  {
-    id: 'srv-elec-fan',
-    slug: 'fan-exhaust-installation',
-    title: 'Ceiling Fan, BLDC Fan & Exhaust Mounting',
-    categorySlug: 'electrical-services',
-    categoryTitle: 'Electrical Services',
-    subCategorySlug: 'fan-exhaust-installation',
-    subCategoryTitle: 'Ceiling Fan & Exhaust Installation',
-    description: 'Safe mounting of high-speed ceiling fans, BLDC smart fans, kitchen exhaust fans, and wall ventilators with zero wobble.',
-    price: 199,
-    originalPrice: 350,
-    durationMinutes: 30,
-    rating: 4.90,
-    reviewsCount: 1890,
-    inclusions: [
-      'Heavy fastener hook drill & vibration damping',
-      'Downrod, blade pitch balance & regulator wiring',
-      'High speed RPM verification',
-      'Clean dust-free post installation vacuum',
-    ],
-    warrantyDays: 30,
-    image: '/banners/electrical-service.jpg',
-  },
-
-  // ── 5. Plumbing Services ──
-  {
-    id: 'srv-plumb-leak',
-    slug: 'pipe-tap-leakage-repair',
-    title: 'Major Tap & Concealed Pipe Leakage',
-    categorySlug: 'plumbing-services',
-    categoryTitle: 'Plumbing Services',
-    subCategorySlug: 'pipe-tap-leakage-repair',
-    subCategoryTitle: 'Major Tap & Pipe Leakage Repair',
-    description: 'Rapid repair of dripping taps, mixer valves, flushing cisterns, washbasin trap leaks, and concealed wall joint seepages.',
-    price: 199,
-    originalPrice: 349,
-    durationMinutes: 35,
-    rating: 4.87,
-    reviewsCount: 3900,
-    inclusions: [
-      'Washer, spindle, and Teflon tape sealing',
-      'Waste coupling replacement & alignment',
-      'Water pressure checking & no-mess cleanup',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-1.png',
-    isPopular: true,
-  },
-  {
-    id: 'srv-plumb-drain',
-    slug: 'drain-toilet-unclogging',
-    title: 'Toilet, Basin & Drain High-Pressure Unclogging',
-    categorySlug: 'plumbing-services',
-    categoryTitle: 'Plumbing Services',
-    subCategorySlug: 'drain-toilet-unclogging',
-    subCategoryTitle: 'Toilet, Basin & Drain Unclogging',
-    description: 'Heavy duty pressure unclogging of clogged kitchen sinks, bathroom floor traps, commodes, and external sewer pipelines.',
-    price: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    rating: 4.92,
-    reviewsCount: 2210,
-    inclusions: [
-      'Rotary steel spring auger mechanical cleaning',
-      'Organic sludge liquefier chemical flush',
-      'High-pressure water flush & odor elimination',
-      '100% free-flow drainage test',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-1.png',
-  },
-  {
-    id: 'srv-plumb-motor',
-    slug: 'water-motor-pipeline-setup',
-    title: 'Water Motor Pump & Pipeline Setup',
-    categorySlug: 'plumbing-services',
-    categoryTitle: 'Plumbing Services',
-    subCategorySlug: 'water-motor-pipeline-setup',
-    subCategoryTitle: 'Water Motor Pump & Pipeline Setup',
-    description: 'Diagnosis of motor humming without pumping, prime loss, foot valve leaks, pressure pumps, and CPVC piping routing.',
-    price: 399,
-    originalPrice: 650,
-    durationMinutes: 60,
-    rating: 4.84,
-    reviewsCount: 880,
-    inclusions: [
-      'Motor capacitor & starter relay testing',
-      'Foot valve suction sealing & air lock bleeding',
-      'CPVC union joint tightening',
-      'Vibration damping mounting check',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-1.png',
-  },
-
-  // ── 6. Refrigerator Care ──
-  {
-    id: 'srv-fridge-cool',
-    slug: 'refrigerator-not-cooling-check',
-    title: 'Refrigerator Deep Cooling Diagnosis',
-    categorySlug: 'refrigerator-services',
-    categoryTitle: 'Refrigerator Care',
-    subCategorySlug: 'refrigerator-not-cooling-check',
-    subCategoryTitle: 'Refrigerator Deep Cooling Diagnosis',
-    description: 'Complete inspection of inverter compressor, defrost heater, thermostat sensor, evaporator fan motor, and gas leak check.',
-    price: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    rating: 4.83,
-    reviewsCount: 1650,
-    inclusions: [
-      'Compressor relay and capacitor test',
-      'Gas pressure & coil frost analysis',
-      'Zero inspection charge if repair is approved',
-      '30-day warranty on spare replacements',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-2.png',
-  },
-  {
-    id: 'srv-fridge-gas',
-    slug: 'refrigerator-gas-refill',
-    title: 'Compressor Gas Leak Sealing & Eco Refill',
-    categorySlug: 'refrigerator-services',
-    categoryTitle: 'Refrigerator Care',
-    subCategorySlug: 'refrigerator-gas-refill',
-    subCategoryTitle: 'Compressor Gas Leak Sealing & Refill',
-    description: 'Pin-hole leak brazing, copper filter dryer replacement, vacuum cycle and precision eco refrigerant charging (R600a / R134a).',
-    price: 1299,
-    originalPrice: 1799,
-    durationMinutes: 90,
-    rating: 4.91,
-    reviewsCount: 940,
-    inclusions: [
-      'Nitrogen leak detection & silver brazing',
-      'Brand new copper molecular filter dryer',
-      'Deep vacuum pump moisture purge',
-      '60-day compressor gas warranty',
-    ],
-    warrantyDays: 60,
-    image: '/banners/banner-2.png',
-  },
-
-  // ── 7. Washing Machines ──
-  {
-    id: 'srv-wash-drum',
-    slug: 'washing-machine-drum-motor-fix',
-    title: 'Washing Machine Drum & Drain Repair',
-    categorySlug: 'washing-machine-services',
-    categoryTitle: 'Washing Machines',
-    subCategorySlug: 'washing-machine-drum-motor-fix',
-    subCategoryTitle: 'Washing Machine Drum & Drain Repair',
-    description: 'Fix heavy vibration/noise, water not draining out, error codes (E1, E2, UE), belt slippage, and front door lock latch issue.',
-    price: 349,
-    originalPrice: 550,
-    durationMinutes: 50,
-    rating: 4.86,
-    reviewsCount: 2100,
-    inclusions: [
-      'Drain pump unclogging & filter wash',
-      'Motor capacitor & shock absorber check',
-      'Door seal gasket & inlet valve test',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-3.png',
-  },
-  {
-    id: 'srv-wash-pcb',
-    slug: 'washing-machine-pcb-fix',
-    title: 'Motor & Digital PCB Circuit Fix',
-    categorySlug: 'washing-machine-services',
-    categoryTitle: 'Washing Machines',
-    subCategorySlug: 'washing-machine-pcb-fix',
-    subCategoryTitle: 'Motor & Digital PCB Circuit Fix',
-    description: 'Chip-level repairs for dead machine, wash cycle stuck, power surges, capacitor failure, and wiring harnesses for all brands.',
-    price: 599,
-    originalPrice: 999,
-    durationMinutes: 60,
-    rating: 4.89,
-    reviewsCount: 1320,
-    inclusions: [
-      'Inverter motor driver & microprocessor test',
-      'Power circuit board desoldering & trace fix',
-      'Water level pressure sensor calibration',
-      '30-day rework warranty on replaced components',
-    ],
-    warrantyDays: 30,
-    image: '/banners/banner-3.png',
-  },
-
-  // ── 8. Water Tank Cleaning ──
-  {
-    id: 'srv-tank-clean',
-    slug: 'underground-overhead-water-tank',
-    title: 'Overhead & Sump Tank Clean (Up to 1000L)',
-    categorySlug: 'water-tank-services',
-    categoryTitle: 'Water Tank Cleaning',
-    subCategorySlug: 'underground-overhead-water-tank',
-    subCategoryTitle: 'Overhead & Sump Tank Clean (Up to 1000L)',
-    description: '6-stage mechanised deep cleaning: de-watering, high-pressure rotary jet, sludge suction, anti-bacterial spray, and UV sterilization.',
-    price: 699,
-    originalPrice: 1199,
-    durationMinutes: 90,
-    rating: 4.94,
-    reviewsCount: 1120,
-    inclusions: [
-      'High-pressure water jet de-scaling',
-      'Industrial sludge slurry pump evacuation',
-      'Food-grade organic anti-bacterial wash',
-      'UV wand microbial disinfection',
-    ],
-    warrantyDays: 60,
-    image: '/banners/banner-1.png',
-    isPopular: true,
-  },
-];
-
-export const INITIAL_SUBCATEGORIES: SubCategory[] = [
-  // ── 1. AC Services ──
-  {
-    id: 'sub-ac-foam',
-    categoryId: 'cat-ac',
-    categorySlug: 'ac-services',
-    title: 'AC Foam Jet Deep Cleaning',
-    slug: 'ac-foam-jet-service',
-    iconName: 'Wind',
-    description: 'Thorough 2X deeper foam & pressure jet cleaning of indoor and outdoor coils, filters and drain tray.',
-    badge: '50% OFF Rush',
-    startingPrice: 499,
-    originalPrice: 899,
-    durationMinutes: 45,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['Antimicrobial Foam', 'Outdoor Condenser Jet', 'Gas Level Check', '30-Day Warranty'],
-  },
-  {
-    id: 'sub-ac-gas',
-    categoryId: 'cat-ac',
-    categorySlug: 'ac-services',
-    title: 'AC Gas Leak Fix & Complete Refill',
-    slug: 'ac-gas-leak-refill',
-    iconName: 'Sparkles',
-    description: 'Nitrogen pressure leak detection, copper brazing repair, moisture vacuum and precision scale gas refill.',
-    badge: '100% Pure Gas',
-    startingPrice: 1499,
-    originalPrice: 2199,
-    durationMinutes: 60,
-    warrantyDays: 60,
-    isActive: true,
-    order: 2,
-    features: ['Nitrogen Leak Testing', 'Moisture Vacuum Flush', 'R32 / R410A Pure Gas', '60-Day Protection'],
-  },
-  {
-    id: 'sub-ac-install',
-    categoryId: 'cat-ac',
-    categorySlug: 'ac-services',
-    title: 'AC Installation & Uninstallation',
-    slug: 'ac-install-uninstall',
-    iconName: 'Wrench',
-    description: 'Standard wall mounting, copper piping layout, vibration-free stand setup and thorough cooling test.',
-    badge: 'Expert Mounting',
-    startingPrice: 799,
-    originalPrice: 1299,
-    durationMinutes: 75,
-    warrantyDays: 30,
-    isActive: true,
-    order: 3,
-    features: ['Core Drill Hole', 'Copper Flare Jointing', 'Drainage Slope Check', 'Zero Vibration'],
-  },
-  {
-    id: 'sub-ac-repair',
-    categoryId: 'cat-ac',
-    categorySlug: 'ac-services',
-    title: 'AC Repairs & PCB Circuit Diagnostics',
-    slug: 'ac-repairs-diagnostics',
-    iconName: 'Shield',
-    description: 'Resolution of water leakage, compressor trip, fan motor breakdown, and PCB circuit board repair.',
-    badge: 'Same-Day Fix',
-    startingPrice: 399,
-    originalPrice: 699,
-    durationMinutes: 45,
-    warrantyDays: 30,
-    isActive: true,
-    order: 4,
-    features: ['Multi-Meter PCB Check', 'Capacitor & Sensor Test', 'Genuine Spares', 'Doorstep Repair'],
-  },
-
-  // ── 2. Bike Service ──
-  {
-    id: 'sub-bike-gen',
-    categoryId: 'cat-bike',
-    categorySlug: 'bike-service',
-    title: 'Doorstep Bike Periodic Service',
-    slug: 'bike-doorstep-general-service',
-    iconName: 'Bike',
-    description: 'Comprehensive 24-point doorstep maintenance: engine flush, spark plug clean, carburetor tune & chain lube.',
-    badge: 'Starts ₹199',
-    startingPrice: 349,
-    originalPrice: 599,
-    durationMinutes: 60,
-    warrantyDays: 15,
-    isActive: true,
-    order: 1,
-    features: ['24-Point Health Check', 'Carb / Throttle Tune', 'Chain Clean & Lube', 'Free Foam Wash'],
-  },
-  {
-    id: 'sub-bike-oil',
-    categoryId: 'cat-bike',
-    categorySlug: 'bike-service',
-    title: 'Engine Oil & Filter Replacement',
-    slug: 'bike-engine-oil-change',
-    iconName: 'Droplet',
-    description: '100% genuine Motul/Castrol high-grade engine oil flush with magnetic drain plug cleaning and filter swap.',
-    badge: 'Motul / Castrol',
-    startingPrice: 449,
-    originalPrice: 650,
-    durationMinutes: 30,
-    warrantyDays: 30,
-    isActive: true,
-    order: 2,
-    features: ['Sealed Brand Can', 'Oil Strainer Clean', 'Smooth Gear Shifts', 'Disposal of Old Oil'],
-  },
-  {
-    id: 'sub-bike-brakes',
-    categoryId: 'cat-bike',
-    categorySlug: 'bike-service',
-    title: 'Brakes, Disc & Clutch Tuning',
-    slug: 'bike-brakes-clutch-tuning',
-    iconName: 'Wrench',
-    description: 'Brake shoe replacement, disc brake caliper de-glaze, clutch play adjustment, and cable lubrications.',
-    badge: 'Safety Certified',
-    startingPrice: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    warrantyDays: 30,
-    isActive: true,
-    order: 3,
-    features: ['Shoe & Pad Renewal', 'Brake Fluid Bleed', 'Free Play Setting', 'Road Test Verified'],
-  },
-  {
-    id: 'sub-bike-breakdown',
-    categoryId: 'cat-bike',
-    categorySlug: 'bike-service',
-    title: 'Breakdown & Jumpstart Assistance',
-    slug: 'bike-breakdown-inspection',
-    iconName: 'Zap',
-    description: 'Instant arrival in under 45 mins. Battery jumpstart, tubeless puncture fix, and emergency wiring fix.',
-    badge: '30 Min Arrival',
-    startingPrice: 199,
-    originalPrice: 349,
-    durationMinutes: 30,
-    warrantyDays: 7,
-    isActive: true,
-    order: 4,
-    features: ['Mobile Van Mechanic', 'Heavy Booster Cable', 'Puncture Sealant', 'Zero Towing Required'],
-  },
-
-  // ── 3. Home Shifting ──
-  {
-    id: 'sub-shift-1bhk',
-    categoryId: 'cat-home-shift',
-    categorySlug: 'home-shifting',
-    title: '1 BHK Intra-City Home Relocation',
-    slug: 'home-shifting-1bhk',
-    iconName: 'Truck',
-    description: 'Dedicated mini-truck, 3 verified packing specialists, bubble wrap for electronics and room-wise unloading.',
-    badge: 'Insured Move',
-    startingPrice: 3499,
-    originalPrice: 4500,
-    durationMinutes: 180,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['3-Layer Bubble Wrap', 'Floor & Corner Guards', 'Toll & Fuel Included', 'Zero Damage Guarantee'],
-  },
-  {
-    id: 'sub-shift-2bhk',
-    categoryId: 'cat-home-shift',
-    categorySlug: 'home-shifting',
-    title: '2 BHK / 3 BHK Premium Relocation',
-    slug: 'home-shifting-2bhk',
-    iconName: 'Truck',
-    description: 'Large covered container truck, 5 senior packers, wardrobe cartons, fragile crockery boxes and assembly.',
-    badge: 'Multi-Layer Packing',
-    startingPrice: 6999,
-    originalPrice: 8999,
-    durationMinutes: 360,
-    warrantyDays: 30,
-    isActive: true,
-    order: 2,
-    features: ['Heavy Appliances Care', 'Wardrobe Cartons', 'Unpacking & Furniture Setup', 'Free Transit Insurance'],
-  },
-  {
-    id: 'sub-shift-mini',
-    categoryId: 'cat-home-shift',
-    categorySlug: 'home-shifting',
-    title: 'Few Items / Mini-Truck Shifting',
-    slug: 'home-shifting-mini',
-    iconName: 'Truck',
-    description: 'Move single bulky items like sofa, refrigerator, washing machine, or bed with dedicated loading helpers.',
-    badge: 'Quick Moving',
-    startingPrice: 1199,
-    originalPrice: 1800,
-    durationMinutes: 90,
-    warrantyDays: 30,
-    isActive: true,
-    order: 3,
-    features: ['Tata Ace / Pickup', '2 Helper Boys', 'Strap Tied Transit', 'Instant 90 Min Booking'],
-  },
-
-  // ── 4. Electrical Services ──
-  {
-    id: 'sub-elec-mcb',
-    categoryId: 'cat-electrical',
-    categorySlug: 'electrical-services',
-    title: 'Short Circuit & MCB Tripping Fix',
-    slug: 'mcb-wiring-short-circuit-fix',
-    iconName: 'Zap',
-    description: 'Master electrician diagnosis for continuous MCB trip, burnt wires, loose phase connections, and load balancing.',
-    badge: '60 Min Arrival',
-    startingPrice: 249,
-    originalPrice: 399,
-    durationMinutes: 40,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['Multi-Meter Continuity', 'DB Box Tightening', 'Phase Load Balancing', 'Fire Prevention Check'],
-  },
-  {
-    id: 'sub-elec-switch',
-    categoryId: 'cat-electrical',
-    categorySlug: 'electrical-services',
-    title: 'Switchboard, Socket & Light Fixture Fix',
-    slug: 'switchboard-wiring-repair',
-    iconName: 'Zap',
-    description: 'Repair of sparked switches, loose sockets, LED tube lights, fancy chandeliers, and concealed wire routing.',
-    badge: 'Genuine Spares',
-    startingPrice: 149,
-    originalPrice: 249,
-    durationMinutes: 30,
-    warrantyDays: 30,
-    isActive: true,
-    order: 2,
-    features: ['Anchor / Havells Spares', 'Earthing Resistance Test', 'Concealed Box Fitting', 'No Wall Scratches'],
-  },
-  {
-    id: 'sub-elec-fan',
-    categoryId: 'cat-electrical',
-    categorySlug: 'electrical-services',
-    title: 'Ceiling Fan & Exhaust Installation',
-    slug: 'fan-exhaust-installation',
-    iconName: 'Wind',
-    description: 'Safe mounting of high-speed ceiling fans, BLDC smart fans, kitchen exhaust fans, and wall ventilators.',
-    badge: 'Popular',
-    startingPrice: 199,
-    originalPrice: 350,
-    durationMinutes: 30,
-    warrantyDays: 30,
-    isActive: true,
-    order: 3,
-    features: ['Heavy Hook Fastener', 'Capacitor / BLDC Setup', 'Zero Wobble Balancing', 'Clean Dust Free Setup'],
-  },
-
-  // ── 5. Plumbing Services ──
-  {
-    id: 'sub-plumb-leak',
-    categoryId: 'cat-plumbing',
-    categorySlug: 'plumbing-services',
-    title: 'Major Tap & Pipe Leakage Repair',
-    slug: 'pipe-tap-leakage-repair',
-    iconName: 'Droplet',
-    description: 'Rapid repair of dripping taps, mixer valves, flushing cisterns, washbasin trap leaks, and wall seepages.',
-    badge: 'Expert Plumber',
-    startingPrice: 199,
-    originalPrice: 349,
-    durationMinutes: 35,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['Washer & Spindle Sealing', 'Teflon Joint Binding', 'Water Pressure Test', 'No Mess Clean Up'],
-  },
-  {
-    id: 'sub-plumb-drain',
-    categoryId: 'cat-plumbing',
-    categorySlug: 'plumbing-services',
-    title: 'Toilet, Basin & Drain Unclogging',
-    slug: 'drain-toilet-unclogging',
-    iconName: 'Droplet',
-    description: 'Heavy duty pressure unclogging of clogged kitchen sinks, bathroom floor traps, commodes, and external sewer lines.',
-    badge: 'High Pressure',
-    startingPrice: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    warrantyDays: 30,
-    isActive: true,
-    order: 2,
-    features: ['Rotary Spring Auger', 'Organic Sludge Dissolver', 'Deodorizing Wash', 'Free Flow Check'],
-  },
-  {
-    id: 'sub-plumb-motor',
-    categoryId: 'cat-plumbing',
-    categorySlug: 'plumbing-services',
-    title: 'Water Motor Pump & Pipeline Setup',
-    slug: 'water-motor-pipeline-setup',
-    iconName: 'Wrench',
-    description: 'Diagnosis of motor humming without pumping, prime loss, foot valve leaks, pressure pumps, and CPVC piping.',
-    badge: 'Heavy Duty',
-    startingPrice: 399,
-    originalPrice: 650,
-    durationMinutes: 60,
-    warrantyDays: 30,
-    isActive: true,
-    order: 3,
-    features: ['Capacitor Check', 'Foot Valve Tightening', 'Air Lock Bleeding', 'Vibration Damping'],
-  },
-
-  // ── 6. Refrigerator Care ──
-  {
-    id: 'sub-fridge-cool',
-    categoryId: 'cat-refrigerator',
-    categorySlug: 'refrigerator-services',
-    title: 'Refrigerator Deep Cooling Diagnosis',
-    slug: 'refrigerator-not-cooling-check',
-    iconName: 'Sparkles',
-    description: 'Complete inspection of inverter compressor, defrost heater, thermostat sensor, and evaporator fan motor.',
-    badge: '30-Day Warranty',
-    startingPrice: 299,
-    originalPrice: 499,
-    durationMinutes: 45,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['Relay & Capacitor Test', 'Defrost Timer Tuning', 'Gas Pressure Check', 'Door Gasket Seal Check'],
-  },
-  {
-    id: 'sub-fridge-gas',
-    categoryId: 'cat-refrigerator',
-    categorySlug: 'refrigerator-services',
-    title: 'Compressor Gas Leak Sealing & Refill',
-    slug: 'refrigerator-gas-refill',
-    iconName: 'Sparkles',
-    description: 'Pin-hole leak brazing, filter dryer replacement, vacuum cycle and precision eco refrigerant charging.',
-    badge: 'Genuine Gas',
-    startingPrice: 1299,
-    originalPrice: 1799,
-    durationMinutes: 90,
-    warrantyDays: 60,
-    isActive: true,
-    order: 2,
-    features: ['Copper Brazing Seal', 'New Filter Dryer', 'Factory Spec Gas Charge', '60-Day Leak Protection'],
-  },
-
-  // ── 7. Washing Machines ──
-  {
-    id: 'sub-wash-drum',
-    categoryId: 'cat-washing',
-    categorySlug: 'washing-machine-services',
-    title: 'Washing Machine Drum & Drain Repair',
-    slug: 'washing-machine-drum-motor-fix',
-    iconName: 'Shirt',
-    description: 'Fix heavy vibration/noise, water not draining out, error codes (E1, E2, UE), belt slippage, and door latch issue.',
-    badge: 'All Brands',
-    startingPrice: 349,
-    originalPrice: 550,
-    durationMinutes: 50,
-    warrantyDays: 30,
-    isActive: true,
-    order: 1,
-    features: ['Shock Absorber Balance', 'Drain Pump Clearing', 'Drive Belt Tension', 'Error Code Reset'],
-  },
-  {
-    id: 'sub-wash-pcb',
-    categoryId: 'cat-washing',
-    categorySlug: 'washing-machine-services',
-    title: 'Motor & Digital PCB Circuit Fix',
-    slug: 'washing-machine-pcb-fix',
-    iconName: 'Wrench',
-    description: 'Chip-level repairs for dead machine, wash cycle stuck, power surges, capacitor failure, and wiring harnesses.',
-    badge: 'Chip Level',
-    startingPrice: 599,
-    originalPrice: 999,
-    durationMinutes: 60,
-    warrantyDays: 30,
-    isActive: true,
-    order: 2,
-    features: ['Inverter Motor Check', 'Motherboard Servicing', 'Sensor Calibration', 'Genuine IC Replacement'],
-  },
-
-  // ── 8. Water Tank Cleaning ──
-  {
-    id: 'sub-tank-clean',
-    categoryId: 'cat-water-tank',
-    categorySlug: 'water-tank-services',
-    title: 'Overhead & Sump Tank Clean (Up to 1000L)',
-    slug: 'underground-overhead-water-tank',
-    iconName: 'Waves',
-    description: '6-stage mechanised deep cleaning: de-watering, high-pressure rotary jet, sludge suction, anti-bacterial spray, and UV sterilization.',
-    badge: 'Eco Safe',
-    startingPrice: 699,
-    originalPrice: 1199,
-    durationMinutes: 90,
-    warrantyDays: 60,
-    isActive: true,
-    order: 1,
-    features: ['Industrial Sludge Pump', 'High-Pressure Rotary Jet', 'Organic Food-Grade Spray', 'UV Wand Sterilization'],
-  },
-];
-
-interface AppState {
-  // Categories (Admin-editable)
+  // Categories (Admin-editable & Persisted in Cloudflare D1)
   categories: Category[];
-  updateCategory: (id: string, updates: Partial<Category>) => void;
-  addCategory: (newCat: Omit<Category, 'id'>) => void;
-  deleteCategory: (id: string) => void;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<boolean>;
+  addCategory: (newCat: Omit<Category, 'id'>) => Promise<Category | null>;
+  deleteCategory: (id: string) => Promise<boolean>;
   reorderCategories: (newCats: Category[]) => void;
 
-  // SubCategories (Two-Step Admin & Catalog Hierarchy)
+  // SubCategories (Two-Step Admin Hierarchy & Persisted in Cloudflare D1)
   subCategories: SubCategory[];
   activeSubCategorySlug: string;
   setActiveSubCategorySlug: (slug: string) => void;
-  addSubCategory: (newSub: Omit<SubCategory, 'id'>) => void;
-  updateSubCategory: (id: string, updates: Partial<SubCategory>) => void;
-  deleteSubCategory: (id: string) => void;
+  addSubCategory: (newSub: Omit<SubCategory, 'id'>) => Promise<SubCategory | null>;
+  updateSubCategory: (id: string, updates: Partial<SubCategory>) => Promise<boolean>;
+  deleteSubCategory: (id: string) => Promise<boolean>;
   getSubCategoriesByCategory: (categorySlug: string) => SubCategory[];
 
-  // Services
+  // Services (Catalog from Cloudflare D1)
   services: Service[];
   activeCategorySlug: string;
   setActiveCategorySlug: (slug: string) => void;
@@ -1099,139 +102,220 @@ interface AppState {
   updateOrderStatus: (orderId: string, status: OrderBooking['status']) => void;
 }
 
-export const INITIAL_ORDERS: OrderBooking[] = [
-  {
-    id: 'ORD-8492',
-    items: [
-      {
-        service: INITIAL_SERVICES[0],
-        quantity: 1,
-      },
-    ],
-    itemTotal: 499,
-    platformFee: 19,
-    discount: 400,
-    grandTotal: 518,
-    address: '14th Main, HSR Layout Sector 2, Bengaluru, Karnataka - 560102',
-    customerName: 'Charan H.S.',
-    customerPhone: '+91 98450 12345',
-    slot: {
-      type: 'instant',
-      dateLabel: 'Today',
-      timeSlot: 'Doorstep arrival in 25 mins',
-    },
-    paymentMethod: 'upi',
-    paymentStatus: 'paid',
-    status: 'in_progress',
-    createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-    technicianName: 'Sunil Gowda (Verified Partner)',
-    technicianPhone: '+91 98765 43210',
-  },
-  {
-    id: 'ORD-8488',
-    items: [
-      {
-        service: INITIAL_SERVICES[2],
-        quantity: 1,
-      },
-    ],
-    itemTotal: 349,
-    platformFee: 19,
-    discount: 250,
-    grandTotal: 368,
-    address: 'Flat 402, Green Glen Heights, Bellandur, Bengaluru - 560103',
-    customerName: 'Arun Prasad',
-    customerPhone: '+91 98111 22334',
-    slot: {
-      type: 'instant',
-      dateLabel: 'Today',
-      timeSlot: 'Doorstep arrival in 40 mins',
-    },
-    paymentMethod: 'cash',
-    paymentStatus: 'pending',
-    status: 'technician_assigned',
-    createdAt: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
-    technicianName: 'Rajesh Kumar',
-    technicianPhone: '+91 98444 55667',
-  },
-  {
-    id: 'ORD-8470',
-    items: [
-      {
-        service: INITIAL_SERVICES[7],
-        quantity: 1,
-      },
-    ],
-    itemTotal: 299,
-    platformFee: 19,
-    discount: 200,
-    grandTotal: 318,
-    address: 'House #22, 5th Cross, Koramangala 4th Block, Bengaluru',
-    customerName: 'Kavitha R.',
-    customerPhone: '+91 97444 88990',
-    slot: {
-      type: 'scheduled',
-      dateLabel: 'Yesterday',
-      timeSlot: '11:00 AM - 01:00 PM',
-    },
-    paymentMethod: 'upi',
-    paymentStatus: 'paid',
-    status: 'completed',
-    createdAt: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
-    technicianName: 'Sunil Gowda (Verified Partner)',
-    technicianPhone: '+91 98765 43210',
-  },
-];
-
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      // Catalog state: booted from fallback constants, hydrated from Cloudflare D1
+      isLoadingCatalog: false,
+      catalogError: null,
       categories: INITIAL_CATEGORIES,
-      updateCategory: (id, updates) =>
-        set((state) => ({
-          categories: state.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        })),
-      addCategory: (newCat) =>
-        set((state) => ({
-          categories: [
-            ...state.categories,
-            { ...newCat, id: `cat-${Date.now()}` },
-          ],
-        })),
-      deleteCategory: (id) =>
-        set((state) => ({
-          categories: state.categories.filter((c) => c.id !== id),
-        })),
-      reorderCategories: (newCats) => set({ categories: newCats }),
-
-      // SubCategories (Two-Step Admin CMS & Blinkit Dual-Rail Navigation)
       subCategories: INITIAL_SUBCATEGORIES,
-      activeSubCategorySlug: 'all',
-      setActiveSubCategorySlug: (slug) => set({ activeSubCategorySlug: slug }),
-      addSubCategory: (newSub) =>
-        set((state) => ({
-          subCategories: [
-            ...(state.subCategories || INITIAL_SUBCATEGORIES),
-            { ...newSub, id: `sub-${Date.now()}` },
-          ],
-        })),
-      updateSubCategory: (id, updates) =>
-        set((state) => ({
-          subCategories: (state.subCategories || INITIAL_SUBCATEGORIES).map((s) =>
-            s.id === id ? { ...s, ...updates } : s
-          ),
-        })),
-      deleteSubCategory: (id) =>
-        set((state) => ({
-          subCategories: (state.subCategories || INITIAL_SUBCATEGORIES).filter((s) => s.id !== id),
-        })),
-      getSubCategoriesByCategory: (categorySlug) => {
-        const subs = get().subCategories && get().subCategories.length > 0 ? get().subCategories : INITIAL_SUBCATEGORIES;
-        return subs.filter((s) => s.categorySlug === categorySlug && s.isActive);
-      },
-
       services: INITIAL_SERVICES,
       activeCategorySlug: 'all',
+      activeSubCategorySlug: 'all',
+
+      fetchCatalog: async () => {
+        set({ isLoadingCatalog: true, catalogError: null });
+        try {
+          const [catRes, srvRes] = await Promise.all([
+            fetch('/api/categories?include=all'),
+            fetch('/api/services'),
+          ]);
+
+          let hasUpdatedCategories = false;
+          if (catRes.ok) {
+            const catJson = await catRes.json();
+            const catData = catJson?.data;
+            if (Array.isArray(catData) && catData.length > 0) {
+              const extractedSubs: SubCategory[] = [];
+              const normalizedCats: Category[] = catData.map((cat: any) => {
+                if (Array.isArray(cat.subCategories)) {
+                  cat.subCategories.forEach((sub: any) => {
+                    let feats = sub.features;
+                    if (typeof feats === 'string') {
+                      try { feats = JSON.parse(feats); } catch { feats = []; }
+                    }
+                    extractedSubs.push({
+                      ...sub,
+                      categoryId: sub.categoryId || cat.id,
+                      categorySlug: sub.categorySlug || cat.slug,
+                      features: Array.isArray(feats) ? feats : [],
+                    });
+                  });
+                }
+                return {
+                  id: cat.id,
+                  title: cat.title,
+                  slug: cat.slug,
+                  iconName: cat.iconName || 'Wrench',
+                  description: cat.description,
+                  badge: cat.badge || undefined,
+                  bgGradient: cat.bgGradient || 'from-blue-600 to-indigo-600',
+                  isActive: Boolean(cat.isActive),
+                  order: cat.order || 1,
+                  image: cat.image || undefined,
+                };
+              });
+
+              set((state) => ({
+                categories: normalizedCats,
+                subCategories: extractedSubs.length > 0 ? extractedSubs : state.subCategories,
+              }));
+              hasUpdatedCategories = true;
+            }
+          }
+
+          if (srvRes.ok) {
+            const srvJson = await srvRes.json();
+            const srvData = srvJson?.data;
+            if (Array.isArray(srvData) && srvData.length > 0) {
+              const normalizedServices: Service[] = srvData.map((s: any) => {
+                let inclusions = s.inclusions;
+                if (typeof inclusions === 'string') {
+                  try { inclusions = JSON.parse(inclusions); } catch { inclusions = []; }
+                }
+                return {
+                  ...s,
+                  price: s.price ?? s.priceEstimated,
+                  inclusions: Array.isArray(inclusions) ? inclusions : [],
+                };
+              });
+              set({ services: normalizedServices });
+            }
+          }
+
+          set({ isLoadingCatalog: false });
+        } catch (err: any) {
+          console.error('[fetchCatalog error]', err);
+          set({ isLoadingCatalog: false, catalogError: err?.message || 'Failed to fetch catalog' });
+        }
+      },
+
+      // Categories Management (persisting to D1)
+      addCategory: async (newCat) => {
+        try {
+          const res = await fetch('/api/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCat),
+          });
+          const resJson = await res.json();
+          if (!res.ok) throw new Error(resJson?.error?.message || 'Failed to add category');
+          const created: Category = resJson.data;
+          set((state) => ({ categories: [...state.categories, created] }));
+          return created;
+        } catch (err) {
+          console.warn('[addCategory network fallback]', err);
+          const fallback: Category = { ...newCat, id: `cat-${Date.now()}` };
+          set((state) => ({ categories: [...state.categories, fallback] }));
+          return fallback;
+        }
+      },
+
+      updateCategory: async (id, updates) => {
+        // Optimistic update
+        set((state) => ({
+          categories: state.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        }));
+        try {
+          const res = await fetch(`/api/categories/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          if (!res.ok) throw new Error('Failed to update category');
+          return true;
+        } catch (err) {
+          console.warn('[updateCategory network error]', err);
+          return false;
+        }
+      },
+
+      deleteCategory: async (id) => {
+        set((state) => ({
+          categories: state.categories.filter((c) => c.id !== id),
+          subCategories: state.subCategories.filter((s) => s.categoryId !== id),
+        }));
+        try {
+          const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete category');
+          return true;
+        } catch (err) {
+          console.warn('[deleteCategory network error]', err);
+          return false;
+        }
+      },
+
+      reorderCategories: (newCats) => set({ categories: newCats }),
+
+      // SubCategories Management (persisting to D1)
+      setActiveSubCategorySlug: (slug) => set({ activeSubCategorySlug: slug }),
+
+      addSubCategory: async (newSub) => {
+        try {
+          const res = await fetch('/api/subcategories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSub),
+          });
+          const resJson = await res.json();
+          if (!res.ok) throw new Error(resJson?.error?.message || 'Failed to add subcategory');
+          let feats = resJson.data.features;
+          if (typeof feats === 'string') {
+            try { feats = JSON.parse(feats); } catch { feats = []; }
+          }
+          const created: SubCategory = {
+            ...resJson.data,
+            features: Array.isArray(feats) ? feats : [],
+          };
+          set((state) => ({ subCategories: [...state.subCategories, created] }));
+          return created;
+        } catch (err) {
+          console.warn('[addSubCategory network fallback]', err);
+          const fallback: SubCategory = { ...newSub, id: `sub-${Date.now()}` };
+          set((state) => ({ subCategories: [...state.subCategories, fallback] }));
+          return fallback;
+        }
+      },
+
+      updateSubCategory: async (id, updates) => {
+        // Optimistic update
+        set((state) => ({
+          subCategories: state.subCategories.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+        }));
+        try {
+          const res = await fetch(`/api/subcategories/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          if (!res.ok) throw new Error('Failed to update subcategory');
+          return true;
+        } catch (err) {
+          console.warn('[updateSubCategory network error]', err);
+          return false;
+        }
+      },
+
+      deleteSubCategory: async (id) => {
+        set((state) => ({
+          subCategories: state.subCategories.filter((s) => s.id !== id),
+        }));
+        try {
+          const res = await fetch(`/api/subcategories/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete subcategory');
+          return true;
+        } catch (err) {
+          console.warn('[deleteSubCategory network error]', err);
+          return false;
+        }
+      },
+
+      getSubCategoriesByCategory: (categorySlug) => {
+        const subs = get().subCategories || [];
+        return subs.filter((s) => (s.categorySlug === categorySlug || s.categoryId === categorySlug) && s.isActive);
+      },
+
       setActiveCategorySlug: (slug) => set({ activeCategorySlug: slug }),
 
       // Full Screen Search Experience
@@ -1289,7 +373,7 @@ export const useAppStore = create<AppState>()(
         const inspectionFee = subtotal > 499 || subtotal === 0 ? 0 : 49;
         const platformFee = totalItems > 0 ? 19 : 0;
         const discount = cart.reduce(
-          (sum, item) => sum + (item.service.originalPrice - item.service.price) * item.quantity,
+          (sum, item) => sum + ((item.service.originalPrice || item.service.price) - item.service.price) * item.quantity,
           0
         );
         const grandTotal = subtotal + inspectionFee + platformFee;
@@ -1329,7 +413,6 @@ export const useAppStore = create<AppState>()(
         const name = firebaseUser.displayName || (email ? email.split('@')[0] : 'Reparzo User');
         const phone = firebaseUser.phoneNumber || '+91 98450 12345';
         
-        // Auto-detect role from the Google Account identity
         const detected = resolveUserByIdentifier(email || name);
         const role = detected.role;
 
@@ -1383,7 +466,6 @@ export const useAppStore = create<AppState>()(
       name: 'reparzo-app-storage',
       partialize: (state) => ({
         cart: state.cart,
-        categories: state.categories,
         user: state.user,
         activeRole: state.activeRole,
         location: state.location,
@@ -1391,7 +473,6 @@ export const useAppStore = create<AppState>()(
         orders: state.orders,
       }),
       onRehydrateStorage: () => (state) => {
-        // Clear out legacy mock user from earlier development sessions
         if (state?.user && (state.user.phone?.includes('98450') || state.user.name?.includes('Charan H.S.') || state.user.name === 'Charan H S')) {
           state.user = null;
           state.activeRole = 'user';

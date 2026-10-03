@@ -28,7 +28,12 @@ function DashboardRouter() {
 }
 
 export function App() {
-  const { loginWithFirebaseUser, user } = useAppStore();
+  const { loginWithFirebaseUser, user, fetchCatalog } = useAppStore();
+
+  // Fetch live categories, subcategories & services from Cloudflare D1
+  useEffect(() => {
+    fetchCatalog();
+  }, [fetchCatalog]);
 
   // Listen to Firebase Auth state changes
   useEffect(() => {

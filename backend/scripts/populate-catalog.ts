@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const backendDir = path.resolve(__dirname, '..');
 const rootDir = path.resolve(backendDir, '..');
 const websitePublicDir = path.resolve(rootDir, 'website', 'public');
-const sqlOutFile = path.resolve(backendDir, 'drizzle', 'seed_catalog.sql');
+const sqlOutFile = path.resolve(backendDir, 'seeds', 'seed_catalog.sql');
 
 function escapeSql(val: unknown): string {
   if (val === null || val === undefined) return 'NULL';
@@ -285,7 +285,7 @@ async function populateDatabases(target: 'remote' | 'local' | 'both') {
     console.log(`\n🗄️  Executing seed on Cloudflare D1 [${tgt.toUpperCase()}] (database: reparzo-db)...`);
     try {
       const flag = tgt === 'remote' ? '--remote' : '--local';
-      const cmd = `CI=true npx wrangler d1 execute reparzo-db ${flag} --file="drizzle/seed_catalog.sql"`;
+      const cmd = `CI=true npx wrangler d1 execute reparzo-db ${flag} --file="seeds/seed_catalog.sql"`;
       const output = runWithRetry(cmd, 3, 2000);
       console.log(`  ✅ [${tgt}] D1 catalog populated successfully!`);
       const lines = output.trim().split('\n');

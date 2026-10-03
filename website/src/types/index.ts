@@ -16,6 +16,7 @@ export interface SubCategory {
   isActive: boolean;
   order: number;
   features?: string[];
+  image?: string;
 }
 
 export interface Category {
@@ -29,6 +30,7 @@ export interface Category {
   isActive: boolean;
   order: number;
   subCategories?: SubCategory[];
+  image?: string;
 }
 
 export interface Service {

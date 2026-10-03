@@ -13,6 +13,7 @@ export const categories = sqliteTable(
     description: text('description').notNull(),
     badge: text('badge'),
     bgGradient: text('bg_gradient').default('from-blue-600 to-cyan-500').notNull(),
+    image: text('image'),
     isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
     order: integer('display_order').default(0).notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' })
