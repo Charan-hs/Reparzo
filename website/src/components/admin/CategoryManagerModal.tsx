@@ -13,6 +13,7 @@ import {
   ShieldCheck, 
   IndianRupee, 
   Search, 
+  ChevronLeft, 
   ChevronRight, 
   Wrench, 
   Wind, 
@@ -62,6 +63,8 @@ export const CategoryManagerModal: React.FC = () => {
   const [selectedCatId, setSelectedCatId] = useState<string>(categories[0]?.id || 'cat-ac');
   const [catSearch, setCatSearch] = useState('');
   const [subSearch, setSubSearch] = useState('');
+  // Mobile tab state: 'categories' (Step 1) | 'subcategories' (Step 2)
+  const [mobileTab, setMobileTab] = useState<'categories' | 'subcategories'>('categories');
 
   // Modals & form states
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -215,30 +218,30 @@ export const CategoryManagerModal: React.FC = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-md">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-4 lg:p-6 bg-black/60 md:backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 15 }}
+          initial={{ opacity: 0, scale: 0.98, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 15 }}
+          exit={{ opacity: 0, scale: 0.98, y: 10 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-6xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px] text-slate-900"
+          className="w-full h-full md:h-[92vh] md:max-h-[860px] md:max-w-6xl bg-white rounded-none md:rounded-3xl border-0 md:border border-slate-200 shadow-2xl overflow-hidden flex flex-col text-slate-900"
         >
           {/* ── Top Master Header ─────────────────────────── */}
-          <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#2563EB] to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-                <Layers className="w-5 h-5" />
+          <header className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#2563EB] to-indigo-700 text-white flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0">
+                <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
                     Admin Category & Subcategory CMS
                   </h3>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200 uppercase tracking-wider">
+                  <span className="hidden sm:inline-flex text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200 uppercase tracking-wider">
                     2-Step Hierarchy
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-[11px] sm:text-xs text-slate-500 hidden sm:block">
                   Blinkit-style dual-rail catalog management: Click any category to inspect, reorder, and configure its subcategories in real-time.
                 </p>
               </div>
@@ -246,16 +249,46 @@ export const CategoryManagerModal: React.FC = () => {
 
             <button
               onClick={() => setCategoryManagerOpen(false)}
-              className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-800 transition-colors cursor-pointer flex-shrink-0 ml-2"
+              aria-label="Close CMS"
             >
               <X className="w-5 h-5" />
             </button>
           </header>
 
+          {/* ── Mobile Dual-Rail Tab Switcher (Visible only on < md screens) ── */}
+          <div className="flex md:hidden items-center border-b border-slate-200 bg-slate-100/90 p-2 gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setMobileTab('categories')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                mobileTab === 'categories'
+                  ? 'bg-white text-[#2563EB] shadow-xs border border-blue-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Categories ({categories.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTab('subcategories')}
+              className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                mobileTab === 'subcategories'
+                  ? 'bg-white text-[#2563EB] shadow-xs border border-blue-200'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="truncate">{currentCategory?.title || 'Subcategories'} ({currentSubCategories.length})</span>
+            </button>
+          </div>
+
           {/* ── Main Dual-Rail Split Workspace ────────────── */}
           <div className="flex flex-1 overflow-hidden">
             {/* ── LEFT STATIC RAIL: Categories List ───────── */}
-            <aside className="w-72 sm:w-80 flex-shrink-0 bg-slate-50/90 border-r border-slate-200/80 flex flex-col h-full overflow-hidden">
+            <aside className={`w-full md:w-72 lg:w-80 flex-shrink-0 bg-slate-50/90 border-r border-slate-200/80 flex-col h-full overflow-hidden ${mobileTab === 'categories' ? 'flex' : 'hidden md:flex'}`}>
+
               {/* Left Rail Header & Search */}
               <div className="p-3.5 border-b border-slate-200/80 space-y-2 bg-white">
                 <div className="flex items-center justify-between">
@@ -295,7 +328,10 @@ export const CategoryManagerModal: React.FC = () => {
                   return (
                     <motion.div
                       key={cat.id}
-                      onClick={() => setSelectedCatId(cat.id)}
+                      onClick={() => {
+                        setSelectedCatId(cat.id);
+                        setMobileTab('subcategories');
+                      }}
                       className={`group relative p-3 rounded-2xl cursor-pointer transition-all duration-200 select-none ${
                         isSelected
                           ? 'bg-white shadow-md shadow-blue-500/10 border border-[#2563EB]/40'
@@ -370,13 +406,23 @@ export const CategoryManagerModal: React.FC = () => {
             </aside>
 
             {/* ── RIGHT DYNAMIC WORKSPACE: Subcategories & Variables ───────── */}
-            <main className="flex-1 flex flex-col h-full bg-[#F8FAFC] overflow-hidden">
+            <main className={`flex-1 flex-col h-full bg-[#F8FAFC] overflow-hidden ${mobileTab === 'subcategories' ? 'flex' : 'hidden md:flex'}`}>
+
               {currentCategory ? (
                 <>
                   {/* Category Banner Bar */}
-                  <div className="p-5 border-b border-slate-200/90 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div className="p-4 sm:p-5 border-b border-slate-200/90 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      {/* Mobile Back Button to Categories */}
+                      <button
+                        type="button"
+                        onClick={() => setMobileTab('categories')}
+                        className="md:hidden inline-flex items-center gap-1 text-xs font-bold text-[#2563EB] hover:text-[#1d4ed8] mb-2 self-start py-1 px-2.5 rounded-lg bg-blue-50 border border-blue-100 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span>All Categories</span>
+                      </button>
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 tracking-wider">
                           Parent Category
                         </span>
@@ -570,14 +616,14 @@ export const CategoryManagerModal: React.FC = () => {
           </div>
 
           {/* ── Footer ────────────────────────────────────── */}
-          <footer className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex items-center justify-between flex-shrink-0">
-            <span className="flex items-center gap-1.5 text-amber-600 font-semibold">
-              <ShieldAlert className="w-4 h-4 text-amber-500" />
-              Live changes reflect immediately on website catalog and search.
+          <footer className="px-4 sm:px-6 py-3 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex items-center justify-between flex-shrink-0 gap-2">
+            <span className="flex items-center gap-1.5 text-amber-600 font-semibold text-[11px] sm:text-xs truncate">
+              <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <span className="truncate">Live changes reflect immediately on website catalog.</span>
             </span>
             <button
               onClick={() => setCategoryManagerOpen(false)}
-              className="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold transition-colors cursor-pointer text-xs flex-shrink-0"
             >
               Close CMS
             </button>
@@ -591,7 +637,7 @@ export const CategoryManagerModal: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -718,7 +764,7 @@ export const CategoryManagerModal: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-4"
+              className="w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h4 className="text-sm font-bold text-slate-900">
@@ -830,7 +876,7 @@ export const CategoryManagerModal: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-4"
+              className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h4 className="text-sm font-bold text-slate-900">Create New Parent Category</h4>
@@ -915,7 +961,7 @@ export const CategoryManagerModal: React.FC = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 space-y-4"
+              className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h4 className="text-sm font-bold text-slate-900">Edit Parent Category</h4>
