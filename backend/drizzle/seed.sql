@@ -5,3 +5,7 @@ VALUES
   ('srv_wash_repair', 'washing-machine-service', 'Washing Machine Repair', 'Drum vibration resolution, motor repairs, PCB diagnosis, and water intake troubleshooting.', 'Appliances', 549, 75, 'Disc', 0, 1, strftime('%s', 'now'), strftime('%s', 'now')),
   ('srv_ro_purifier', 'ro-water-purifier-service', 'RO Water Purifier Service', 'Membrane replacement, sediment filter flush, TDS level check, and UV lamp inspection.', 'Home Care', 399, 45, 'Droplets', 1, 1, strftime('%s', 'now'), strftime('%s', 'now')),
   ('srv_electrician', 'home-electrical-repair', 'Expert Home Electrical Service', 'Short circuit troubleshooting, MCB replacement, fan installation, and complete wiring check.', 'Electrical', 299, 45, 'Zap', 0, 1, strftime('%s', 'now'), strftime('%s', 'now'));
+
+INSERT OR IGNORE INTO users (id, name, email, role, status, phone, created_at, updated_at)
+VALUES 
+  ('usr_admin_charan', 'Charan', 'charanengg08@gmail.com', 'ADMIN', 'ACTIVE', '+919999999999', strftime('%s', 'now'), strftime('%s', 'now'));
