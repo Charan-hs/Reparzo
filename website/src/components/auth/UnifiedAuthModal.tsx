@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -32,6 +32,7 @@ export const UnifiedAuthModal: React.FC = () => {
   const [timer, setTimer] = useState(60);
   const [isLoading, setIsLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     if (isAuthModalOpen) {
@@ -40,6 +41,7 @@ export const UnifiedAuthModal: React.FC = () => {
       setTimer(60);
       setIdentifier('');
       setConfirmationResult(null);
+      setAcceptedTerms(false);
     } else {
       resetRecaptcha();
     }
@@ -72,6 +74,10 @@ export const UnifiedAuthModal: React.FC = () => {
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!acceptedTerms) {
+      toast.error('Please agree to the Terms & Conditions and Privacy Policy by checking the box');
+      return;
+    }
     if (!isInputReady) {
       toast.error('Please enter a valid 10-digit mobile number or email address');
       return;
@@ -186,6 +192,10 @@ export const UnifiedAuthModal: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (!acceptedTerms) {
+      toast.error('Please agree to the Terms & Conditions and Privacy Policy by checking the box');
+      return;
+    }
     setIsLoading(true);
     try {
       const firebaseUser = await signInWithGoogle();
@@ -313,9 +323,47 @@ export const UnifiedAuthModal: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Terms & Conditions Agreement Checkbox */}
+                  <div className="pt-0.5">
+                    <label 
+                      htmlFor="auth-terms-agree-checkbox"
+                      className="flex items-start gap-2.5 cursor-pointer select-none group"
+                    >
+                      <input
+                        type="checkbox"
+                        id="auth-terms-agree-checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB]/20 accent-[#2563EB] cursor-pointer flex-shrink-0"
+                      />
+                      <span className="text-xs text-slate-600 leading-snug group-hover:text-slate-800 transition-colors">
+                        I agree to Reparzo's{' '}
+                        <Link
+                          to="/terms"
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[#2563EB] hover:text-[#1d4ed8] font-bold underline cursor-pointer"
+                        >
+                          Terms & Conditions
+                        </Link>
+                        {' '}and{' '}
+                        <Link
+                          to="/privacy"
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[#2563EB] hover:text-[#1d4ed8] font-bold underline cursor-pointer"
+                        >
+                          Privacy Policy
+                        </Link>
+                      </span>
+                    </label>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={isLoading || !isInputReady}
+                    disabled={isLoading || !isInputReady || !acceptedTerms}
                     className="w-full py-3.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-sm shadow-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer"
                   >
                     <span>{isLoading ? 'Sending SMS...' : 'Continue'}</span>
@@ -389,11 +437,23 @@ export const UnifiedAuthModal: React.FC = () => {
 
           {/* Modal Footer / Legal Notice */}
           <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/70 text-center">
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              By continuing, you agree to Reparzo's{' '}
-              <a href="#" className="text-slate-600 hover:text-slate-900 underline">Terms of Service</a>
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              By continuing as a Customer or Service Partner, you agree to Reparzo's{' '}
+              <Link 
+                to="/terms" 
+                onClick={() => setAuthModalOpen(false)}
+                className="text-[#2563EB] hover:text-[#1d4ed8] font-bold underline"
+              >
+                Terms & Conditions
+              </Link>
               {' '}and{' '}
-              <a href="#" className="text-slate-600 hover:text-slate-900 underline">Privacy Policy</a>.
+              <Link 
+                to="/privacy" 
+                onClick={() => setAuthModalOpen(false)}
+                className="text-[#2563EB] hover:text-[#1d4ed8] font-bold underline"
+              >
+                Privacy Policy
+              </Link>.
             </p>
           </div>
         </motion.div>

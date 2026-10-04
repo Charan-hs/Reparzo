@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Wrench, 
   MapPin, 
@@ -14,7 +15,9 @@ import {
   ChevronRight,
   TrendingUp,
   AlertCircle,
-  User as UserIcon
+  User as UserIcon,
+  FileText,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -22,6 +25,7 @@ import { useAppStore } from '../store/useAppStore';
 interface PartnerJob {
   id: string;
   customerName: string;
+  customerPhone?: string;
   address: string;
   distanceKm: number;
   serviceTitle: string;
@@ -38,6 +42,7 @@ export const PartnerDashboard: React.FC = () => {
     {
       id: 'JOB-9021',
       customerName: 'Kavitha R.',
+      customerPhone: '+91 6362000263',
       address: 'House #22, 17th Cross, HSR Sector 2, Bengaluru',
       distanceKm: 1.4,
       serviceTitle: 'AC Foam Jet Deep Service & Coil Check',
@@ -49,6 +54,7 @@ export const PartnerDashboard: React.FC = () => {
     {
       id: 'JOB-8812',
       customerName: 'Vinay Kumar',
+      customerPhone: '+91 6362000263',
       address: 'Apt 304, Palm Meadows, Koramangala 4th Block',
       distanceKm: 2.8,
       serviceTitle: 'Doorstep Bike General Service & Brake Tuning',
@@ -60,6 +66,7 @@ export const PartnerDashboard: React.FC = () => {
     {
       id: 'JOB-7734',
       customerName: 'Arun Prasad',
+      customerPhone: '+91 6362000263',
       address: 'Plot 18, 5th Main, BDA Layout, Indiranagar',
       distanceKm: 3.9,
       serviceTitle: 'MCB Short Circuit & Tripping Diagnosis',
@@ -255,7 +262,7 @@ export const PartnerDashboard: React.FC = () => {
                 <Navigation className="w-4 h-4" /> Start GPS Navigation
               </a>
               <a
-                href="tel:9845012345"
+                href={`tel:${activeJob.customerPhone || '+916362000263'}`}
                 className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-2 hover:bg-slate-200"
               >
                 <Phone className="w-4 h-4" /> Call Customer
@@ -341,6 +348,44 @@ export const PartnerDashboard: React.FC = () => {
                 ))}
             </div>
           )}
+        </div>
+
+        {/* ── Partner Terms & Code of Conduct Notice ───────────────── */}
+        <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-md space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-300">
+                  Section 3: Vendor & Service Partner Terms
+                </span>
+              </div>
+              <h4 className="text-sm font-bold text-white">Partner Quality, Safety & Non-Misuse Mandate</h4>
+              <p className="text-xs text-slate-400 max-w-2xl">
+                Partners must communicate pricing and additional part charges clearly before carrying out work, maintain professional conduct, and never use customer data for unauthorized purposes.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <Link
+                to="/terms"
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all inline-flex items-center gap-1.5 border border-white/10"
+              >
+                <FileText className="w-3.5 h-3.5 text-blue-400" />
+                <span>View Partner Terms</span>
+              </Link>
+              <a
+                href="mailto:Contact@reparzo.com"
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all inline-flex items-center gap-1.5 border border-white/10"
+              >
+                <Mail className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Partner Support</span>
+              </a>
+            </div>
+          </div>
+          <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2">
+            <span>Direct Partner Helpline: +91 6362000263</span>
+            <span>Support: Contact@reparzo.com • Davangere, Karnataka</span>
+          </div>
         </div>
       </div>
     </div>

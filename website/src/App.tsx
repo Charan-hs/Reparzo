@@ -21,6 +21,9 @@ import { ProfilePage } from './pages/ProfilePage';
 import { PartnerDashboard } from './pages/PartnerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { HealthPage } from './pages/HealthPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { ContactPage } from './pages/ContactPage';
 import { useAppStore } from './store/useAppStore';
 
 function DashboardRouter() {
@@ -99,6 +102,12 @@ export function App() {
             <Route path="/account" element={<ProfilePage />} />
             <Route path="/bookings" element={<ProfilePage />} />
             <Route path="/health" element={<HealthPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/terms-and-conditions" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/contact-us" element={<ContactPage />} />
           </Routes>
         </main>
 

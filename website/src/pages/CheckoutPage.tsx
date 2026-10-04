@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   CheckCircle2, 
   MapPin, 
@@ -738,6 +738,23 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 <span>Zero cancellation fee before technician arrival</span>
+              </div>
+
+              {/* Terms & Privacy Notice */}
+              <div className="pt-2 border-t border-slate-100 text-center text-[11px] text-slate-500 leading-relaxed space-y-1">
+                <p>
+                  By confirming, you agree to Reparzo's{' '}
+                  <Link to="/terms" target="_blank" className="text-[#2563EB] font-bold hover:underline">
+                    Terms & Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" target="_blank" className="text-[#2563EB] font-bold hover:underline">
+                    Privacy Policy
+                  </Link>.
+                </p>
+                <p className="text-[10px] text-slate-400">
+                  Bookings are subject to independent partner confirmation. Charges vary based on parts and scope.
+                </p>
               </div>
             </div>
           </div>

@@ -55,7 +55,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         serviceId: serviceId || (services[0]?.id ?? 'srv_ac_repair'),
         customerName,
         customerPhone,
-        customerEmail: customerEmail || 'customer@reparzo.com',
+        customerEmail: customerEmail || 'Contact@reparzo.com',
         address,
         pincode,
         city: 'Bangalore',

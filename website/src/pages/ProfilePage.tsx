@@ -28,7 +28,9 @@ import {
   MessageSquare,
   Building,
   RotateCcw,
-  ShoppingBag
+  ShoppingBag,
+  FileText,
+  Lock
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { toast } from 'sonner';
@@ -732,7 +734,7 @@ export const ProfilePage: React.FC = () => {
 
                 <div className="flex flex-wrap items-center gap-3">
                   <a
-                    href="https://wa.me/919845012345"
+                    href="https://wa.me/916362000263?text=Hi%20Reparzo,%20I%20need%20assistance%20with%20my%20booking"
                     target="_blank"
                     rel="noreferrer"
                     className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
@@ -741,19 +743,50 @@ export const ProfilePage: React.FC = () => {
                     <span>WhatsApp Chat</span>
                   </a>
                   <a
-                    href="tel:+918045678900"
+                    href="tel:+916362000263"
                     className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all border border-white/20"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call Helpline</span>
                   </a>
+                  <Link
+                    to="/contact"
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all border border-white/20"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Help Desk</span>
+                  </Link>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-blue-200/80 gap-2">
-                <span>Helpline: +91 80 4567 8900 (Toll-Free)</span>
-                <span>Email: support@reparzo.com</span>
-                <span>Operating Hours: 7:00 AM - 11:00 PM (Doorstep Dispatch)</span>
+                <span>Helpline: +91 6362000263</span>
+                <span>Email: Contact@reparzo.com</span>
+                <span>Operating Hub: Davangere, Karnataka, India</span>
+              </div>
+            </div>
+
+            {/* Legal & Compliance Quick Bar */}
+            <div className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Reparzo Legal & Governance</h4>
+                <p className="text-xs text-slate-500">Review terms of service, customer & partner guidelines, and Indian DPDP data protection policies.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  to="/terms"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-[#2563EB] hover:text-white text-slate-700 text-xs font-bold transition-all inline-flex items-center gap-1.5"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Terms & Conditions</span>
+                </Link>
+                <Link
+                  to="/privacy"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-[#2563EB] hover:text-white text-slate-700 text-xs font-bold transition-all inline-flex items-center gap-1.5"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Privacy Policy</span>
+                </Link>
               </div>
             </div>
           </div>

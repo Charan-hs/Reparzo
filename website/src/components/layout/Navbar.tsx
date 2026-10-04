@@ -13,7 +13,8 @@ import {
   Layers,
   Menu,
   X,
-  Calendar
+  Calendar,
+  HelpCircle
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -103,6 +104,13 @@ export const Navbar: React.FC = () => {
                 Become a Partner / Technician
               </button>
             )}
+            <span className="text-slate-600">|</span>
+            <Link
+              to="/contact"
+              className="hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <HelpCircle className="w-3 h-3 text-blue-400" /> Help & Contact
+            </Link>
           </div>
         </div>
       </div>
@@ -321,6 +329,15 @@ export const Navbar: React.FC = () => {
                       >
                         <MapPin className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Saved Addresses</span>
+                      </Link>
+
+                      <Link
+                        to="/contact"
+                        onClick={() => setRoleMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Help Desk & Contact</span>
                       </Link>
                     </div>
 
