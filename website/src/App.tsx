@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
@@ -32,7 +32,8 @@ function DashboardRouter() {
   const { user } = useAppStore();
   if (user?.role === 'admin') return <AdminDashboard />;
   if (user?.role === 'partner') return <PartnerDashboard />;
-  return <HomePage />;
+  if (user?.role === 'user') return <BookingsPage />;
+  return <Navigate to="/bookings" replace />;
 }
 
 export function App() {
@@ -114,6 +115,8 @@ export function App() {
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/contact-us" element={<ContactPage />} />
+            {/* Fallback Catch-All Route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 

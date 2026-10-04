@@ -41,6 +41,7 @@ export const CheckoutPage: React.FC = () => {
     getCartMetrics, 
     location, 
     user, 
+    setUser,
     clearCart, 
     addOrder,
     setAuthModalOpen,
@@ -194,6 +195,16 @@ export const CheckoutPage: React.FC = () => {
         createdAt: new Date().toISOString(),
         completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
       };
+
+      if (!user) {
+        setUser({
+          id: `usr-${Date.now()}`,
+          name: name.trim(),
+          phone: `+91 ${phone.trim()}`,
+          email: `${phone.trim()}@reparzo.com`,
+          role: 'user',
+        });
+      }
 
       addOrder(newOrder);
       setCompletedOrder(newOrder);
@@ -501,6 +512,24 @@ export const CheckoutPage: React.FC = () => {
               ) : (
                 /* ── Compact Form View (When editing or filling initial details) ── */
                 <div className="space-y-3 pt-0.5">
+                  {!user && (
+                    <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-50/70 to-indigo-50/70 border border-blue-200/70 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#2563EB]" />
+                        <span className="text-slate-700 font-medium">
+                          Have a Reparzo account?
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAuthModalOpen(true)}
+                        className="px-3 py-1 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold text-xs shadow-2xs active:scale-95 transition-all cursor-pointer"
+                      >
+                        Sign In
+                      </button>
+                    </div>
+                  )}
+
                   {/* Quick Address Pills */}
                   {savedAddresses.length > 0 && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-0.5">

@@ -72,7 +72,8 @@ export const CategoryManagerModal: React.FC = () => {
     subCategories,
     addSubCategory,
     updateSubCategory,
-    deleteSubCategory
+    deleteSubCategory,
+    user
   } = useAppStore();
 
   // Active selected category for 2-step hierarchy
@@ -108,7 +109,8 @@ export const CategoryManagerModal: React.FC = () => {
   const [subWarranty, setSubWarranty] = useState<number>(30);
   const [subFeatures, setSubFeatures] = useState('');
 
-  if (!isCategoryManagerOpen) return null;
+  // Enforce admin authorization: only admin role can access CMS
+  if (!isCategoryManagerOpen || user?.role !== 'admin') return null;
 
   const currentCategory = categories.find((c) => c.id === selectedCatId) || categories[0];
 

@@ -16,6 +16,7 @@ import {
   Calendar,
   HelpCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
 
 const ROTATING_SEARCH_HINTS = [
@@ -385,6 +386,8 @@ export const Navbar: React.FC = () => {
                       onClick={() => {
                         logout();
                         setRoleMenuOpen(false);
+                        toast.success('Logged out successfully');
+                        navigate('/', { replace: true });
                       }}
                       className="w-full px-4 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
                     >

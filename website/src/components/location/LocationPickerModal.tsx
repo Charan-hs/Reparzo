@@ -29,7 +29,9 @@ export const LocationPickerModal: React.FC = () => {
     selectSavedAddress,
     setDefaultAddress,
     setAddressModalOpen,
-    detectCurrentGpsLocation
+    detectCurrentGpsLocation,
+    user,
+    setAuthModalOpen
   } = useAppStore();
 
   const [searchLocation, setSearchLocation] = useState('');
@@ -37,8 +39,11 @@ export const LocationPickerModal: React.FC = () => {
 
   if (!isLocationModalOpen) return null;
 
+  // Only display saved addresses if an authenticated user is logged in
+  const userAddresses = user ? savedAddresses : [];
+
   // Filtered Saved Addresses
-  const filteredAddresses = savedAddresses.filter((addr) =>
+  const filteredAddresses = userAddresses.filter((addr) =>
     addr.fullAddress.toLowerCase().includes(searchLocation.toLowerCase()) ||
     addr.label.toLowerCase().includes(searchLocation.toLowerCase()) ||
     addr.area.toLowerCase().includes(searchLocation.toLowerCase()) ||
@@ -176,39 +181,68 @@ export const LocationPickerModal: React.FC = () => {
             <div>
               <div className="flex items-center justify-between px-1 mb-2.5">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Your Added Addresses ({savedAddresses.length})
+                  Your Added Addresses ({userAddresses.length})
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocationModalOpen(false);
-                    navigate('/profile?tab=addresses');
-                  }}
-                  className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  Manage in Profile ➔
-                </button>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationModalOpen(false);
+                      navigate('/profile?tab=addresses');
+                    }}
+                    className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    Manage in Profile ➔
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationModalOpen(false);
+                      setAuthModalOpen(true);
+                    }}
+                    className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    Sign In ➔
+                  </button>
+                )}
               </div>
 
-              {savedAddresses.length === 0 ? (
+              {userAddresses.length === 0 ? (
                 <div className="p-6 rounded-2xl bg-white border border-slate-200/90 text-center space-y-2.5">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto">
                     <Building className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-800">No Saved Addresses Added Yet</h4>
+                  <h4 className="text-sm font-bold text-slate-800">
+                    {user ? 'No Saved Addresses Added Yet' : 'Sign In to Access Saved Addresses'}
+                  </h4>
                   <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                    Save your Home, Work, or other doorstep addresses using our interactive map for seamless 1-click booking.
+                    {user 
+                      ? 'Save your Home, Work, or other doorstep addresses using our interactive map for seamless 1-click booking.'
+                      : 'Log in to your Reparzo account to access your saved Home, Work, and doorstep delivery addresses.'}
                   </p>
-                  <button
-                    onClick={() => {
-                      setLocationModalOpen(false);
-                      setAddressModalOpen(true);
-                    }}
-                    className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add Address to Map
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={() => {
+                        setLocationModalOpen(false);
+                        setAddressModalOpen(true);
+                      }}
+                      className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Address to Map
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setLocationModalOpen(false);
+                        setAuthModalOpen(true);
+                      }}
+                      className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                    >
+                      Sign In to Account
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-2">

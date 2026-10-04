@@ -60,6 +60,29 @@ export const UnifiedAuthModal: React.FC = () => {
   const detectedUser: RecognizedAccount = resolveUserByIdentifier(identifier);
   const isInputReady = identifier.replace(/\D/g, '').length >= 10 || (identifier.includes('@') && identifier.includes('.'));
 
+  const navigateAfterLogin = (role: string, targetRoute: string) => {
+    const currentPath = window.location.pathname;
+    if (role === 'admin') {
+      navigate('/admin');
+    } else if (role === 'partner') {
+      navigate('/partner');
+    } else {
+      // Standard customer: if already on a customer-protected route, stay on it!
+      if (
+        currentPath.startsWith('/bookings') ||
+        currentPath.startsWith('/orders') ||
+        currentPath.startsWith('/profile') ||
+        currentPath.startsWith('/account') ||
+        currentPath.startsWith('/checkout') ||
+        currentPath.startsWith('/cart')
+      ) {
+        // Stay on current page so the authenticated view reveals immediately
+      } else {
+        navigate(targetRoute || '/');
+      }
+    }
+  };
+
   const executeLogin = (userAccount: RecognizedAccount) => {
     setIsLoading(true);
     setTimeout(() => {
@@ -68,7 +91,7 @@ export const UnifiedAuthModal: React.FC = () => {
       setAuthModalOpen(false);
 
       toast.success(`Welcome back, ${userAccount.name}!`);
-      navigate(userAccount.targetRoute);
+      navigateAfterLogin(userAccount.role, userAccount.targetRoute);
     }, 500);
   };
 
@@ -175,7 +198,7 @@ export const UnifiedAuthModal: React.FC = () => {
         });
         setAuthModalOpen(false);
         toast.success(`Welcome back, ${detected.name}!`);
-        navigate(detected.targetRoute);
+        navigateAfterLogin(detected.role, detected.targetRoute);
       } else {
         executeLogin(detectedUser);
       }
@@ -210,7 +233,7 @@ export const UnifiedAuthModal: React.FC = () => {
 
       setAuthModalOpen(false);
       toast.success(`Welcome back, ${firebaseUser.displayName || 'User'}!`);
-      navigate(detected.targetRoute);
+      navigateAfterLogin(detected.role, detected.targetRoute);
     } catch (err: any) {
       console.warn('Google Auth error:', err);
       if (err?.code === 'auth/popup-closed-by-user') {

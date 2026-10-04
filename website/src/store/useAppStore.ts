@@ -154,6 +154,22 @@ export interface AppState {
   setCustomRequestModalOpen: (open: boolean, initialCategory?: string) => void;
 }
 
+export const DEFAULT_DAVANGERE_LOCATION: LocationData = {
+  area: 'Vidyanagar',
+  city: 'Davangere',
+  pincode: '577005',
+  fullAddress: 'Vidyanagar, Davangere - 577005',
+  etaMinutes: 18,
+  latitude: 14.4485,
+  longitude: 75.9189,
+  isServiceable: true,
+  hubId: 'hub-dvg-vid',
+  hubName: 'Vidyanagar Hub',
+  distanceKm: 0.8,
+  isDefaultAddress: false,
+  addressLabel: undefined,
+};
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -462,7 +478,21 @@ export const useAppStore = create<AppState>()(
       authModalInitialRole: 'user',
       setAuthModalOpen: (open, role = 'user') =>
         set({ isAuthModalOpen: open, authModalInitialRole: role }),
-      setUser: (user) => set({ user }),
+      setUser: (user) =>
+        set((state) => ({
+          user,
+          ...(user === null
+            ? {
+                orders: [],
+                customRequests: [],
+                savedAddresses: [],
+                activeAddressId: null,
+                cart: [],
+                recentSearches: [],
+                location: DEFAULT_DAVANGERE_LOCATION,
+              }
+            : {}),
+        })),
       setActiveRole: (role) => set({ activeRole: role }),
       loginSimulated: (role, phoneOrEmail, name) => {
         const newUser: UserProfile = {
@@ -481,7 +511,13 @@ export const useAppStore = create<AppState>()(
           partnerRating: role === 'partner' ? 4.92 : undefined,
           earningsToday: role === 'partner' ? 1420 : undefined,
         };
-        set({ user: newUser, activeRole: role, isAuthModalOpen: false });
+        set((state) => ({
+          user: newUser,
+          activeRole: role,
+          isAuthModalOpen: false,
+          orders: (role === 'admin' || role === 'partner') && state.orders.length === 0 ? INITIAL_ORDERS : state.orders,
+          customRequests: role === 'admin' && state.customRequests.length === 0 ? INITIAL_CUSTOM_REQUESTS : state.customRequests,
+        }));
       },
       loginWithFirebaseUser: (firebaseUser) => {
         const email = firebaseUser.email || '';
@@ -503,7 +539,13 @@ export const useAppStore = create<AppState>()(
           earningsToday: role === 'partner' ? 1420 : undefined,
         };
 
-        set({ user: newUser, activeRole: role, isAuthModalOpen: false });
+        set((state) => ({
+          user: newUser,
+          activeRole: role,
+          isAuthModalOpen: false,
+          orders: (role === 'admin' || role === 'partner') && state.orders.length === 0 ? INITIAL_ORDERS : state.orders,
+          customRequests: role === 'admin' && state.customRequests.length === 0 ? INITIAL_CUSTOM_REQUESTS : state.customRequests,
+        }));
         return detected;
       },
       updateUserProfile: (updates) => {
@@ -519,25 +561,43 @@ export const useAppStore = create<AppState>()(
       },
       logout: () => {
         signOutFirebase().catch(() => {});
-        set({ user: null, activeRole: 'user' });
+        set({
+          user: null,
+          activeRole: 'user',
+          orders: [],
+          customRequests: [],
+          savedAddresses: [],
+          activeAddressId: null,
+          cart: [],
+          recentSearches: [],
+          location: DEFAULT_DAVANGERE_LOCATION,
+        });
+
+        // Hard sanitize persistent localStorage so zero residual user data remains on disk
+        try {
+          const raw = localStorage.getItem('reparzo-app-storage');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed?.state) {
+              parsed.state.user = null;
+              parsed.state.activeRole = 'user';
+              parsed.state.orders = [];
+              parsed.state.customRequests = [];
+              parsed.state.savedAddresses = [];
+              parsed.state.activeAddressId = null;
+              parsed.state.cart = [];
+              parsed.state.recentSearches = [];
+              parsed.state.location = DEFAULT_DAVANGERE_LOCATION;
+              localStorage.setItem('reparzo-app-storage', JSON.stringify(parsed));
+            }
+          }
+        } catch (e) {
+          console.warn('[logout localStorage write]', e);
+        }
       },
 
       // Location & Serviceability
-      location: {
-        area: 'Vidyanagar',
-        city: 'Davangere',
-        pincode: '577005',
-        fullAddress: 'Vidyanagar, Davangere - 577005',
-        etaMinutes: 18,
-        latitude: 14.4485,
-        longitude: 75.9189,
-        isServiceable: true,
-        hubId: 'hub-dvg-vid',
-        hubName: 'Vidyanagar Hub',
-        distanceKm: 0.8,
-        isDefaultAddress: false,
-        addressLabel: undefined,
-      },
+      location: DEFAULT_DAVANGERE_LOCATION,
       isLocationModalOpen: false,
       setLocationModalOpen: (open) => set({ isLocationModalOpen: open }),
       setLocation: (loc) => set({ location: loc, isLocationModalOpen: false }),
@@ -769,6 +829,18 @@ export const useAppStore = create<AppState>()(
 
       initLocationLifecycle: async () => {
         const state = get();
+        // If no user is authenticated, guarantee no saved addresses or personalized address labels are active
+        if (!state.user) {
+          set({
+            savedAddresses: [],
+            activeAddressId: null,
+          });
+          if (state.location.addressLabel || state.location.isDefaultAddress || state.location.fullAddress?.includes('Kondajji')) {
+            set({ location: DEFAULT_DAVANGERE_LOCATION });
+          }
+          return;
+        }
+
         // 1. Check if user has a default saved address:
         const defaultAddress = state.savedAddresses.find((a) => a.isDefault);
         if (defaultAddress) {
@@ -850,8 +922,8 @@ export const useAppStore = create<AppState>()(
       partnerIsOnline: true,
       setPartnerIsOnline: (online) => set({ partnerIsOnline: online }),
 
-      // Orders
-      orders: INITIAL_ORDERS,
+      // Orders: default empty for guests & unauthenticated users
+      orders: [],
       addOrder: (order) => set((state) => ({ orders: [order, ...state.orders] })),
       updateOrderStatus: (orderId, status) =>
         set((state) => ({
@@ -868,8 +940,8 @@ export const useAppStore = create<AppState>()(
       resetOrdersToDefault: () =>
         set({ orders: INITIAL_ORDERS }),
 
-      // Custom Requests (Unique on-demand requests submitted by users to admin)
-      customRequests: INITIAL_CUSTOM_REQUESTS,
+      // Custom Requests: default empty for guests & unauthenticated users
+      customRequests: [],
       isCustomRequestModalOpen: false,
       customRequestModalInitialCategory: null,
       setCustomRequestModalOpen: (open, initialCategory) =>
@@ -942,9 +1014,46 @@ export const useAppStore = create<AppState>()(
         customRequests: state.customRequests,
       }),
       onRehydrateStorage: () => (state) => {
+        // If there is no authenticated user, strictly purge all orders, custom requests, saved addresses, and location
+        if (state && !state.user) {
+          state.orders = [];
+          state.customRequests = [];
+          state.savedAddresses = [];
+          state.activeAddressId = null;
+          state.cart = [];
+          state.recentSearches = [];
+          state.location = DEFAULT_DAVANGERE_LOCATION;
+
+          // Directly synchronize sanitized state back to localStorage so nothing lingers
+          try {
+            const raw = localStorage.getItem('reparzo-app-storage');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed?.state && !parsed.state.user) {
+                parsed.state.orders = [];
+                parsed.state.customRequests = [];
+                parsed.state.savedAddresses = [];
+                parsed.state.activeAddressId = null;
+                parsed.state.cart = [];
+                parsed.state.recentSearches = [];
+                parsed.state.location = DEFAULT_DAVANGERE_LOCATION;
+                localStorage.setItem('reparzo-app-storage', JSON.stringify(parsed));
+              }
+            }
+          } catch (e) {
+            console.warn('[rehydrate storage sync]', e);
+          }
+        }
         if (state?.user && (state.user.phone?.includes('98450') || state.user.name?.includes('Charan H.S.') || state.user.name === 'Charan H S')) {
           state.user = null;
           state.activeRole = 'user';
+          state.orders = [];
+          state.customRequests = [];
+          state.savedAddresses = [];
+          state.activeAddressId = null;
+          state.cart = [];
+          state.recentSearches = [];
+          state.location = DEFAULT_DAVANGERE_LOCATION;
         }
         // Purge legacy dummy addresses from persistent browser storage
         if (state?.savedAddresses) {

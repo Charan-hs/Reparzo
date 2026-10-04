@@ -98,7 +98,8 @@ export const CustomRequestModal: React.FC = () => {
     customRequestModalInitialCategory,
     addCustomRequest, 
     location, 
-    user 
+    user,
+    setUser
   } = useAppStore();
 
   const [selectedCategory, setSelectedCategory] = useState<CustomCategoryType>('other');
@@ -208,6 +209,17 @@ export const CustomRequestModal: React.FC = () => {
         urgency,
         estimatedBudget: estimatedBudget ? Number(estimatedBudget) : undefined,
       });
+
+      if (!user && customerPhone.trim()) {
+        const cleanPhone = customerPhone.trim();
+        setUser({
+          id: `usr-${Date.now()}`,
+          name: customerName.trim() || 'Reparzo Customer',
+          phone: cleanPhone.startsWith('+91') ? cleanPhone : `+91 ${cleanPhone}`,
+          email: customerEmail.trim() || undefined,
+          role: 'user',
+        });
+      }
 
       setSubmittedRequest(newRequest);
       toast.success('Your custom request has been transmitted to Reparzo Admin!');
