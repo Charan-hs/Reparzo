@@ -304,7 +304,7 @@ export const FullScreenSearch: React.FC = () => {
                   Matching Services ({filteredServices.length})
                 </span>
                 <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> 30-Day Doorstep Guarantee
+                  <ShieldCheck className="w-3.5 h-3.5" /> 100% Genuine Spare Parts
                 </span>
               </div>
             )}

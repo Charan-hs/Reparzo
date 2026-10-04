@@ -25,7 +25,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <Shield className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Licensed, background-verified technicians with 30-day warranty</span>
+              <span>Licensed, background-verified technicians with upfront transparent rates</span>
             </div>
           </div>
 
@@ -83,10 +83,10 @@ export const Footer: React.FC = () => {
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
                 <Shield className="w-4 h-4 text-emerald-600" />
-                <span>30-Day Service Warranty</span>
+                <span>100% Genuine Spare Parts</span>
               </div>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                If the repaired issue reoccurs within 30 days, we dispatch a senior supervisor to resolve it for free.
+                Every replacement component is OEM certified with transparent pricing and direct doorstep digital billing.
               </p>
             </div>
           </div>

@@ -155,7 +155,7 @@ export const HomePage: React.FC = () => {
                   Welcome back, {user.name.split(' ')[0]}!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Verified technicians nearby in your area. Doorstep arrival in 18-25 minutes with 30-day warranty.
+                  Verified technicians nearby in your area. Doorstep arrival in 18-25 minutes with verified genuine spare parts.
                 </p>
               </div>
 
@@ -269,7 +269,7 @@ export const HomePage: React.FC = () => {
                       </span>
                     </div>
                     <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> 30-Day Warranty
+                      <CheckCircle2 className="w-2.5 h-2.5" /> Genuine Spares
                     </span>
                   </div>
 
@@ -344,10 +344,10 @@ export const HomePage: React.FC = () => {
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
               <div className="text-2xl sm:text-4xl font-black font-mono text-emerald-600">
-                30 Days
+                100%
               </div>
-              <div className="text-xs font-bold text-slate-800 mt-1">Free Rework Warranty</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">On every service & repair job</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Genuine Spare Parts</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">OEM verified & transparent pricing</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">

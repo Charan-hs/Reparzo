@@ -334,7 +334,7 @@ export const BannerCarousel: React.FC = () => {
             {/* Subtle Right-side Trust Badge (Desktop Only) */}
             <div className="absolute top-4 right-4 hidden md:flex items-center gap-1.5 text-xs font-semibold text-white/90 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Reparzo Assured • 30-Day Guarantee</span>
+              <span>Reparzo Assured • Genuine Parts</span>
             </div>
           </motion.div>
         </AnimatePresence>

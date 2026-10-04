@@ -163,18 +163,6 @@ export const CartDrawer: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Upsell / Hygiene Shield Add-on */}
-                <div className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-1.5 mt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Professional Service Kit
-                    </span>
-                    <span className="text-xs font-mono font-bold text-emerald-600">Included FREE</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Sanitized tools, shoe covers, mask, and cleanup after doorstep repair.
-                  </p>
-                </div>
 
                 {/* Transparent Bill Breakdown */}
                 <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-2.5 mt-4 text-xs">
@@ -218,11 +206,6 @@ export const CartDrawer: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Guarantee Note */}
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 justify-center pt-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>30-Day Money-Back & Free Rework Guarantee</span>
-                </div>
               </>
             )}
           </div>

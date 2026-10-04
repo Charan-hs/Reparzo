@@ -244,7 +244,7 @@ export const ProfilePage: React.FC = () => {
               <span className="text-[11px] font-semibold text-emerald-800 block">Reparzo Shield</span>
               <span className="text-xs font-extrabold text-emerald-700 flex items-center gap-1 mt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                30-Day Guarantee
+                Reparzo Assured
               </span>
             </div>
           </div>
@@ -687,9 +687,9 @@ export const ProfilePage: React.FC = () => {
                 <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900">30-Day Doorstep Warranty</h4>
+                <h4 className="text-sm font-bold text-slate-900">Upfront Transparent Pricing</h4>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Every repair completed through Reparzo is covered under our 30-day free revisit guarantee. If an issue recurs, we fix it at zero extra cost.
+                  Every service price and spare part cost is approved by you upfront before work begins. Zero hidden charges or surprise invoices.
                 </p>
               </div>
 

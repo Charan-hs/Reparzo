@@ -338,7 +338,7 @@ export const ServicesPage: React.FC = () => {
                           </span>
                         </div>
                         <span className="text-[10px] font-bold text-emerald-600 block">
-                          {service.warrantyDays}-Day Warranty Included
+                          Genuine Spares Included
                         </span>
                       </div>
 
@@ -463,7 +463,7 @@ export const ServicesPage: React.FC = () => {
                     </span>
                   </div>
                   <span className="text-xs font-bold text-emerald-600">
-                    {selectedServiceModal.warrantyDays}-Day Free Rework Warranty Included
+                    Genuine Spares & Expert Service Included
                   </span>
                 </div>
 

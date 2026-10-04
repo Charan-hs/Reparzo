@@ -97,6 +97,6 @@ export function resolveUserByIdentifier(identifier: string, displayName?: string
     badge: 'Member',
     targetRoute: '/',
     accentColor: '#2563EB',
-    description: 'Book verified doorstep repairs with 30-day warranty.',
+    description: 'Book verified doorstep repairs with certified technicians.',
   };
 }

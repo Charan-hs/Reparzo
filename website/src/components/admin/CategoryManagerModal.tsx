@@ -186,7 +186,7 @@ export const CategoryManagerModal: React.FC = () => {
     setSubOriginalPrice(699);
     setSubDuration(45);
     setSubWarranty(30);
-    setSubFeatures('Verified Technician, Genuine Spares, 30-Day Guarantee');
+    setSubFeatures('Verified Technician, Genuine Spares, Transparent Pricing');
     setIsAddingSubCategory(true);
   };
 
@@ -624,7 +624,7 @@ export const CategoryManagerModal: React.FC = () => {
 
                                 <div className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 text-[11px] font-bold">
                                   <ShieldCheck className="w-3 h-3" />
-                                  <span>{sub.warrantyDays}d Warranty</span>
+                                  <span>Reparzo Assured</span>
                                 </div>
                               </div>
 
@@ -777,7 +777,7 @@ export const CategoryManagerModal: React.FC = () => {
                       type="text"
                       value={subFeatures}
                       onChange={(e) => setSubFeatures(e.target.value)}
-                      placeholder="e.g. Antimicrobial Foam, Gas check, 30-Day Warranty"
+                      placeholder="e.g. Antimicrobial Foam, Gas check, Genuine Spares"
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs outline-none focus:border-[#2563EB]"
                     />
                   </div>
@@ -924,7 +924,7 @@ export const CategoryManagerModal: React.FC = () => {
                       type="text"
                       value={editSubFeatures}
                       onChange={(e) => setEditSubFeatures(e.target.value)}
-                      placeholder="e.g. Antimicrobial Foam, Gas check, 30-Day Warranty"
+                      placeholder="e.g. Antimicrobial Foam, Gas check, Genuine Spares"
                       className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-semibold text-xs"
                     />
                   </div>

@@ -456,7 +456,7 @@ export const AdminDashboard: React.FC = () => {
                       <span className="text-lg font-mono font-black text-slate-900">₹{service.price}</span>
                       <span className="text-xs font-mono text-slate-400 line-through ml-1.5">₹{service.originalPrice}</span>
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-600">{service.warrantyDays}-Day Warranty</span>
+                    <span className="text-[11px] font-bold text-emerald-600">Reparzo Assured</span>
                   </div>
                 </div>
               ))}
