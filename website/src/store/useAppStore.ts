@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Category, SubCategory, Service, CartItem, UserProfile, UserRole, LocationData, OrderBooking, UserAddress, ServiceHub } from '../types';
+import type { 
+  Category, 
+  SubCategory, 
+  Service, 
+  CartItem, 
+  UserProfile, 
+  UserRole, 
+  LocationData, 
+  OrderBooking, 
+  UserAddress, 
+  ServiceHub,
+  CustomRequest,
+  CustomRequestStatus
+} from '../types';
 import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
 import { signOutFirebase } from '../lib/firebase';
 import { DEFAULT_SERVICE_HUBS, checkServiceability, reverseGeocode, calculateDistanceKm, estimateEtaMinutes } from '../lib/geo';
@@ -9,14 +22,16 @@ import {
   INITIAL_CATEGORIES, 
   INITIAL_SUBCATEGORIES, 
   INITIAL_SERVICES, 
-  INITIAL_ORDERS 
+  INITIAL_ORDERS,
+  INITIAL_CUSTOM_REQUESTS
 } from '../data/fallbackCatalog';
 
 // Default starter doorstep addresses (empty by default; users add real doorstep addresses)
 export const DEFAULT_SAVED_ADDRESSES: UserAddress[] = [];
 
 // Re-export fallback constants for backwards-compatibility with scripts and types
-export { INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_SERVICES, INITIAL_ORDERS };
+export { INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_SERVICES, INITIAL_ORDERS, INITIAL_CUSTOM_REQUESTS };
+
 
 export interface AppState {
   // Backend Catalog State & Async Sync
@@ -126,6 +141,17 @@ export interface AppState {
   updateOrder: (orderId: string, updates: Partial<OrderBooking>) => void;
   deleteOrder: (orderId: string) => void;
   resetOrdersToDefault: () => void;
+
+  // Custom Requests (Unique on-demand requests submitted by users to admin)
+  customRequests: CustomRequest[];
+  addCustomRequest: (req: Omit<CustomRequest, 'id' | 'createdAt' | 'status'>) => CustomRequest;
+  updateCustomRequestStatus: (id: string, status: CustomRequestStatus, quotedPrice?: number) => void;
+  updateCustomRequest: (id: string, updates: Partial<CustomRequest>) => void;
+  deleteCustomRequest: (id: string) => void;
+  resetCustomRequestsToDefault: () => void;
+  isCustomRequestModalOpen: boolean;
+  customRequestModalInitialCategory: string | null;
+  setCustomRequestModalOpen: (open: boolean, initialCategory?: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -183,9 +209,18 @@ export const useAppStore = create<AppState>()(
                 };
               });
 
+              // Merge fallback categories with API response so new first-class categories (meat, parcel, courier, custom) are never dropped
+              const existingSlugs = new Set(normalizedCats.map((c: any) => c.slug));
+              const missingFallbacks = INITIAL_CATEGORIES.filter((c) => !existingSlugs.has(c.slug));
+              const mergedCats = [...normalizedCats, ...missingFallbacks];
+
+              const existingSubSlugs = new Set(extractedSubs.map((s: any) => s.slug));
+              const missingSubFallbacks = INITIAL_SUBCATEGORIES.filter((s) => !existingSubSlugs.has(s.slug));
+              const mergedSubs = [...extractedSubs, ...missingSubFallbacks];
+
               set((state) => ({
-                categories: normalizedCats,
-                subCategories: extractedSubs.length > 0 ? extractedSubs : state.subCategories,
+                categories: mergedCats,
+                subCategories: mergedSubs.length > 0 ? mergedSubs : state.subCategories,
               }));
               hasUpdatedCategories = true;
             }
@@ -206,7 +241,10 @@ export const useAppStore = create<AppState>()(
                   inclusions: Array.isArray(inclusions) ? inclusions : [],
                 };
               });
-              set({ services: normalizedServices });
+              const existingSrvSlugs = new Set(normalizedServices.map((s: any) => s.slug));
+              const missingSrvFallbacks = INITIAL_SERVICES.filter((s) => !existingSrvSlugs.has(s.slug));
+              const mergedServices = [...normalizedServices, ...missingSrvFallbacks];
+              set({ services: mergedServices });
             }
           }
 
@@ -828,6 +866,65 @@ export const useAppStore = create<AppState>()(
         })),
       resetOrdersToDefault: () =>
         set({ orders: INITIAL_ORDERS }),
+
+      // Custom Requests (Unique on-demand requests submitted by users to admin)
+      customRequests: INITIAL_CUSTOM_REQUESTS,
+      isCustomRequestModalOpen: false,
+      customRequestModalInitialCategory: null,
+      setCustomRequestModalOpen: (open, initialCategory) =>
+        set({ 
+          isCustomRequestModalOpen: open, 
+          customRequestModalInitialCategory: initialCategory ?? null 
+        }),
+
+      addCustomRequest: (reqData) => {
+        const newId = `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newReq: CustomRequest = {
+          ...reqData,
+          id: newId,
+          status: 'submitted',
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({
+          customRequests: [newReq, ...state.customRequests],
+        }));
+        return newReq;
+      },
+
+      updateCustomRequestStatus: (id, status, quotedPrice) =>
+        set((state) => ({
+          customRequests: state.customRequests.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  status,
+                  quotedPrice: quotedPrice !== undefined ? quotedPrice : r.quotedPrice,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          ),
+        })),
+
+      updateCustomRequest: (id, updates) =>
+        set((state) => ({
+          customRequests: state.customRequests.map((r) =>
+            r.id === id
+              ? {
+                  ...r,
+                  ...updates,
+                  updatedAt: new Date().toISOString(),
+                }
+              : r
+          ),
+        })),
+
+      deleteCustomRequest: (id) =>
+        set((state) => ({
+          customRequests: state.customRequests.filter((r) => r.id !== id),
+        })),
+
+      resetCustomRequestsToDefault: () =>
+        set({ customRequests: INITIAL_CUSTOM_REQUESTS }),
     }),
     {
       name: 'reparzo-app-storage',
@@ -841,6 +938,7 @@ export const useAppStore = create<AppState>()(
         activeAddressId: state.activeAddressId,
         recentSearches: state.recentSearches,
         orders: state.orders,
+        customRequests: state.customRequests,
       }),
       onRehydrateStorage: () => (state) => {
         if (state?.user && (state.user.phone?.includes('98450') || state.user.name?.includes('Charan H.S.') || state.user.name === 'Charan H S')) {

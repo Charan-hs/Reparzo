@@ -20,7 +20,12 @@ import {
   Waves,
   Wrench,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Beef,
+  Package,
+  Send,
+  HelpCircle,
+  ArrowRight
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import type { Service, Category, CartItem } from '../types';
@@ -37,6 +42,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Wrench,
   Layers,
   Shield,
+  Beef,
+  Package,
+  Send,
+  HelpCircle,
 };
 
 export const ServicesPage: React.FC = () => {
@@ -54,8 +63,10 @@ export const ServicesPage: React.FC = () => {
     updateQuantity,
     setCartDrawerOpen,
     location,
-    setLocationModalOpen
+    setLocationModalOpen,
+    setCustomRequestModalOpen
   } = useAppStore();
+
 
   const [sortBy, setSortBy] = useState<'popular' | 'price_asc' | 'price_desc' | 'rating' | 'duration'>('popular');
   const [selectedServiceModal, setSelectedServiceModal] = useState<Service | null>(null);
@@ -225,6 +236,37 @@ export const ServicesPage: React.FC = () => {
           </div>
         )}
 
+        {/* ── Custom & Unique Request Dedicated Hero Banner ── */}
+        {activeCategorySlug === 'custom-requests' && (
+          <div className="mb-6 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 text-white shadow-xl border border-purple-800/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xl shadow-lg shadow-amber-400/20 flex-shrink-0">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  Custom On-Demand Services
+                </span>
+                <h2 className="text-base sm:text-lg font-black text-white mt-1">
+                  Have a specific errand, meat order, or unique repair?
+                </h2>
+                <p className="text-xs text-purple-200 mt-0.5">
+                  Directly submit your requirement to Reparzo central operations. We review, quote upfront, and dispatch verified specialists.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCustomRequestModalOpen(true, 'other')}
+              className="px-5 py-3 rounded-2xl bg-[#2563EB] hover:bg-blue-600 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/30 active:scale-95 transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap flex-shrink-0"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>Submit Custom Request ➔</span>
+            </button>
+          </div>
+        )}
+
         {/* Zero State */}
         {displayedServices.length === 0 ? (
           <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500 shadow-xs">
@@ -390,6 +432,32 @@ export const ServicesPage: React.FC = () => {
             </AnimatePresence>
           </div>
         )}
+
+        {/* ── Need Something Unique Callout Footer ── */}
+        <div className="mt-10 p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+                Can't find the exact service or item you need?
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                From specific butcher cuts to parcel pickup, urgent documents or custom appliance repair — submit a unique request directly to Admin.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCustomRequestModalOpen(true, activeCategorySlug !== 'all' ? activeCategorySlug : 'other')}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
+          >
+            <span>Request Custom Service</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* ── Detailed Service Inspection Modal ─────────── */}

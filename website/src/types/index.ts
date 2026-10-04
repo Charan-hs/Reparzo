@@ -152,3 +152,49 @@ export interface OrderBooking {
   completionPin?: string;
   adminNotes?: string;
 }
+
+export type CustomRequestStatus = 
+  | 'submitted' 
+  | 'under_review' 
+  | 'quoted' 
+  | 'assigned' 
+  | 'in_progress' 
+  | 'completed' 
+  | 'cancelled';
+
+export type CustomCategoryType = 
+  | 'meat_delivery' 
+  | 'parcel_pickup' 
+  | 'courier_express' 
+  | 'unique_repair' 
+  | 'errand' 
+  | 'other';
+
+export interface CustomRequest {
+  id: string;
+  userId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  title: string;
+  categoryType: CustomCategoryType;
+  categoryTitle: string;
+  description: string;
+  isDelivery?: boolean;
+  pickupAddress?: string;
+  dropAddress?: string;
+  serviceAddress: string;
+  preferredDate: string;
+  preferredTimeSlot: string;
+  urgency: 'urgent_60min' | 'same_day' | 'scheduled';
+  estimatedBudget?: number;
+  quotedPrice?: number;
+  status: CustomRequestStatus;
+  adminNotes?: string;
+  partnerName?: string;
+  partnerPhone?: string;
+  completionPin?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+

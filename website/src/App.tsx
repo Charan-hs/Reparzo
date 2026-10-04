@@ -12,6 +12,7 @@ import { AddressMapModal } from './components/location/AddressMapModal';
 import { UnifiedAuthModal } from './components/auth/UnifiedAuthModal';
 import { CategoryManagerModal } from './components/admin/CategoryManagerModal';
 import { CartDrawer } from './components/cart/CartDrawer';
+import { CustomRequestModal } from './components/common/CustomRequestModal';
 import { ScrollManager } from './components/layout/ScrollManager';
 
 import { HomePage } from './pages/HomePage';
@@ -88,6 +89,9 @@ export function App() {
 
         {/* Slide-over Cart Drawer */}
         <CartDrawer />
+
+        {/* User-to-Admin Custom & Unique Request Modal */}
+        <CustomRequestModal />
 
         {/* Main Routed Page Content */}
         <main className="flex-1">

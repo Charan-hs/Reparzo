@@ -29,11 +29,15 @@ import {
   X,
   Calendar,
   RotateCcw,
-  KeyRound
+  KeyRound,
+  Package,
+  Navigation,
+  Send,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
-import type { OrderBooking } from '../types';
+import type { OrderBooking, CustomRequest, CustomRequestStatus } from '../types';
 import { AdminGeoCoverageTab } from '../components/admin/AdminGeoCoverageTab';
 import { 
   getOrderWorkingSchedule, 
@@ -53,17 +57,31 @@ export const AdminDashboard: React.FC = () => {
     updateOrder,
     deleteOrder,
     resetOrdersToDefault,
+    customRequests,
+    updateCustomRequestStatus,
+    updateCustomRequest,
+    deleteCustomRequest,
+    resetCustomRequestsToDefault,
     categories, 
     services, 
     serviceHubs,
     setCategoryManagerOpen,
+    setCustomRequestModalOpen,
     setAuthModalOpen 
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'categories' | 'partners' | 'coverage'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'custom_requests' | 'services' | 'categories' | 'partners' | 'coverage'>('bookings');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [surgeActive, setSurgeActive] = useState(false);
+
+  // Custom Requests Tab state
+  const [customStatusFilter, setCustomStatusFilter] = useState<string>('all');
+  const [customSearchQuery, setCustomSearchQuery] = useState('');
+  const [quoteInputs, setQuoteInputs] = useState<Record<string, string>>({});
+  const [partnerInputs, setPartnerInputs] = useState<Record<string, { name: string; phone: string }>>({});
+  const [adminNotesInputs, setAdminNotesInputs] = useState<Record<string, string>>({});
+
 
   // If user is not admin, show permission gate
   if (user?.role !== 'admin') {
@@ -428,6 +446,23 @@ export const AdminDashboard: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setActiveTab('custom_requests')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'custom_requests'
+                ? 'border-[#2563EB] text-[#2563EB]'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Custom & Unique Requests ({customRequests.length})</span>
+            {customRequests.filter(r => r.status === 'submitted' || r.status === 'under_review').length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-mono font-bold animate-pulse">
+                {customRequests.filter(r => r.status === 'submitted' || r.status === 'under_review').length} New
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('services')}
             className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'services'
@@ -672,6 +707,383 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* ── TAB 1.5: Custom & Unique Requests Operations ──────── */}
+        {activeTab === 'custom_requests' && (() => {
+          const filteredCustomRequests = customRequests.filter((r) => {
+            const matchesStatus = customStatusFilter === 'all' || r.status === customStatusFilter;
+            const matchesSearch = 
+              customSearchQuery === '' ||
+              r.id.toLowerCase().includes(customSearchQuery.toLowerCase()) ||
+              r.customerName.toLowerCase().includes(customSearchQuery.toLowerCase()) ||
+              r.customerPhone.toLowerCase().includes(customSearchQuery.toLowerCase()) ||
+              r.title.toLowerCase().includes(customSearchQuery.toLowerCase()) ||
+              r.categoryTitle.toLowerCase().includes(customSearchQuery.toLowerCase());
+            return matchesStatus && matchesSearch;
+          });
+
+          const pendingCount = customRequests.filter(r => r.status === 'submitted' || r.status === 'under_review').length;
+          const quotedCount = customRequests.filter(r => r.status === 'quoted').length;
+          const assignedCount = customRequests.filter(r => r.status === 'assigned' || r.status === 'in_progress').length;
+          const completedCount = customRequests.filter(r => r.status === 'completed').length;
+
+          return (
+            <div className="space-y-6">
+              {/* Summary Metrics Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs">
+                  <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Total Requests</span>
+                  <span className="text-2xl font-black font-mono text-slate-900">{customRequests.length}</span>
+                  <span className="text-[11px] text-slate-500 block mt-0.5">All customer briefs</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase text-amber-800">Pending Review</span>
+                    {pendingCount > 0 && <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />}
+                  </div>
+                  <span className="text-2xl font-black font-mono text-amber-900">{pendingCount}</span>
+                  <span className="text-[11px] text-amber-700 block mt-0.5">Needs admin quote</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200 text-blue-950 shadow-2xs">
+                  <span className="text-[10px] font-extrabold uppercase text-blue-800 block">Quoted Awaiting</span>
+                  <span className="text-2xl font-black font-mono text-blue-900">{quotedCount}</span>
+                  <span className="text-[11px] text-blue-700 block mt-0.5">Quote sent to user</span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 text-purple-950 shadow-2xs">
+                  <span className="text-[10px] font-extrabold uppercase text-purple-800 block">Active In-Flight</span>
+                  <span className="text-2xl font-black font-mono text-purple-900">{assignedCount}</span>
+                  <span className="text-[11px] text-purple-700 block mt-0.5">Runner / Tech assigned</span>
+                </div>
+              </div>
+
+              {/* Controls & Filter Bar */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex flex-1 flex-col sm:flex-row items-center gap-3 w-full">
+                  <div className="relative w-full sm:w-72">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={customSearchQuery}
+                      onChange={(e) => setCustomSearchQuery(e.target.value)}
+                      placeholder="Search name, phone, ID, or item..."
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:bg-white focus:border-[#2563EB] outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
+                    <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Status:</span>
+                    <select
+                      value={customStatusFilter}
+                      onChange={(e) => setCustomStatusFilter(e.target.value)}
+                      className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 outline-none cursor-pointer focus:bg-white focus:border-[#2563EB]"
+                    >
+                      <option value="all">All Statuses ({customRequests.length})</option>
+                      <option value="submitted">Submitted / New ({customRequests.filter(r => r.status === 'submitted').length})</option>
+                      <option value="under_review">Under Review ({customRequests.filter(r => r.status === 'under_review').length})</option>
+                      <option value="quoted">Quoted ({customRequests.filter(r => r.status === 'quoted').length})</option>
+                      <option value="assigned">Partner Assigned ({customRequests.filter(r => r.status === 'assigned').length})</option>
+                      <option value="in_progress">In Progress ({customRequests.filter(r => r.status === 'in_progress').length})</option>
+                      <option value="completed">Completed ({customRequests.filter(r => r.status === 'completed').length})</option>
+                      <option value="cancelled">Cancelled ({customRequests.filter(r => r.status === 'cancelled').length})</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  <button
+                    onClick={() => setCustomRequestModalOpen(true, 'other')}
+                    className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Create Custom Request</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      resetCustomRequestsToDefault();
+                      toast.success('Reset demo custom requests to standard catalog.');
+                    }}
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+                    title="Reset to default custom requests"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Requests List */}
+              <div className="space-y-4">
+                {filteredCustomRequests.length === 0 ? (
+                  <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500 shadow-xs">
+                    <Sparkles className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                    <h4 className="text-base font-bold text-slate-800">No Custom Requests Match Filters</h4>
+                    <p className="text-xs text-slate-400 mt-1">Try resetting your search query or status filter.</p>
+                  </div>
+                ) : (
+                  filteredCustomRequests.map((req: CustomRequest) => {
+                    const currentQuoteInput = quoteInputs[req.id] !== undefined ? quoteInputs[req.id] : (req.quotedPrice ? String(req.quotedPrice) : '');
+                    const currentPartnerName = partnerInputs[req.id]?.name !== undefined ? partnerInputs[req.id].name : (req.partnerName || '');
+                    const currentPartnerPhone = partnerInputs[req.id]?.phone !== undefined ? partnerInputs[req.id].phone : (req.partnerPhone || '');
+                    const currentAdminNote = adminNotesInputs[req.id] !== undefined ? adminNotesInputs[req.id] : (req.adminNotes || '');
+
+                    const categoryEmoji = 
+                      req.categoryType === 'meat_delivery' ? '🥩' :
+                      req.categoryType === 'parcel_pickup' ? '📦' :
+                      req.categoryType === 'courier_express' ? '🚚' :
+                      req.categoryType === 'unique_repair' ? '🔧' :
+                      req.categoryType === 'errand' ? '⚡' : '✨';
+
+                    return (
+                      <div
+                        key={req.id}
+                        className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-2xs space-y-4 transition-all hover:shadow-md"
+                      >
+                        {/* Header Row */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                          <div className="flex items-center gap-3">
+                            <span className="text-3xl">{categoryEmoji}</span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-black font-mono text-slate-900">
+                                  #{req.id}
+                                </span>
+                                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                  {req.categoryTitle}
+                                </span>
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                  req.urgency === 'urgent_60min'
+                                    ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {req.urgency === 'urgent_60min' ? '⚡ Urgent 60m' : req.urgency}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400">
+                                Received {formatNumericDate(new Date(req.createdAt))} • Preferred: {req.preferredDate} ({req.preferredTimeSlot})
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Customer Contact & Quick Actions */}
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`tel:${req.customerPhone}`}
+                              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>{req.customerPhone}</span>
+                            </a>
+
+                            <a
+                              href={`https://wa.me/${req.customerPhone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                              title="Chat on WhatsApp"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>WhatsApp</span>
+                            </a>
+
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete request #${req.id}?`)) {
+                                  deleteCustomRequest(req.id);
+                                  toast.success(`Request #${req.id} deleted.`);
+                                }
+                              }}
+                              className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-colors cursor-pointer"
+                              title="Delete request"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Customer Info & Requirement */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="font-bold text-slate-900">Customer:</span>
+                            <span className="text-slate-700 font-medium">{req.customerName}</span>
+                            {req.customerEmail && (
+                              <span className="text-slate-400">({req.customerEmail})</span>
+                            )}
+                          </div>
+
+                          <h4 className="text-base font-extrabold text-slate-900">
+                            {req.title}
+                          </h4>
+
+                          <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100 font-normal">
+                            {req.description}
+                          </p>
+                        </div>
+
+                        {/* Location Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          {req.isDelivery && req.pickupAddress ? (
+                            <>
+                              <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80">
+                                <span className="text-[10px] font-extrabold uppercase text-amber-800 flex items-center gap-1 mb-0.5">
+                                  <MapPin className="w-3 h-3 text-amber-600" /> Pickup Point / Store:
+                                </span>
+                                <span className="text-slate-900 font-medium">{req.pickupAddress}</span>
+                              </div>
+
+                              <div className="p-3 rounded-2xl bg-blue-50/70 border border-blue-200/80">
+                                <span className="text-[10px] font-extrabold uppercase text-blue-800 flex items-center gap-1 mb-0.5">
+                                  <Navigation className="w-3 h-3 text-[#2563EB]" /> Delivery Destination:
+                                </span>
+                                <span className="text-slate-900 font-medium">{req.dropAddress || req.serviceAddress}</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 sm:col-span-2">
+                              <span className="text-[10px] font-extrabold uppercase text-slate-500 flex items-center gap-1 mb-0.5">
+                                <MapPin className="w-3 h-3 text-[#2563EB]" /> Doorstep Service Address:
+                              </span>
+                              <span className="text-slate-900 font-medium">{req.serviceAddress}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Admin Action Control Deck */}
+                        <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-3">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                            <Sliders className="w-3.5 h-3.5 text-[#2563EB]" />
+                            <span>Operations Desk Controls</span>
+                          </span>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                            {/* 1. Quote Price */}
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-bold text-slate-600 block">
+                                Calculate & Quote Price (₹):
+                                {req.estimatedBudget && (
+                                  <span className="text-slate-400 font-normal ml-1">(User Target: ₹{req.estimatedBudget})</span>
+                                )}
+                              </label>
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="number"
+                                  value={currentQuoteInput}
+                                  onChange={(e) => setQuoteInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
+                                  placeholder="e.g. 250"
+                                  className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 font-bold text-slate-900 outline-none focus:border-[#2563EB]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const parsed = Number(currentQuoteInput);
+                                    if (isNaN(parsed) || parsed <= 0) {
+                                      toast.error('Please enter a valid price amount');
+                                      return;
+                                    }
+                                    updateCustomRequestStatus(req.id, 'quoted', parsed);
+                                    toast.success(`Quote of ₹${parsed} submitted to customer for #${req.id}`);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold whitespace-nowrap active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Save Quote
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* 2. Assign Partner / Runner */}
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-bold text-slate-600 block">
+                                Assign Runner / Specialist:
+                              </label>
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={currentPartnerName}
+                                  onChange={(e) => setPartnerInputs(prev => ({
+                                    ...prev,
+                                    [req.id]: { name: e.target.value, phone: currentPartnerPhone }
+                                  }))}
+                                  placeholder="Partner Name"
+                                  className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-xs font-medium text-slate-900 outline-none focus:border-[#2563EB]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!currentPartnerName.trim()) {
+                                      toast.error('Please enter partner name');
+                                      return;
+                                    }
+                                    updateCustomRequest(req.id, {
+                                      partnerName: currentPartnerName.trim(),
+                                      partnerPhone: currentPartnerPhone.trim() || '+91 98450 77123',
+                                      status: 'assigned',
+                                    });
+                                    toast.success(`Assigned ${currentPartnerName} to #${req.id}`);
+                                  }}
+                                  className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold whitespace-nowrap active:scale-95 transition-all cursor-pointer"
+                                >
+                                  Assign
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* 3. Status Switcher */}
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-bold text-slate-600 block">
+                                Live Status Pipeline:
+                              </label>
+                              <select
+                                value={req.status}
+                                onChange={(e) => {
+                                  const newStatus = e.target.value as CustomRequestStatus;
+                                  updateCustomRequestStatus(req.id, newStatus);
+                                  toast.success(`Request #${req.id} status updated to ${newStatus}`);
+                                }}
+                                className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 font-bold text-slate-800 outline-none cursor-pointer focus:border-[#2563EB]"
+                              >
+                                <option value="submitted">⏳ Submitted / New</option>
+                                <option value="under_review">🔍 Under Admin Review</option>
+                                <option value="quoted">💵 Quoted (Price Sent)</option>
+                                <option value="assigned">👤 Runner Assigned</option>
+                                <option value="in_progress">⚡ In Progress</option>
+                                <option value="completed">✓ Completed</option>
+                                <option value="cancelled">✕ Cancelled</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Admin Operational Notes Row */}
+                          <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={currentAdminNote}
+                              onChange={(e) => setAdminNotesInputs(prev => ({ ...prev, [req.id]: e.target.value }))}
+                              placeholder="Add internal operational note (e.g. Call butcher at 10am, runner Manoj assigned)..."
+                              className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-medium outline-none focus:border-[#2563EB]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateCustomRequest(req.id, { adminNotes: currentAdminNote });
+                                toast.success(`Saved internal note for #${req.id}`);
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold whitespace-nowrap cursor-pointer transition-colors"
+                            >
+                              Save Note
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
 
         {/* ── TAB 2: Services & Pricing Catalog ─────────── */}
         {activeTab === 'services' && (

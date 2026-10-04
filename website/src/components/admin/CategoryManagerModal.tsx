@@ -20,6 +20,9 @@ import {
   Sparkles, 
   Shirt, 
   Waves,
+  Beef,
+  Package,
+  Send,
   Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -36,15 +39,21 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
   Shirt,
   Waves,
+  Beef,
+  Package,
+  Send,
   Wrench,
 };
 
-const AVAILABLE_ICONS = ['Wind', 'Bike', 'Truck', 'Zap', 'Droplet', 'Sparkles', 'Shirt', 'Waves', 'Wrench'];
+const AVAILABLE_ICONS = ['Wind', 'Bike', 'Truck', 'Zap', 'Droplet', 'Sparkles', 'Shirt', 'Waves', 'Beef', 'Package', 'Send', 'Wrench'];
 
 const GRADIENTS = [
   { label: 'Blue to Cyan', value: 'from-blue-600 to-cyan-500' },
   { label: 'Indigo to Blue', value: 'from-indigo-600 to-blue-500' },
-  { label: 'Amber to Orange', value: 'from-amber-600 to-orange-500' },
+  { label: 'Rose to Red (Meat)', value: 'from-rose-600 to-red-500' },
+  { label: 'Amber to Orange (Parcel)', value: 'from-amber-600 to-orange-500' },
+  { label: 'Indigo to Cyan (Courier)', value: 'from-indigo-600 to-cyan-500' },
+  { label: 'Violet to Purple (Custom)', value: 'from-violet-600 to-purple-500' },
   { label: 'Amber to Yellow', value: 'from-amber-500 to-yellow-400' },
   { label: 'Cyan to Sky', value: 'from-cyan-600 to-sky-500' },
   { label: 'Blue to Indigo', value: 'from-blue-700 to-indigo-600' },
