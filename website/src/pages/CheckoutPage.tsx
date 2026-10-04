@@ -779,19 +779,35 @@ export const CheckoutPage: React.FC = () => {
 
               {/* Price Calculation */}
               <div className="border-t border-slate-100 pt-3 space-y-2 text-xs">
+                {discount > 0 && (
+                  <div className="flex justify-between text-slate-500">
+                    <span>Total Item MRP</span>
+                    <span className="font-mono line-through">₹{subtotal + discount}</span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-bold">
+                    <span>Package Discount</span>
+                    <span className="font-mono">-₹{discount}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-slate-600">
                   <span>Item Subtotal</span>
-                  <span className="font-mono text-slate-900">₹{subtotal}</span>
+                  <span className="font-mono text-slate-900 font-semibold">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Inspection Fee</span>
                   <span className="font-mono">
-                    {inspectionFee === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : `₹${inspectionFee}`}
+                    <span className="line-through text-slate-400 mr-1.5 text-[11px]">₹49</span>
+                    <span className="text-emerald-600 font-bold">₹0</span>
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Platform & Logistics</span>
-                  <span className="font-mono text-slate-900">₹{platformFee}</span>
+                  <span className="font-mono">
+                    <span className="line-through text-slate-400 mr-1.5 text-[11px]">₹19</span>
+                    <span className="text-emerald-600 font-bold">₹0</span>
+                  </span>
                 </div>
 
                 {couponDiscount > 0 && (

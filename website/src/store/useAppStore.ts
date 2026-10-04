@@ -444,8 +444,9 @@ export const useAppStore = create<AppState>()(
         const { cart } = get();
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
         const subtotal = cart.reduce((sum, item) => sum + item.service.price * item.quantity, 0);
-        const inspectionFee = subtotal > 499 || subtotal === 0 ? 0 : 49;
-        const platformFee = totalItems > 0 ? 19 : 0;
+        // All other charges set to zero
+        const inspectionFee = 0;
+        const platformFee = 0;
         const discount = cart.reduce(
           (sum, item) => sum + ((item.service.originalPrice || item.service.price) - item.service.price) * item.quantity,
           0

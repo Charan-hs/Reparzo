@@ -170,26 +170,12 @@ export const CartDrawer: React.FC = () => {
                     Bill Summary
                   </div>
 
-                  <div className="flex justify-between text-slate-600">
-                    <span>Item Subtotal</span>
-                    <span className="font-mono text-slate-900">₹{subtotal}</span>
-                  </div>
-
-                  <div className="flex justify-between text-slate-600">
-                    <span>Inspection Fee</span>
-                    <span className="font-mono">
-                      {inspectionFee === 0 ? (
-                        <span className="text-emerald-600 font-bold">FREE (Waived)</span>
-                      ) : (
-                        `₹${inspectionFee}`
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-slate-600">
-                    <span>Platform & Logistics Fee</span>
-                    <span className="font-mono text-slate-900">₹{platformFee}</span>
-                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-slate-500">
+                      <span>Total Item MRP</span>
+                      <span className="font-mono line-through">₹{subtotal + discount}</span>
+                    </div>
+                  )}
 
                   {discount > 0 && (
                     <div className="flex justify-between text-emerald-600 font-bold">
@@ -198,12 +184,39 @@ export const CartDrawer: React.FC = () => {
                     </div>
                   )}
 
+                  <div className="flex justify-between text-slate-600">
+                    <span>Item Subtotal</span>
+                    <span className="font-mono text-slate-900 font-semibold">₹{subtotal}</span>
+                  </div>
+
+                  <div className="flex justify-between text-slate-600">
+                    <span>Inspection Fee</span>
+                    <span className="font-mono">
+                      <span className="line-through text-slate-400 mr-1.5 text-[11px]">₹49</span>
+                      <span className="font-bold text-emerald-600">₹0</span>
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-slate-600">
+                    <span>Platform & Logistics Fee</span>
+                    <span className="font-mono">
+                      <span className="line-through text-slate-400 mr-1.5 text-[11px]">₹19</span>
+                      <span className="font-bold text-emerald-600">₹0</span>
+                    </span>
+                  </div>
+
                   <div className="pt-2 border-t border-slate-100 flex justify-between items-baseline font-bold text-sm text-slate-900">
                     <span>Grand Total</span>
                     <span className="font-mono text-base font-black text-[#2563EB]">
                       ₹{grandTotal}
                     </span>
                   </div>
+
+                  {discount > 0 && (
+                    <div className="mt-2 text-center py-1.5 px-2 rounded-xl bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200">
+                      🎉 Total Savings: ₹{discount + 49 + 19} (Zero extra fees + Direct pricing)
+                    </div>
+                  )}
                 </div>
 
               </>
