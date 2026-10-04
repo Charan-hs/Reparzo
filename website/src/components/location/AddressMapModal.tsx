@@ -126,7 +126,7 @@ export const AddressMapModal: React.FC = () => {
           fillColor: '#3B82F6',
           fillOpacity: 0.08,
         })
-          .bindPopup(`<b>${hub.name}</b><br/>Service Radius: ${hub.radiusKm} km<br/>ETA: ~${hub.baseEtaMinutes} mins`)
+          .bindPopup(`<b>${hub.name}</b><br/>Service Radius: ${hub.radiusKm} km<br/>Doorstep Service Hub`)
           .addTo(circlesLayer);
       }
     });
@@ -386,7 +386,7 @@ export const AddressMapModal: React.FC = () => {
                         ⚡ Serviceable Hub: {serviceCheck.nearestHub?.name}
                       </span>
                       <span className="text-emerald-700 text-[11px]">
-                        ETA ~{serviceCheck.etaMinutes} mins ({serviceCheck.distanceKm} km from hub)
+                        Doorstep service active ({serviceCheck.distanceKm} km from hub)
                       </span>
                     </div>
                   ) : (

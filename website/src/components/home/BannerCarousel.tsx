@@ -46,7 +46,7 @@ export const DEFAULT_BANNER_SLIDES: BannerSlide[] = [
     badgeColor: 'bg-[#E32402] text-white',
     title: 'AC Foam Jet Deep Service',
     subtitle: 'High pressure 2X deeper coil wash & gas check. Cut summer electricity bill by 25%.',
-    highlight: '60 Min Doorstep Arrival',
+    highlight: 'Same Day Doorstep Service',
     price: '₹499',
     originalPrice: '₹899',
     categorySlug: 'ac-services',
@@ -74,7 +74,7 @@ export const DEFAULT_BANNER_SLIDES: BannerSlide[] = [
     badgeColor: 'bg-amber-400 text-slate-950 font-black',
     title: 'Short Circuit & MCB Tripping',
     subtitle: 'Master technician dispatch for sudden power cuts, burning smell & breaker issues.',
-    highlight: 'Arrival in 30–45 Mins',
+    highlight: 'Same Day Service',
     price: '₹249',
     originalPrice: '₹399',
     categorySlug: 'electrical-services',
@@ -528,7 +528,7 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
       badgeColor: 'bg-emerald-500 text-white',
       title: defaultSrv ? defaultSrv.title : 'New Service Campaign',
       subtitle: defaultSrv ? defaultSrv.description : 'Fast and reliable doorstep repair with certified technicians.',
-      highlight: '60 Min Arrival',
+      highlight: 'Doorstep Service',
       price: defaultSrv ? `₹${defaultSrv.price}` : '₹299',
       originalPrice: defaultSrv ? `₹${defaultSrv.originalPrice}` : '₹499',
       categorySlug: defaultSrv ? defaultSrv.categorySlug : 'ac-services',
@@ -785,7 +785,7 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
                 type="text"
                 value={currentSlide.highlight || ''}
                 onChange={(e) => updateCurrentSlide('highlight', e.target.value)}
-                placeholder="60 Min Doorstep Arrival"
+                placeholder="Same Day Doorstep Service"
                 className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>

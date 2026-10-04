@@ -166,8 +166,8 @@ export const LocationPickerModal: React.FC = () => {
                     Current Location: <strong>{location.area}</strong> (Service Active)
                   </span>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 flex-shrink-0">
-                  ~{location.etaMinutes} mins
+                <span className="text-[11px] font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 flex-shrink-0">
+                  Serviceable
                 </span>
               </div>
             )}

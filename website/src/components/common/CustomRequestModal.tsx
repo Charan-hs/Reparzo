@@ -110,7 +110,7 @@ export const CustomRequestModal: React.FC = () => {
   const [serviceAddress, setServiceAddress] = useState('');
   const [urgency, setUrgency] = useState<'urgent_60min' | 'same_day' | 'scheduled'>('urgent_60min');
   const [preferredDate, setPreferredDate] = useState('Today');
-  const [preferredTimeSlot, setPreferredTimeSlot] = useState('Immediate (Next 60-90 Mins)');
+  const [preferredTimeSlot, setPreferredTimeSlot] = useState('Immediate (As Soon As Possible)');
   const [estimatedBudget, setEstimatedBudget] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -286,7 +286,7 @@ export const CustomRequestModal: React.FC = () => {
                     Your request is in front of Reparzo Admin!
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
-                    Our central operations team has received your custom brief. An operations admin will review, calculate a transparent quote, or assign a verified runner within <strong>15 minutes</strong>.
+                    Our central operations team has received your custom brief. An operations admin will review, calculate a transparent quote, or assign a verified runner promptly.
                   </p>
                 </div>
 
@@ -303,7 +303,7 @@ export const CustomRequestModal: React.FC = () => {
                   <div className="flex justify-between items-center pb-2 border-b border-slate-200/80">
                     <span className="text-slate-500 font-semibold">Urgency:</span>
                     <span className="font-bold text-blue-600 uppercase text-[10px] bg-blue-50 px-2 py-0.5 rounded-full">
-                      {submittedRequest.urgency === 'urgent_60min' ? '⚡ 60-90 Mins' : submittedRequest.urgency}
+                      {submittedRequest.urgency === 'urgent_60min' ? '⚡ Express Priority' : submittedRequest.urgency}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -496,7 +496,7 @@ export const CustomRequestModal: React.FC = () => {
                       onChange={(e) => setUrgency(e.target.value as any)}
                       className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 outline-none cursor-pointer focus:bg-white focus:border-[#2563EB]"
                     >
-                      <option value="urgent_60min">⚡ Express (60-90 Mins)</option>
+                      <option value="urgent_60min">⚡ Express Priority (Immediate)</option>
                       <option value="same_day">📅 Today Daytime</option>
                       <option value="scheduled">🕒 Scheduled Slot</option>
                     </select>

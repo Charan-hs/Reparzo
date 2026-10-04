@@ -397,7 +397,7 @@ export const HomePage: React.FC = () => {
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-2">Technician Arrives</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              A certified local partner reaches your doorstep in 60-90 minutes equipped with diagnostic tools.
+              A certified local partner reaches your doorstep on schedule equipped with diagnostic tools.
             </p>
           </div>
 

@@ -400,7 +400,7 @@ export const CheckoutPage: React.FC = () => {
                 </h3>
                 {location.isServiceable !== false ? (
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    ⚡ ~{location.etaMinutes} Mins Doorstep Arrival
+                    ✓ Serviceable Area
                   </span>
                 ) : (
                   <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">

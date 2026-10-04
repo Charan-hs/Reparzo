@@ -99,7 +99,7 @@ export const CategorySection: React.FC = () => {
             What needs repair today?
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
-            Select a category to view upfront prices and book doorstep technicians in 60-90 minutes.
+            Select a category to view upfront prices and book verified doorstep services.
           </p>
         </div>
 
