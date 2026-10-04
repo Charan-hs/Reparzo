@@ -39,10 +39,9 @@
     letter-spacing: -0.025em;
   }
 
-  /* Prevent auto zoom on iOS Safari & ensure crisp dark text regardless of dark mode */
+  /* Prevent auto zoom on iOS Safari */
   input, select, textarea {
-    font-size: 16px !important;
-    color: #0F172A !important;
+    font-size: 16px;
   }
 
   /* Eliminate 300ms tap delay */

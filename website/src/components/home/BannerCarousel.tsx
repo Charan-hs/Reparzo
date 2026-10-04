@@ -14,9 +14,12 @@ import {
   Trash2,
   RotateCcw,
   Check,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
+import { ImageUploader } from '../admin/ImageUploader';
 
 export interface BannerSlide {
   id: string;
@@ -131,7 +134,9 @@ export const BannerCarousel: React.FC = () => {
       const saved = localStorage.getItem('reparzo_hero_slides');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.title && parsed[0].title.trim() !== '') {
+          return parsed;
+        }
       }
     } catch {
       // fallback
@@ -175,6 +180,7 @@ export const BannerCarousel: React.FC = () => {
     setSlides(newSlides);
     try {
       localStorage.setItem('reparzo_hero_slides', JSON.stringify(newSlides));
+      toast.success('Hero carousel slides saved & published!');
     } catch {
       // ignore
     }
@@ -185,6 +191,7 @@ export const BannerCarousel: React.FC = () => {
     setSlides(DEFAULT_BANNER_SLIDES);
     try {
       localStorage.removeItem('reparzo_hero_slides');
+      toast.info('Hero carousel reset to curated defaults');
     } catch {
       // ignore
     }
@@ -391,10 +398,15 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
   onReset,
   onClose,
 }) => {
-  const [draftSlides, setDraftSlides] = useState<BannerSlide[]>(initialSlides);
+  const [draftSlides, setDraftSlides] = useState<BannerSlide[]>(() => {
+    if (initialSlides && initialSlides.length > 0 && initialSlides[0]?.title) {
+      return initialSlides;
+    }
+    return DEFAULT_BANNER_SLIDES;
+  });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const currentSlide = draftSlides[selectedIndex] || draftSlides[0];
+  const currentSlide = draftSlides[selectedIndex] || draftSlides[0] || DEFAULT_BANNER_SLIDES[0];
 
   const updateCurrentSlide = (field: keyof BannerSlide, value: string) => {
     setDraftSlides((prev) =>
@@ -422,7 +434,10 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
   };
 
   const handleDeleteSlide = (idx: number) => {
-    if (draftSlides.length <= 1) return;
+    if (draftSlides.length <= 1) {
+      toast.error('At least one slide is required.');
+      return;
+    }
     const updated = draftSlides.filter((_, i) => i !== idx);
     setDraftSlides(updated);
     if (selectedIndex >= updated.length) {
@@ -430,33 +445,44 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
     }
   };
 
+  const handleResetToCurated = () => {
+    setDraftSlides(DEFAULT_BANNER_SLIDES);
+    setSelectedIndex(0);
+    onReset();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-[#0C152B] border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md">
+      <div className="bg-white border border-slate-200 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-[#080D1A]">
-          <div className="flex items-center gap-2">
-            <Edit3 className="w-5 h-5 text-amber-400" />
-            <h3 className="text-lg font-bold text-white">Manage Hero Carousel Slides</h3>
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+              <Edit3 className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-black text-slate-900">Manage Hero Carousel Slides</h3>
+              <p className="text-[11px] text-slate-500">Edit banners, text, prices, or upload custom imagery</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Slide Tabs */}
-        <div className="flex items-center gap-2 p-3 bg-slate-900/60 border-b border-slate-800 overflow-x-auto">
+        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-100/70 border-b border-slate-200 overflow-x-auto no-scrollbar">
           {draftSlides.map((slide, idx) => (
             <button
               key={slide.id}
               onClick={() => setSelectedIndex(idx)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
                 selectedIndex === idx
-                  ? 'bg-[#4770DB] text-white shadow-md'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'bg-[#2563EB] text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 border border-slate-200/60'
               }`}
             >
               <span>Slide {idx + 1}</span>
@@ -466,7 +492,7 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
                     e.stopPropagation();
                     handleDeleteSlide(idx);
                   }}
-                  className="p-0.5 hover:text-red-400"
+                  className="p-0.5 hover:text-red-300 ml-1"
                 >
                   <Trash2 className="w-3 h-3" />
                 </span>
@@ -475,7 +501,7 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
           ))}
           <button
             onClick={handleAddNewSlide}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs font-bold flex items-center gap-1 border border-emerald-500/40"
+            className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center gap-1 border border-emerald-200 cursor-pointer transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Slide</span>
@@ -484,123 +510,149 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
 
         {/* Slide Edit Form */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {/* Image Preview & URL */}
+          {/* Live Mini Preview Box */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-              Banner Background Image URL
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#2563EB]" />
+              <span>Live Slide Preview</span>
             </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={currentSlide.image}
-                onChange={(e) => updateCurrentSlide('image', e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+            <div className="relative w-full h-32 sm:h-36 rounded-2xl overflow-hidden bg-slate-950 border border-slate-200 shadow-md flex flex-col justify-end p-3.5 sm:p-4">
+              <img
+                src={currentSlide.image || '/banners/ac-service.jpg'}
+                alt="Slide Preview"
+                className="absolute inset-0 w-full h-full object-cover opacity-60"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/banners/ac-service.jpg';
+                }}
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
+              
+              <div className="relative z-10 space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#E32402] text-white">
+                    {currentSlide.badge || '⚡ OFFER'}
+                  </span>
+                  {currentSlide.highlight && (
+                    <span className="text-[10px] text-cyan-300 font-bold bg-white/10 px-2 py-0.5 rounded-full">
+                      {currentSlide.highlight}
+                    </span>
+                  )}
+                </div>
+                <h4 className="text-sm font-black text-white line-clamp-1">
+                  {currentSlide.title || 'Service Title'}
+                </h4>
+                <p className="text-[11px] text-slate-300 line-clamp-1">
+                  {currentSlide.subtitle || 'Doorstep service with verified technicians.'}
+                </p>
+                <div className="flex items-center gap-2 pt-0.5">
+                  <span className="font-black text-sm text-white font-mono">{currentSlide.price || '₹499'}</span>
+                  {currentSlide.originalPrice && (
+                    <span className="text-xs text-slate-400 line-through font-mono">{currentSlide.originalPrice}</span>
+                  )}
+                  <span className="ml-auto bg-[#2563EB] text-white px-3 py-1 rounded-full text-[10px] font-bold">
+                    {currentSlide.ctaText || 'Book Now'}
+                  </span>
+                </div>
+              </div>
             </div>
-            {/* Quick Picker for local assets */}
-            <div className="flex gap-2 mt-2">
-              {[
-                { label: 'AC Service', url: '/banners/ac-service.jpg' },
-                { label: 'Bike Service', url: '/banners/bike-service.jpg' },
-                { label: 'Electrician', url: '/banners/electrical-service.jpg' },
-                { label: 'Home Shifting', url: '/banners/home-shifting.jpg' },
-              ].map((opt) => (
-                <button
-                  key={opt.url}
-                  type="button"
-                  onClick={() => updateCurrentSlide('image', opt.url)}
-                  className={`text-[10px] px-2 py-1 rounded border transition-colors ${
-                    currentSlide.image === opt.url
-                      ? 'bg-blue-600/30 border-blue-400 text-blue-200'
-                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+          </div>
+
+          {/* Integrated Image Uploader & Preset Gallery */}
+          <div className="bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200/80">
+            <ImageUploader
+              value={currentSlide.image}
+              onChange={(url) => updateCurrentSlide('image', url)}
+              label="Hero Banner Image (Upload or Pick from Library)"
+            />
           </div>
 
           {/* Title & Badge */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Badge Text</label>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Badge Text</label>
               <input
                 type="text"
-                value={currentSlide.badge}
+                value={currentSlide.badge || ''}
                 onChange={(e) => updateCurrentSlide('badge', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+                placeholder="⚡ FLASH SALE • 50% OFF"
+                className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Highlight Note</label>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Highlight Note</label>
               <input
                 type="text"
                 value={currentSlide.highlight || ''}
                 onChange={(e) => updateCurrentSlide('highlight', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+                placeholder="60 Min Doorstep Arrival"
+                className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Headline Title</label>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Headline Title</label>
             <input
               type="text"
-              value={currentSlide.title}
+              value={currentSlide.title || ''}
               onChange={(e) => updateCurrentSlide('title', e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+              placeholder="e.g. AC Foam Jet Deep Service"
+              className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Subtitle / Details</label>
+            <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Subtitle / Details</label>
             <textarea
               rows={2}
-              value={currentSlide.subtitle}
+              value={currentSlide.subtitle || ''}
               onChange={(e) => updateCurrentSlide('subtitle', e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+              placeholder="High pressure 2X deeper coil wash & gas check..."
+              className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
             />
           </div>
 
           {/* Pricing & CTA */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Discount Price</label>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Discount Price</label>
               <input
                 type="text"
-                value={currentSlide.price}
+                value={currentSlide.price || ''}
                 onChange={(e) => updateCurrentSlide('price', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+                placeholder="₹499"
+                className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Original Price</label>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Original Price</label>
               <input
                 type="text"
-                value={currentSlide.originalPrice}
+                value={currentSlide.originalPrice || ''}
                 onChange={(e) => updateCurrentSlide('originalPrice', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+                placeholder="₹899"
+                className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">Button CTA Text</label>
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Button CTA Text</label>
               <input
                 type="text"
-                value={currentSlide.ctaText}
+                value={currentSlide.ctaText || ''}
                 onChange={(e) => updateCurrentSlide('ctaText', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#4770DB]"
+                placeholder="Book AC Service"
+                className="w-full bg-slate-50 border border-slate-300 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] transition-colors"
               />
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-800 bg-[#080D1A] flex items-center justify-between">
+        <div className="px-5 py-3.5 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between">
           <button
             type="button"
-            onClick={onReset}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors"
+            onClick={handleResetToCurated}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset to Curated</span>
@@ -609,14 +661,14 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={() => onSave(draftSlides)}
-              className="px-5 py-2 rounded-lg bg-[#4770DB] hover:bg-[#385cc4] text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-blue-600/30"
+              className="px-5 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/25 cursor-pointer active:scale-95 transition-all"
             >
               <Check className="w-4 h-4" />
               <span>Save & Publish</span>
