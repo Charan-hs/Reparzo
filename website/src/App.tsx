@@ -11,6 +11,7 @@ import { LocationPickerModal } from './components/location/LocationPickerModal';
 import { UnifiedAuthModal } from './components/auth/UnifiedAuthModal';
 import { CategoryManagerModal } from './components/admin/CategoryManagerModal';
 import { CartDrawer } from './components/cart/CartDrawer';
+import { ScrollManager } from './components/layout/ScrollManager';
 
 import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
@@ -47,6 +48,9 @@ export function App() {
 
   return (
     <BrowserRouter>
+      {/* Scroll restoration manager for forward & backward navigation */}
+      <ScrollManager />
+
       <div className="min-h-screen flex flex-col bg-[#080D1A] text-slate-100 font-sans selection:bg-[#4770DB]/30 selection:text-white">
         <Toaster position="bottom-right" theme="dark" richColors />
 
