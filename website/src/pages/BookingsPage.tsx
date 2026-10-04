@@ -20,7 +20,9 @@ import {
   KeyRound,
   MessageSquare,
   Sun,
-  Moon
+  Moon,
+  Info,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -46,6 +48,8 @@ export const BookingsPage: React.FC = () => {
   // URL query parameter support: /bookings?view=previous or default to 'live'
   const initialView = searchParams.get('view') === 'previous' ? 'previous' : 'live';
   const [activeTab, setActiveTab] = useState<'live' | 'previous'>(initialView);
+  const [scheduleInfoModalOrder, setScheduleInfoModalOrder] = useState<OrderBooking | null>(null);
+  const [expandedScheduleOrderId, setExpandedScheduleOrderId] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'live' | 'previous') => {
     setActiveTab(tab);
@@ -255,15 +259,52 @@ export const BookingsPage: React.FC = () => {
                                 Booked {formatOrderDate(order.createdAt)}
                               </span>
                             </div>
-                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-0.5">
-                              <Clock className="w-3.5 h-3.5 text-[#2563EB]" />
-                              <span>Service Window: <strong className="text-slate-900">{schedule.targetDateNumeric}</strong> • {REPARZO_WORKING_HOURS.label}</span>
-                            </span>
+                            <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                              <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-[#2563EB]" />
+                                <span>Service Window: <strong className="text-slate-900">{schedule.targetDateNumeric}</strong> • {REPARZO_WORKING_HOURS.label}</span>
+                              </span>
+                              
+                              {/* (i) Schedule Info Button */}
+                              <button
+                                type="button"
+                                onClick={() => setScheduleInfoModalOrder(order)}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-blue-200 text-[11px] font-bold transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
+                                title="Click to view working hours & visit schedule info"
+                              >
+                                <Info className="w-3 h-3 text-[#2563EB]" />
+                                <span>Schedule Info</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Real-time Status Badge */}
-                        <div>
+                        {/* Real-time Status Badges & Schedule Pill (i) */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Interactive (i) Schedule Status Pill */}
+                          <button
+                            type="button"
+                            onClick={() => setScheduleInfoModalOrder(order)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-95 ${
+                              schedule.statusBadgeVariant === 'active-today'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                : schedule.statusBadgeVariant === 'outside-hours'
+                                ? 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100'
+                                : 'bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100'
+                            }`}
+                            title="Click to view working hours details (i)"
+                          >
+                            {schedule.statusBadgeVariant === 'outside-hours' ? (
+                              <Moon className="w-3.5 h-3.5 text-amber-600" />
+                            ) : (
+                              <Sun className="w-3.5 h-3.5 text-emerald-600" />
+                            )}
+                            <span>{schedule.statusBadgeText}</span>
+                            <span className="w-4 h-4 rounded-full bg-black/10 flex items-center justify-center font-serif italic text-[10px] font-black">
+                              i
+                            </span>
+                          </button>
+
                           {order.status === 'in_progress' && (
                             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500 text-white text-xs font-extrabold shadow-xs">
                               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -285,58 +326,69 @@ export const BookingsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Dynamic Working Hours & Working Day Schedule Banner */}
-                      <div className={`px-5 py-3.5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                        schedule.statusBadgeVariant === 'active-today'
-                          ? 'bg-emerald-50/70 border-emerald-100 text-emerald-950'
-                          : schedule.statusBadgeVariant === 'outside-hours'
-                          ? 'bg-amber-50/70 border-amber-100 text-amber-950'
-                          : 'bg-blue-50/70 border-blue-100 text-blue-950'
-                      }`}>
-                        <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                            schedule.statusBadgeVariant === 'active-today'
-                              ? 'bg-emerald-600 text-white shadow-xs'
-                              : schedule.statusBadgeVariant === 'outside-hours'
-                              ? 'bg-amber-600 text-white shadow-xs'
-                              : 'bg-[#2563EB] text-white shadow-xs'
-                          }`}>
-                            {schedule.statusBadgeVariant === 'outside-hours' ? (
-                              <Moon className="w-4 h-4" />
-                            ) : (
-                              <Sun className="w-4 h-4" />
-                            )}
+                      {/* Optional Inline Expanded Schedule Banner (when toggled) */}
+                      {expandedScheduleOrderId === order.id && (
+                        <div className={`px-5 py-3.5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in ${
+                          schedule.statusBadgeVariant === 'active-today'
+                            ? 'bg-emerald-50/70 border-emerald-100 text-emerald-950'
+                            : schedule.statusBadgeVariant === 'outside-hours'
+                            ? 'bg-amber-50/70 border-amber-100 text-amber-950'
+                            : 'bg-blue-50/70 border-blue-100 text-blue-950'
+                        }`}>
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                              schedule.statusBadgeVariant === 'active-today'
+                                ? 'bg-emerald-600 text-white shadow-xs'
+                                : schedule.statusBadgeVariant === 'outside-hours'
+                                ? 'bg-amber-600 text-white shadow-xs'
+                                : 'bg-[#2563EB] text-white shadow-xs'
+                            }`}>
+                              {schedule.statusBadgeVariant === 'outside-hours' ? (
+                                <Moon className="w-4 h-4" />
+                              ) : (
+                                <Sun className="w-4 h-4" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-xs sm:text-sm font-extrabold">
+                                  {schedule.scheduleTitle}
+                                </h4>
+                                <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                                  schedule.statusBadgeVariant === 'active-today'
+                                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                    : schedule.statusBadgeVariant === 'outside-hours'
+                                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                    : 'bg-blue-100 text-blue-800 border-blue-300'
+                                }`}>
+                                  {schedule.statusBadgeText}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-700 mt-0.5 leading-relaxed font-medium">
+                                {schedule.scheduleSubtitle}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-xs sm:text-sm font-extrabold">
-                                {schedule.scheduleTitle}
-                              </h4>
-                              <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                                schedule.statusBadgeVariant === 'active-today'
-                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                                  : schedule.statusBadgeVariant === 'outside-hours'
-                                  ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                  : 'bg-blue-100 text-blue-800 border-blue-300'
-                              }`}>
-                                {schedule.statusBadgeText}
+
+                          <div className="flex items-center sm:flex-col sm:items-end justify-between gap-2 flex-shrink-0">
+                            <div className="sm:text-right">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                                Standard Working Hours
+                              </span>
+                              <span className="text-xs font-mono font-bold text-slate-900">
+                                {REPARZO_WORKING_HOURS.label}
                               </span>
                             </div>
-                            <p className="text-xs text-slate-700 mt-0.5 leading-relaxed font-medium">
-                              {schedule.scheduleSubtitle}
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedScheduleOrderId(null)}
+                              className="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                            >
+                              Hide info ▲
+                            </button>
                           </div>
                         </div>
-
-                        <div className="sm:text-right flex-shrink-0">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                            Standard Working Hours
-                          </span>
-                          <span className="text-xs font-mono font-bold text-slate-900">
-                            {REPARZO_WORKING_HOURS.label}
-                          </span>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Live Dispatch Stepper Tracker (No more 'Arriving in 18-25m') */}
                       <div className="px-5 py-4 bg-slate-50/70 border-b border-slate-100">
@@ -633,6 +685,130 @@ export const BookingsPage: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* ── Working Hours & Visit Policy Modal (i) ─────────────── */}
+        {scheduleInfoModalOrder && (() => {
+          const schedule = getOrderWorkingSchedule(scheduleInfoModalOrder);
+
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+              <div className="relative w-full max-w-lg bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-6 sm:p-7 space-y-5">
+                
+                {/* Header */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold">
+                      <Info className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900">
+                        Working Hours & Visit Schedule
+                      </h3>
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        Booking #{scheduleInfoModalOrder.id}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setScheduleInfoModalOrder(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* The Exact Card from Screenshot */}
+                <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                  schedule.statusBadgeVariant === 'active-today'
+                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950'
+                    : schedule.statusBadgeVariant === 'outside-hours'
+                    ? 'bg-amber-50/80 border-amber-200 text-amber-950'
+                    : 'bg-blue-50/80 border-blue-200 text-blue-950'
+                }`}>
+                  <div className="flex items-start gap-3.5">
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                      schedule.statusBadgeVariant === 'active-today'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : schedule.statusBadgeVariant === 'outside-hours'
+                        ? 'bg-[#d97706] text-white shadow-xs'
+                        : 'bg-[#2563EB] text-white shadow-xs'
+                    }`}>
+                      {schedule.statusBadgeVariant === 'outside-hours' ? (
+                        <Moon className="w-5 h-5" />
+                      ) : (
+                        <Sun className="w-5 h-5" />
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        {schedule.scheduleTitle}
+                      </h4>
+                      <div>
+                        <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border inline-block ${
+                          schedule.statusBadgeVariant === 'active-today'
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : schedule.statusBadgeVariant === 'outside-hours'
+                            ? 'bg-amber-100 text-amber-800 border-amber-300'
+                            : 'bg-blue-100 text-blue-800 border-blue-300'
+                        }`}>
+                          {schedule.statusBadgeText}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed font-medium pt-1">
+                        {schedule.scheduleSubtitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="sm:text-right flex-shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-amber-200/60">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                      Standard Working Hours
+                    </span>
+                    <span className="text-sm font-mono font-black text-slate-900">
+                      {REPARZO_WORKING_HOURS.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Transparency & Policy Explanation */}
+                <div className="space-y-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
+                  <h5 className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    Reparzo Working Hours Policy
+                  </h5>
+                  <ul className="space-y-1.5 text-slate-600 text-[11px] leading-relaxed">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#2563EB] font-bold">•</span>
+                      <span><strong>Verified Daytime Visits:</strong> Reparzo technicians only conduct doorstep repairs between 10:00 AM and 06:00 PM for precision diagnostics and customer safety.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#2563EB] font-bold">•</span>
+                      <span><strong>Genuine Spare Parts:</strong> Components and testing tools are dispatched live from our regional parts hubs during operating hours.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#2563EB] font-bold">•</span>
+                      <span><strong>Doorstep Verification PIN:</strong> Hold your 4-digit PIN and share it only after the technician finishes physical work.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Close Button */}
+                <div className="pt-2 flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setScheduleInfoModalOrder(null)}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    Got it, Understood ✓
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>
