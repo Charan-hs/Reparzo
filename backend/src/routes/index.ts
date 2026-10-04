@@ -6,6 +6,7 @@ import { subcategoriesRoutes } from './subcategories.routes';
 import { servicesRoutes } from './services.routes';
 import { bookingsRoutes } from './bookings.routes';
 import { mediaRoutes } from './media.routes';
+import { serviceHubsRoutes } from './serviceHubs.routes';
 
 export const apiRouter = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -15,3 +16,4 @@ apiRouter.route('/subcategories', subcategoriesRoutes);
 apiRouter.route('/services', servicesRoutes);
 apiRouter.route('/bookings', bookingsRoutes);
 apiRouter.route('/media', mediaRoutes);
+apiRouter.route('/service-hubs', serviceHubsRoutes);

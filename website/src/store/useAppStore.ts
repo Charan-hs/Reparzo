@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Category, SubCategory, Service, CartItem, UserProfile, UserRole, LocationData, OrderBooking } from '../types';
+import type { Category, SubCategory, Service, CartItem, UserProfile, UserRole, LocationData, OrderBooking, UserAddress, ServiceHub } from '../types';
 import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
 import { signOutFirebase } from '../lib/firebase';
+import { DEFAULT_SERVICE_HUBS, checkServiceability, reverseGeocode, calculateDistanceKm, estimateEtaMinutes } from '../lib/geo';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_SUBCATEGORIES, 
@@ -84,11 +85,28 @@ export interface AppState {
   }) => RecognizedAccount;
   logout: () => void;
 
-  // Location
+  // Location & Serviceability
   location: LocationData;
   isLocationModalOpen: boolean;
   setLocationModalOpen: (open: boolean) => void;
   setLocation: (loc: LocationData) => void;
+  serviceHubs: ServiceHub[];
+  savedAddresses: UserAddress[];
+  activeAddressId: string | null;
+  isAddressModalOpen: boolean;
+  addressModalInitialCoords?: { lat: number; lng: number };
+  setAddressModalOpen: (open: boolean, initialCoords?: { lat: number; lng: number }) => void;
+  addAddress: (addr: Omit<UserAddress, 'id' | 'createdAt'>) => UserAddress;
+  updateAddress: (id: string, updates: Partial<UserAddress>) => void;
+  deleteAddress: (id: string) => void;
+  setDefaultAddress: (id: string) => void;
+  selectSavedAddress: (id: string) => void;
+  fetchServiceHubs: () => Promise<void>;
+  addServiceHub: (hub: Omit<ServiceHub, 'id'>) => Promise<ServiceHub>;
+  updateServiceHub: (id: string, updates: Partial<ServiceHub>) => Promise<boolean>;
+  deleteServiceHub: (id: string) => Promise<boolean>;
+  initLocationLifecycle: () => Promise<void>;
+  detectCurrentGpsLocation: () => Promise<{ success: boolean; error?: string }>;
 
   // Admin CMS & Partner State
   isCategoryManagerOpen: boolean;
@@ -436,17 +454,333 @@ export const useAppStore = create<AppState>()(
         set({ user: null, activeRole: 'user' });
       },
 
-      // Location
+      // Location & Serviceability
       location: {
         area: 'HSR Layout, Sector 2',
         city: 'Bengaluru',
         pincode: '560102',
         fullAddress: '14th Main, HSR Layout Sector 2, Bengaluru, Karnataka',
-        etaMinutes: 25,
+        etaMinutes: 20,
+        latitude: 12.9116,
+        longitude: 77.6389,
+        isServiceable: true,
+        hubId: 'hub-blr-hsr',
+        hubName: 'HSR Layout Sector 2 Hub',
+        distanceKm: 0.5,
+        isDefaultAddress: false,
+        addressLabel: 'Hub',
       },
       isLocationModalOpen: false,
       setLocationModalOpen: (open) => set({ isLocationModalOpen: open }),
       setLocation: (loc) => set({ location: loc, isLocationModalOpen: false }),
+
+      serviceHubs: DEFAULT_SERVICE_HUBS,
+      savedAddresses: [],
+      activeAddressId: null,
+      isAddressModalOpen: false,
+      addressModalInitialCoords: undefined,
+      setAddressModalOpen: (open, initialCoords) =>
+        set({ isAddressModalOpen: open, addressModalInitialCoords: initialCoords }),
+
+      addAddress: (newAddrData) => {
+        const id = `addr-${Date.now()}`;
+        const isFirst = get().savedAddresses.length === 0;
+        const makeDefault = Boolean(newAddrData.isDefault || isFirst);
+
+        const newAddress: UserAddress = {
+          ...newAddrData,
+          id,
+          isDefault: makeDefault,
+          createdAt: new Date().toISOString(),
+        };
+
+        const currentAddresses = get().savedAddresses.map((a) =>
+          makeDefault ? { ...a, isDefault: false } : a
+        );
+
+        const updatedAddresses = [newAddress, ...currentAddresses];
+
+        const serviceCheck = checkServiceability(
+          newAddress.latitude,
+          newAddress.longitude,
+          get().serviceHubs
+        );
+
+        if (makeDefault) {
+          set({
+            savedAddresses: updatedAddresses,
+            activeAddressId: id,
+            isAddressModalOpen: false,
+            location: {
+              area: newAddress.area,
+              city: newAddress.city,
+              pincode: newAddress.pincode,
+              fullAddress: newAddress.fullAddress,
+              latitude: newAddress.latitude,
+              longitude: newAddress.longitude,
+              etaMinutes: serviceCheck.etaMinutes,
+              distanceKm: serviceCheck.distanceKm,
+              isServiceable: serviceCheck.isServiceable,
+              hubId: serviceCheck.nearestHub?.id,
+              hubName: serviceCheck.nearestHub?.name,
+              isDefaultAddress: true,
+              addressLabel: newAddress.label,
+            },
+          });
+        } else {
+          set({
+            savedAddresses: updatedAddresses,
+            isAddressModalOpen: false,
+          });
+        }
+
+        return newAddress;
+      },
+
+      updateAddress: (id, updates) => {
+        const state = get();
+        const makeDefault = Boolean(updates.isDefault);
+
+        const updatedAddresses = state.savedAddresses.map((a) => {
+          if (a.id === id) {
+            return { ...a, ...updates, isDefault: makeDefault || a.isDefault };
+          }
+          return makeDefault ? { ...a, isDefault: false } : a;
+        });
+
+        const target = updatedAddresses.find((a) => a.id === id);
+        if (target && (makeDefault || state.activeAddressId === id)) {
+          const serviceCheck = checkServiceability(target.latitude, target.longitude, state.serviceHubs);
+          set({
+            savedAddresses: updatedAddresses,
+            activeAddressId: id,
+            location: {
+              area: target.area,
+              city: target.city,
+              pincode: target.pincode,
+              fullAddress: target.fullAddress,
+              latitude: target.latitude,
+              longitude: target.longitude,
+              etaMinutes: serviceCheck.etaMinutes,
+              distanceKm: serviceCheck.distanceKm,
+              isServiceable: serviceCheck.isServiceable,
+              hubId: serviceCheck.nearestHub?.id,
+              hubName: serviceCheck.nearestHub?.name,
+              isDefaultAddress: target.isDefault,
+              addressLabel: target.label,
+            },
+          });
+        } else {
+          set({ savedAddresses: updatedAddresses });
+        }
+      },
+
+      deleteAddress: (id) => {
+        set((state) => ({
+          savedAddresses: state.savedAddresses.filter((a) => a.id !== id),
+          activeAddressId: state.activeAddressId === id ? null : state.activeAddressId,
+        }));
+      },
+
+      setDefaultAddress: (id) => {
+        const state = get();
+        const updated = state.savedAddresses.map((a) => ({
+          ...a,
+          isDefault: a.id === id,
+        }));
+        const target = updated.find((a) => a.id === id);
+        if (target) {
+          const serviceCheck = checkServiceability(target.latitude, target.longitude, state.serviceHubs);
+          set({
+            savedAddresses: updated,
+            activeAddressId: id,
+            location: {
+              area: target.area,
+              city: target.city,
+              pincode: target.pincode,
+              fullAddress: target.fullAddress,
+              latitude: target.latitude,
+              longitude: target.longitude,
+              etaMinutes: serviceCheck.etaMinutes,
+              distanceKm: serviceCheck.distanceKm,
+              isServiceable: serviceCheck.isServiceable,
+              hubId: serviceCheck.nearestHub?.id,
+              hubName: serviceCheck.nearestHub?.name,
+              isDefaultAddress: true,
+              addressLabel: target.label,
+            },
+          });
+        } else {
+          set({ savedAddresses: updated });
+        }
+      },
+
+      selectSavedAddress: (id) => {
+        const state = get();
+        const target = state.savedAddresses.find((a) => a.id === id);
+        if (!target) return;
+        const serviceCheck = checkServiceability(target.latitude, target.longitude, state.serviceHubs);
+        set({
+          activeAddressId: id,
+          isLocationModalOpen: false,
+          location: {
+            area: target.area,
+            city: target.city,
+            pincode: target.pincode,
+            fullAddress: target.fullAddress,
+            latitude: target.latitude,
+            longitude: target.longitude,
+            etaMinutes: serviceCheck.etaMinutes,
+            distanceKm: serviceCheck.distanceKm,
+            isServiceable: serviceCheck.isServiceable,
+            hubId: serviceCheck.nearestHub?.id,
+            hubName: serviceCheck.nearestHub?.name,
+            isDefaultAddress: target.isDefault,
+            addressLabel: target.label,
+          },
+        });
+      },
+
+      fetchServiceHubs: async () => {
+        try {
+          const res = await fetch('/api/service-hubs?all=true');
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data?.data) && data.data.length > 0) {
+              set({ serviceHubs: data.data });
+            }
+          }
+        } catch (err) {
+          console.warn('[fetchServiceHubs fallback to default]', err);
+        }
+      },
+
+      addServiceHub: async (hubData) => {
+        const id = `hub-${Date.now()}`;
+        const newHub: ServiceHub = { ...hubData, id };
+        try {
+          const res = await fetch('/api/service-hubs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newHub),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            const created = json.data || newHub;
+            set((state) => ({ serviceHubs: [...state.serviceHubs, created] }));
+            return created;
+          }
+        } catch (e) {
+          console.warn('[addServiceHub network fallback]', e);
+        }
+        set((state) => ({ serviceHubs: [...state.serviceHubs, newHub] }));
+        return newHub;
+      },
+
+      updateServiceHub: async (id, updates) => {
+        set((state) => ({
+          serviceHubs: state.serviceHubs.map((h) => (h.id === id ? { ...h, ...updates } : h)),
+        }));
+        try {
+          const res = await fetch(`/api/service-hubs/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          return res.ok;
+        } catch {
+          return true;
+        }
+      },
+
+      deleteServiceHub: async (id) => {
+        set((state) => ({
+          serviceHubs: state.serviceHubs.filter((h) => h.id !== id),
+        }));
+        try {
+          const res = await fetch(`/api/service-hubs/${id}`, { method: 'DELETE' });
+          return res.ok;
+        } catch {
+          return true;
+        }
+      },
+
+      initLocationLifecycle: async () => {
+        const state = get();
+        // 1. Check if user has a default saved address:
+        const defaultAddress = state.savedAddresses.find((a) => a.isDefault);
+        if (defaultAddress) {
+          // Default address found: DO NOT fetch GPS or trigger permission prompt on reload/open!
+          const serviceCheck = checkServiceability(defaultAddress.latitude, defaultAddress.longitude, state.serviceHubs);
+          set({
+            activeAddressId: defaultAddress.id,
+            location: {
+              area: defaultAddress.area,
+              city: defaultAddress.city,
+              pincode: defaultAddress.pincode,
+              fullAddress: defaultAddress.fullAddress,
+              latitude: defaultAddress.latitude,
+              longitude: defaultAddress.longitude,
+              etaMinutes: serviceCheck.etaMinutes,
+              distanceKm: serviceCheck.distanceKm,
+              isServiceable: serviceCheck.isServiceable,
+              hubId: serviceCheck.nearestHub?.id,
+              hubName: serviceCheck.nearestHub?.name,
+              isDefaultAddress: true,
+              addressLabel: defaultAddress.label,
+            },
+          });
+          return;
+        }
+
+        // 2. No default address: fetch GPS on open or reload
+        await state.detectCurrentGpsLocation();
+      },
+
+      detectCurrentGpsLocation: async () => {
+        if (!('geolocation' in navigator)) {
+          return { success: false, error: 'Geolocation not supported in this browser' };
+        }
+
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              try {
+                const geo = await reverseGeocode(lat, lng);
+                const serviceCheck = checkServiceability(lat, lng, get().serviceHubs);
+                set({
+                  activeAddressId: null,
+                  location: {
+                    area: geo.area,
+                    city: geo.city,
+                    pincode: geo.pincode,
+                    fullAddress: geo.fullAddress,
+                    latitude: lat,
+                    longitude: lng,
+                    etaMinutes: serviceCheck.etaMinutes,
+                    distanceKm: serviceCheck.distanceKm,
+                    isServiceable: serviceCheck.isServiceable,
+                    hubId: serviceCheck.nearestHub?.id,
+                    hubName: serviceCheck.nearestHub?.name,
+                    isDefaultAddress: false,
+                    addressLabel: 'GPS',
+                  },
+                });
+                resolve({ success: true });
+              } catch (err: any) {
+                resolve({ success: false, error: err.message });
+              }
+            },
+            (err) => {
+              console.warn('[Geolocation error/denied]', err.message);
+              resolve({ success: false, error: err.message });
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+          );
+        });
+      },
 
       // Admin & Partner UI
       isCategoryManagerOpen: false,
@@ -469,6 +803,9 @@ export const useAppStore = create<AppState>()(
         user: state.user,
         activeRole: state.activeRole,
         location: state.location,
+        savedAddresses: state.savedAddresses,
+        serviceHubs: state.serviceHubs,
+        activeAddressId: state.activeAddressId,
         recentSearches: state.recentSearches,
         orders: state.orders,
       }),

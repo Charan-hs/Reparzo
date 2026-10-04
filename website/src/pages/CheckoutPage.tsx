@@ -16,7 +16,11 @@ import {
   ChevronRight,
   User,
   Zap,
-  ShoppingBag
+  ShoppingBag,
+  AlertTriangle,
+  Plus,
+  Home,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -31,7 +35,11 @@ export const CheckoutPage: React.FC = () => {
     user, 
     clearCart, 
     addOrder,
-    setAuthModalOpen 
+    setAuthModalOpen,
+    savedAddresses,
+    selectSavedAddress,
+    setAddressModalOpen,
+    setLocationModalOpen
   } = useAppStore();
 
   const { totalItems, subtotal, inspectionFee, platformFee, discount, grandTotal } = getCartMetrics();
@@ -88,6 +96,11 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const handleConfirmBooking = () => {
+    if (location.isServiceable === false) {
+      toast.error('Your current doorstep location is outside our technician service radius. Please choose an address inside our active Bengaluru hubs.');
+      return;
+    }
+
     if (!name.trim() || phone.length < 10 || !flatNumber.trim()) {
       toast.error('Please fill in complete contact and doorstep address details.');
       return;
@@ -266,10 +279,95 @@ export const CheckoutPage: React.FC = () => {
                   <MapPin className="w-5 h-5 text-[#2563EB]" />
                   1. Doorstep Address & Contact
                 </h3>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  ⚡ {location.etaMinutes} Mins Hub
-                </span>
+                {location.isServiceable !== false ? (
+                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    ⚡ {location.etaMinutes} Mins Hub
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    ⚠ Outside Service Area
+                  </span>
+                )}
               </div>
+
+              {/* Serviceability Warning Banner if out of radius */}
+              {location.isServiceable === false && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold block text-amber-800">Delivery Unavailable to this Address</span>
+                      <span className="text-amber-700 text-[11px]">
+                        This location is beyond our active technician service radius. Please choose an address within our Bengaluru hubs.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLocationModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap cursor-pointer transition-colors shadow-xs"
+                  >
+                    Change Address
+                  </button>
+                </div>
+              )}
+
+              {/* Saved Addresses Quick Selection */}
+              {savedAddresses.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                    <span>Select Saved Doorstep Address</span>
+                    <button
+                      type="button"
+                      onClick={() => setAddressModalOpen(true)}
+                      className="text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" /> Add on Map
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2">
+                    {savedAddresses.map((addr) => {
+                      const isSelected = location.fullAddress === addr.fullAddress;
+                      return (
+                        <div
+                          key={addr.id}
+                          onClick={() => {
+                            selectSavedAddress(addr.id);
+                            if (addr.flatNumber) setFlatNumber(addr.flatNumber);
+                            if (addr.landmark) setLandmark(addr.landmark);
+                          }}
+                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-left ${
+                            isSelected
+                              ? 'bg-blue-50/80 border-[#2563EB] shadow-xs'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                              isSelected ? 'bg-[#2563EB] text-white' : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              {addr.label === 'Home' ? (
+                                <Home className="w-3.5 h-3.5" />
+                              ) : addr.label === 'Work' ? (
+                                <Briefcase className="w-3.5 h-3.5" />
+                              ) : (
+                                <MapPin className="w-3.5 h-3.5" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-xs font-bold text-slate-900 block truncate">
+                                {addr.label} {addr.isDefault && <strong className="text-[10px] text-emerald-600 font-extrabold uppercase">(Default)</strong>}
+                              </span>
+                              <span className="text-[11px] text-slate-500 block truncate">{addr.fullAddress}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -331,9 +429,32 @@ export const CheckoutPage: React.FC = () => {
                   />
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-                  <span>Area: <strong className="text-slate-900">{location.area}</strong> ({location.city} - {location.pincode})</span>
-                  <span className="text-[11px] text-[#2563EB] font-semibold">Matched Hub</span>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span>Selected Area: <strong className="text-slate-900">{location.area}</strong> ({location.city} - {location.pincode})</span>
+                    {location.hubName && (
+                      <span className="block text-[11px] text-slate-400 mt-0.5">
+                        Nearest Hub: {location.hubName} ({location.distanceKm || '1'} km)
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAddressModalOpen(true)}
+                      className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
+                    >
+                      Pick on Free Map
+                    </button>
+                    <span className="text-slate-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setLocationModalOpen(true)}
+                      className="text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                    >
+                      Change Hub
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

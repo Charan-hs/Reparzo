@@ -8,6 +8,7 @@ import { BottomNav } from './components/layout/BottomNav';
 import { Footer } from './components/layout/Footer';
 import { FullScreenSearch } from './components/search/FullScreenSearch';
 import { LocationPickerModal } from './components/location/LocationPickerModal';
+import { AddressMapModal } from './components/location/AddressMapModal';
 import { UnifiedAuthModal } from './components/auth/UnifiedAuthModal';
 import { CategoryManagerModal } from './components/admin/CategoryManagerModal';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -29,12 +30,20 @@ function DashboardRouter() {
 }
 
 export function App() {
-  const { loginWithFirebaseUser, user, fetchCatalog } = useAppStore();
+  const { 
+    loginWithFirebaseUser, 
+    user, 
+    fetchCatalog, 
+    fetchServiceHubs, 
+    initLocationLifecycle 
+  } = useAppStore();
 
-  // Fetch live categories, subcategories & services from Cloudflare D1
+  // Fetch live categories, subcategories & services from Cloudflare D1 + Hubs + Init Location Lifecycle
   useEffect(() => {
     fetchCatalog();
-  }, [fetchCatalog]);
+    fetchServiceHubs();
+    initLocationLifecycle();
+  }, [fetchCatalog, fetchServiceHubs, initLocationLifecycle]);
 
   // Listen to Firebase Auth state changes
   useEffect(() => {
@@ -62,6 +71,9 @@ export function App() {
 
         {/* Location Picker Modal */}
         <LocationPickerModal />
+
+        {/* Free Map View Address Modal */}
+        <AddressMapModal />
 
         {/* Unified 3-Role Authentication Modal (Customer, Partner, Admin) */}
         <UnifiedAuthModal />

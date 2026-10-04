@@ -76,6 +76,53 @@ export interface LocationData {
   pincode: string;
   fullAddress: string;
   etaMinutes: number;
+  latitude?: number;
+  longitude?: number;
+  isServiceable?: boolean;
+  hubId?: string;
+  hubName?: string;
+  distanceKm?: number;
+  isDefaultAddress?: boolean;
+  addressLabel?: 'Home' | 'Work' | 'Other' | 'GPS' | 'Hub';
+}
+
+export interface UserAddress {
+  id: string;
+  label: 'Home' | 'Work' | 'Other';
+  fullAddress: string;
+  flatNumber?: string;
+  landmark?: string;
+  area: string;
+  city: string;
+  pincode: string;
+  latitude: number;
+  longitude: number;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+export interface ServiceHub {
+  id: string;
+  code: string;
+  name: string;
+  area: string;
+  city: string;
+  pincode: string;
+  fullAddress: string;
+  latitude: number;
+  longitude: number;
+  radiusKm: number;
+  baseEtaMinutes: number;
+  perKmEtaMinutes: number;
+  isActive: boolean;
+  order: number;
+}
+
+export interface ServiceabilityResult {
+  isServiceable: boolean;
+  nearestHub: ServiceHub | null;
+  distanceKm: number;
+  etaMinutes: number;
 }
 
 export interface BookingSlot {

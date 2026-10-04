@@ -22,11 +22,13 @@ import {
   ChevronRight,
   Sliders,
   Check,
+  Radio,
   Power
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
 import type { OrderBooking } from '../types';
+import { AdminGeoCoverageTab } from '../components/admin/AdminGeoCoverageTab';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -36,11 +38,12 @@ export const AdminDashboard: React.FC = () => {
     updateOrderStatus, 
     categories, 
     services, 
+    serviceHubs,
     setCategoryManagerOpen,
     setAuthModalOpen 
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'categories' | 'partners'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'categories' | 'partners' | 'coverage'>('bookings');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [surgeActive, setSurgeActive] = useState(false);
@@ -283,6 +286,18 @@ export const AdminDashboard: React.FC = () => {
           >
             <Users className="w-4 h-4" />
             <span>Partner Fleet Roster (3 Active)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('coverage')}
+            className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'coverage'
+                ? 'border-[#2563EB] text-[#2563EB]'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Radio className="w-4 h-4" />
+            <span>Geo Hubs & Coverage ({serviceHubs.length})</span>
           </button>
         </div>
 
@@ -607,6 +622,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* ── TAB 5: Geo Hubs & Serviceable Radius Coverage ─── */}
+        {activeTab === 'coverage' && <AdminGeoCoverageTab />}
       </div>
     </div>
   );

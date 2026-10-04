@@ -123,13 +123,22 @@ export const Navbar: React.FC = () => {
           {/* Location Picker directly below the logo */}
           <button
             onClick={() => setLocationModalOpen(true)}
-            className="flex items-center gap-1 mt-0.5 text-left cursor-pointer group max-w-[110px] sm:max-w-[200px]"
+            className="flex items-center gap-1 mt-0.5 text-left cursor-pointer group max-w-[130px] sm:max-w-[240px]"
             title="Change service location"
           >
-            <MapPin className="w-3 h-3 text-[#2563EB] group-hover:scale-110 transition-transform flex-shrink-0" />
+            <MapPin className={`w-3 h-3 flex-shrink-0 group-hover:scale-110 transition-transform ${
+              location.isServiceable === false ? 'text-amber-500' : 'text-[#2563EB]'
+            }`} />
             <span className="text-[11px] sm:text-xs font-bold text-slate-800 group-hover:text-[#2563EB] transition-colors truncate">
-              {location.area}
+              {location.addressLabel && location.addressLabel !== 'Hub' && location.addressLabel !== 'GPS'
+                ? `${location.addressLabel}: ${location.area}`
+                : location.area}
             </span>
+            {location.isServiceable === false && (
+              <span className="hidden sm:inline-block text-[9px] font-extrabold uppercase px-1 rounded bg-amber-100 text-amber-800 flex-shrink-0">
+                Out of Area
+              </span>
+            )}
             <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-700 flex-shrink-0 transition-colors" />
           </button>
         </div>

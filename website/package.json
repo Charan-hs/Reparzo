@@ -10,9 +10,11 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
+    "@types/leaflet": "^1.9.22",
     "clsx": "^2.1.1",
     "firebase": "^12.19.0",
     "framer-motion": "^12.4.7",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
