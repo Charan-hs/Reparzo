@@ -269,46 +269,46 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* ── Navigation Tabs ─────────────────────────────────────── */}
-        <div className="flex border-b border-slate-200 space-x-1 sm:space-x-2">
+        <div className="flex border-b border-slate-200 space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('bookings')}
-            className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               activeTab === 'bookings'
                 ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
             }`}
           >
-            <Calendar className="w-4 h-4" />
+            <Calendar className="w-4 h-4 flex-shrink-0" />
             <span>Service Bookings</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 flex-shrink-0">
               {orders.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('addresses')}
-            className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               activeTab === 'addresses'
                 ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
             }`}
           >
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-4 h-4 flex-shrink-0" />
             <span>Doorstep Addresses</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 flex-shrink-0">
               {savedAddresses.length}
             </span>
           </button>
 
           <button
             onClick={() => setActiveTab('info')}
-            className={`px-4 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-6 py-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
               activeTab === 'info'
                 ? 'border-[#2563EB] text-[#2563EB]'
                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
             }`}
           >
-            <ShieldCheck className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4 flex-shrink-0" />
             <span>Guarantees & Support</span>
           </button>
         </div>
@@ -317,11 +317,11 @@ export const ProfilePage: React.FC = () => {
         {activeTab === 'bookings' && (
           <div className="space-y-4">
             {/* Filter pills */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5 p-1 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar max-w-full">
                 <button
                   onClick={() => setBookingFilter('all')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                     bookingFilter === 'all'
                       ? 'bg-[#2563EB] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -331,7 +331,7 @@ export const ProfilePage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setBookingFilter('active')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                     bookingFilter === 'active'
                       ? 'bg-amber-500 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -341,7 +341,7 @@ export const ProfilePage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setBookingFilter('completed')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
                     bookingFilter === 'completed'
                       ? 'bg-emerald-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
