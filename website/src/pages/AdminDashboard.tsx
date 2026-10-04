@@ -234,8 +234,8 @@ export const AdminDashboard: React.FC = () => {
     customerName: '',
     customerPhone: '',
     address: '',
-    technicianName: 'Ramesh Gowda (Certified Master Technician)',
-    technicianPhone: '+91 98450 88219',
+    technicianName: '',
+    technicianPhone: '',
     scheduledDate: new Date().toISOString().slice(0, 10),
     timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
     grandTotal: 499,
@@ -290,8 +290,8 @@ export const AdminDashboard: React.FC = () => {
       customerName: '',
       customerPhone: '',
       address: '',
-      technicianName: 'Ramesh Gowda (Certified Master Technician)',
-      technicianPhone: '+91 98450 88219',
+      technicianName: '',
+      technicianPhone: '',
       scheduledDate: new Date().toISOString().slice(0, 10),
       timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
       grandTotal: 499,
@@ -638,13 +638,21 @@ export const AdminDashboard: React.FC = () => {
                         <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-slate-700">Assigned Partner:</span>
-                            <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md font-bold text-[11px] border border-amber-200 flex items-center gap-1">
-                              <Wrench className="w-3 h-3 text-amber-600" /> {order.technicianName}
-                            </span>
-                            {order.technicianPhone && (
-                              <a href={`tel:${order.technicianPhone}`} className="text-blue-600 hover:underline text-[11px] font-mono">
-                                ({order.technicianPhone})
-                              </a>
+                            {order.technicianName ? (
+                              <>
+                                <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md font-bold text-[11px] border border-amber-200 flex items-center gap-1">
+                                  <Wrench className="w-3 h-3 text-amber-600" /> {order.technicianName}
+                                </span>
+                                {order.technicianPhone && (
+                                  <a href={`tel:${order.technicianPhone}`} className="text-blue-600 hover:underline text-[11px] font-mono">
+                                    ({order.technicianPhone})
+                                  </a>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-medium text-[11px] border border-slate-200">
+                                Pending Assignment
+                              </span>
                             )}
                           </div>
 

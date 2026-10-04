@@ -143,7 +143,7 @@ export function getOrderWorkingSchedule(
       statusBadgeText: `Scheduled for ${shortFuture}`,
       statusBadgeVariant: 'scheduled-future',
       scheduleTitle: `Scheduled for ${formattedFuture}`,
-      scheduleSubtitle: `Technician visit booked for ${formattedFuture} during working hours (${REPARZO_WORKING_HOURS.label})`,
+      scheduleSubtitle: `Doorstep appointment booked for ${formattedFuture} during working hours (${REPARZO_WORKING_HOURS.label})`,
       targetDateNumeric: formattedFuture,
       serviceWindowLabel: `${formattedFuture} • ${REPARZO_WORKING_HOURS.label}`,
       stepperSubtext: `${shortFuture} • 10 AM–6 PM`,
@@ -160,14 +160,14 @@ export function getOrderWorkingSchedule(
 
     const isOngoing = order.status === 'in_progress';
     const subtitle = isOngoing
-      ? `Doorstep repair is currently underway at customer address.`
-      : `Technician will visit today (${todayFormatted}) during active working hours (${REPARZO_WORKING_HOURS.label}).`;
+      ? `Doorstep service / delivery is currently underway at customer address.`
+      : `Doorstep appointment scheduled today (${todayFormatted}) during active working hours (${REPARZO_WORKING_HOURS.label}).`;
 
     return {
       isClosed: false,
-      statusBadgeText: isOngoing ? 'Repair Underway' : 'Visiting Today (Working Hours)',
+      statusBadgeText: isOngoing ? 'Order Underway' : 'Visiting Today (Working Hours)',
       statusBadgeVariant: 'active-today',
-      scheduleTitle: isOngoing ? 'Service Underway' : `Visiting Today, ${todayFormatted}`,
+      scheduleTitle: isOngoing ? 'Order Underway' : `Visiting Today, ${todayFormatted}`,
       scheduleSubtitle: subtitle,
       targetDateNumeric: todayFormatted,
       serviceWindowLabel: `Today (${todayFormatted}) • ${REPARZO_WORKING_HOURS.label}`,
@@ -188,7 +188,7 @@ export function getOrderWorkingSchedule(
       statusBadgeText: 'Visiting Tomorrow (10 AM – 6 PM)',
       statusBadgeVariant: 'outside-hours',
       scheduleTitle: `Next Service: Tomorrow, ${tomorrowFormatted}`,
-      scheduleSubtitle: `Today's working hours (${REPARZO_WORKING_HOURS.label}) have closed. Technician will visit tomorrow (${tomorrowFormatted}) during working hours (${REPARZO_WORKING_HOURS.label}).`,
+      scheduleSubtitle: `Today's working hours (${REPARZO_WORKING_HOURS.label}) have closed. Doorstep appointment scheduled for tomorrow (${tomorrowFormatted}) during working hours (${REPARZO_WORKING_HOURS.label}).`,
       targetDateNumeric: tomorrowFormatted,
       serviceWindowLabel: `Tomorrow (${tomorrowFormatted}) • ${REPARZO_WORKING_HOURS.label}`,
       stepperSubtext: `Tomorrow (${tomorrowShort}) • 10 AM–6 PM`,
@@ -207,7 +207,7 @@ export function getOrderWorkingSchedule(
     statusBadgeText: 'Starts Today at 10:00 AM',
     statusBadgeVariant: 'active-today',
     scheduleTitle: `Visiting Today, ${todayFormatted}`,
-    scheduleSubtitle: `Working hours start at 10:00 AM. Technician will visit today (${todayFormatted}) between 10:00 AM and 06:00 PM.`,
+    scheduleSubtitle: `Working hours start at 10:00 AM. Doorstep appointment scheduled today (${todayFormatted}) between 10:00 AM and 06:00 PM.`,
     targetDateNumeric: todayFormatted,
     serviceWindowLabel: `Today (${todayFormatted}) • ${REPARZO_WORKING_HOURS.label}`,
     stepperSubtext: `Today (${todayShort}) • 10 AM–6 PM`,

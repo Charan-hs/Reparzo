@@ -192,8 +192,6 @@ export const CheckoutPage: React.FC = () => {
         paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
         status: 'confirmed',
         createdAt: new Date().toISOString(),
-        technicianName: orderMeta.partnerName,
-        technicianPhone: orderMeta.partnerPhone,
         completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
       };
 
@@ -259,13 +257,19 @@ export const CheckoutPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 animate-pulse">
-                        2
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                        completedOrder.technicianName ? 'bg-emerald-600 text-white' : 'bg-[#2563EB] text-white animate-pulse'
+                      }`}>
+                        {completedOrder.technicianName ? '✓' : '2'}
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">{completedMeta.step2}</span>
-                        <span className="text-[11px] text-[#2563EB] font-semibold">
-                          {completedOrder.technicianName} • Background Verified
+                        <span className="text-xs font-bold text-slate-900 block">
+                          {completedOrder.technicianName ? completedMeta.step2 : completedMeta.partnerPendingTitle}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          {completedOrder.technicianName
+                            ? `${completedOrder.technicianName} • Background Verified`
+                            : completedMeta.partnerPendingSubtitle}
                         </span>
                       </div>
                     </div>
@@ -286,28 +290,34 @@ export const CheckoutPage: React.FC = () => {
               );
             })()}
 
-            {/* Assigned Partner Card */}
-            <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-left">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-sm">
-                  {completedMeta.partnerInitial}
+            {/* Assigned Partner Card - Only show when a partner has actually been assigned */}
+            {completedOrder.technicianName && (
+              <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-sm">
+                    {completedOrder.technicianName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                      {completedMeta.partnerRoleTitle}
+                    </span>
+                    <h4 className="text-xs font-bold text-slate-900">{completedOrder.technicianName}</h4>
+                    {completedOrder.technicianPhone && (
+                      <span className="text-[11px] text-slate-500">{completedOrder.technicianPhone}</span>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                    {completedMeta.partnerRoleTitle}
-                  </span>
-                  <h4 className="text-xs font-bold text-slate-900">{completedOrder.technicianName}</h4>
-                  <span className="text-[11px] text-slate-500">{completedOrder.technicianPhone}</span>
-                </div>
+                {completedOrder.technicianPhone && (
+                  <a
+                    href={`tel:${completedOrder.technicianPhone}`}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>{completedMeta.partnerCallAction}</span>
+                  </a>
+                )}
               </div>
-              <a
-                href={`tel:${completedOrder.technicianPhone || '+916362000263'}`}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>{completedMeta.partnerCallAction}</span>
-              </a>
-            </div>
+            )}
 
             {/* Service Completion PIN Card */}
             <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">

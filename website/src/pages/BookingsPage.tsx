@@ -512,29 +512,40 @@ export const BookingsPage: React.FC = () => {
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
                               {orderMeta.partnerRoleTitle}
                             </span>
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                  {orderMeta.partnerInitial}
+                            {order.technicianName ? (
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                    {order.technicianName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h5 className="text-xs font-bold text-slate-900 truncate">
+                                      {order.technicianName}
+                                    </h5>
+                                    <span className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1">
+                                      <ShieldCheck className="w-3 h-3" /> Background Verified
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <h5 className="text-xs font-bold text-slate-900 truncate">
-                                    {order.technicianName}
-                                  </h5>
-                                  <span className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1">
-                                    <ShieldCheck className="w-3 h-3" /> Background Verified
-                                  </span>
-                                </div>
-                              </div>
 
-                              <a
-                                href={`tel:${order.technicianPhone || '+916362000263'}`}
-                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors flex-shrink-0 cursor-pointer"
-                              >
-                                <Phone className="w-3.5 h-3.5" />
-                                <span>{orderMeta.partnerCallAction}</span>
-                              </a>
-                            </div>
+                                {order.technicianPhone && (
+                                  <a
+                                    href={`tel:${order.technicianPhone}`}
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors flex-shrink-0 cursor-pointer"
+                                  >
+                                    <Phone className="w-3.5 h-3.5" />
+                                    <span>{orderMeta.partnerCallAction}</span>
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-xs text-slate-600 pt-0.5">
+                                <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
+                                <span className="font-medium text-[11px] text-slate-600">
+                                  {orderMeta.partnerPendingSubtitle}
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           {/* Delivery Address */}

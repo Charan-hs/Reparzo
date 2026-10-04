@@ -147,8 +147,8 @@ export interface OrderBooking {
   paymentStatus: 'paid' | 'pending';
   status: 'confirmed' | 'technician_assigned' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: string;
-  technicianName: string;
-  technicianPhone: string;
+  technicianName?: string;
+  technicianPhone?: string;
   completionPin?: string;
   adminNotes?: string;
 }
