@@ -5,13 +5,20 @@ import { secureHeaders } from 'hono/secure-headers';
 import type { Env, Variables } from './types';
 import { errorHandler } from './middleware/errorHandler';
 import { apiRouter } from './routes';
+import { mediaRoutes } from './routes/media.routes';
 import { successResponse } from './utils/response';
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // ── Global Edge Middleware ─────────────────────────────
 app.use('*', logger());
-app.use('*', secureHeaders());
+app.use(
+  '*',
+  secureHeaders({
+    crossOriginResourcePolicy: 'cross-origin',
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(
   '*',
   cors({
@@ -40,6 +47,11 @@ app.get('/', (c) => {
     })
   );
 });
+
+// ── Direct Media Mounts for Edge Asset Streaming ───────
+// Allows direct access to /banners/*, /media/* as well as /api/media/*
+app.route('/banners', mediaRoutes);
+app.route('/media', mediaRoutes);
 
 // ── API Router Mount ───────────────────────────────────
 app.route('/api', apiRouter);

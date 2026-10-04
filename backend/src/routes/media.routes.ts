@@ -113,21 +113,52 @@ mediaRoutes.get('/list', async (c) => {
   );
 });
 
-// GET /api/media/* - Retrieve & stream image/media from R2
-mediaRoutes.get('/*', async (c) => {
+// OPTIONS /* - Preflight support for media endpoints
+mediaRoutes.options('*', (c) => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+    },
+  });
+});
+
+// GET /* - Retrieve & stream image/media from R2
+mediaRoutes.get('*', async (c) => {
   if (!c.env.MEDIA) {
     throw new NotFoundError('Media storage (Cloudflare R2) is not bound to this Worker environment.');
   }
 
-  // Extract key after /api/media/
-  const path = c.req.path;
-  const key = path.replace(/^\/api\/media\//, '').replace(/^\/media\//, '');
+  const rawPath = c.req.path;
+  // Cleanly extract key regardless of whether mounted at /api/media, /media, or /banners
+  let key = rawPath
+    .replace(/^\/api\/media\/?/, '')
+    .replace(/^\/media\/?/, '')
+    .replace(/^\//, '');
 
   if (!key) {
     throw new NotFoundError('Media key parameter is missing.');
   }
 
-  const object = await c.env.MEDIA.get(key);
+  // Attempt 1: Check key as-is (e.g. "banners/ac-service.jpg", "logo.png")
+  let object = await c.env.MEDIA.get(key);
+
+  // Attempt 2: If key doesn't start with banners/, try "banners/" prefix
+  if (!object && !key.startsWith('banners/')) {
+    object = await c.env.MEDIA.get(`banners/${key}`);
+    if (object) key = `banners/${key}`;
+  }
+
+  // Attempt 3: If key starts with banners/, try without "banners/" prefix
+  if (!object && key.startsWith('banners/')) {
+    const unPrefixed = key.replace(/^banners\//, '');
+    object = await c.env.MEDIA.get(unPrefixed);
+    if (object) key = unPrefixed;
+  }
+
   if (!object) {
     throw new NotFoundError(`Asset '${key}' not found in Reparzo R2 storage.`);
   }
@@ -141,6 +172,8 @@ mediaRoutes.get('/*', async (c) => {
   headers.set('ETag', object.httpEtag);
   // High-performance immutable edge caching
   headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 
   return new Response(object.body, { headers });
 });

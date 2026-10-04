@@ -25,6 +25,17 @@ function escapeSql(val: unknown): string {
   return `'${String(val).replace(/'/g, "''")}'`;
 }
 
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  'ac-services': '/banners/ac-service.jpg',
+  'bike-service': '/banners/bike-service.jpg',
+  'home-shifting': '/banners/home-shifting.jpg',
+  'electrical-services': '/banners/electrical-service.jpg',
+  'plumbing-services': '/banners/banner-1.png',
+  'refrigerator-services': '/banners/banner-2.png',
+  'washing-machine-services': '/banners/banner-3.png',
+  'water-tank-services': '/banners/banner-1.png',
+};
+
 function generateCatalogSql(): string {
   const lines: string[] = [
     '-- ==========================================================================',
@@ -37,8 +48,9 @@ function generateCatalogSql(): string {
   ];
 
   for (const cat of INITIAL_CATEGORIES) {
+    const catImage = (cat as any).image || DEFAULT_CATEGORY_IMAGES[cat.slug] || '/banners/ac-service.jpg';
     lines.push(
-      `INSERT INTO categories (id, slug, title, icon_name, description, badge, bg_gradient, is_active, display_order, created_at, updated_at) VALUES (` +
+      `INSERT INTO categories (id, slug, title, icon_name, description, badge, bg_gradient, image, is_active, display_order, created_at, updated_at) VALUES (` +
       `${escapeSql(cat.id)}, ` +
       `${escapeSql(cat.slug)}, ` +
       `${escapeSql(cat.title)}, ` +
@@ -46,6 +58,7 @@ function generateCatalogSql(): string {
       `${escapeSql(cat.description)}, ` +
       `${escapeSql(cat.badge)}, ` +
       `${escapeSql(cat.bgGradient || 'from-blue-600 to-cyan-500')}, ` +
+      `${escapeSql(catImage)}, ` +
       `${cat.isActive ? 1 : 0}, ` +
       `${cat.order || 0}, ` +
       `strftime('%s', 'now'), ` +
@@ -57,6 +70,7 @@ function generateCatalogSql(): string {
       `description = excluded.description, ` +
       `badge = excluded.badge, ` +
       `bg_gradient = excluded.bg_gradient, ` +
+      `image = excluded.image, ` +
       `is_active = excluded.is_active, ` +
       `display_order = excluded.display_order, ` +
       `updated_at = strftime('%s', 'now');`
@@ -66,8 +80,9 @@ function generateCatalogSql(): string {
   lines.push('', '-- 2. POPULATE SUBCATEGORIES');
 
   for (const sub of INITIAL_SUBCATEGORIES) {
+    const subImage = (sub as any).image || DEFAULT_CATEGORY_IMAGES[sub.categorySlug] || '/banners/ac-service.jpg';
     lines.push(
-      `INSERT INTO sub_categories (id, category_id, category_slug, title, slug, icon_name, description, badge, starting_price, original_price, duration_minutes, warranty_days, is_active, display_order, features, created_at, updated_at) VALUES (` +
+      `INSERT INTO sub_categories (id, category_id, category_slug, title, slug, icon_name, description, badge, starting_price, original_price, duration_minutes, warranty_days, image, is_active, display_order, features, created_at, updated_at) VALUES (` +
       `${escapeSql(sub.id)}, ` +
       `${escapeSql(sub.categoryId)}, ` +
       `${escapeSql(sub.categorySlug)}, ` +
@@ -80,6 +95,7 @@ function generateCatalogSql(): string {
       `${escapeSql(sub.originalPrice)}, ` +
       `${escapeSql(sub.durationMinutes || 45)}, ` +
       `${escapeSql(sub.warrantyDays || 30)}, ` +
+      `${escapeSql(subImage)}, ` +
       `${sub.isActive ? 1 : 0}, ` +
       `${sub.order || 0}, ` +
       `${escapeSql(sub.features || [])}, ` +
@@ -97,6 +113,7 @@ function generateCatalogSql(): string {
       `original_price = excluded.original_price, ` +
       `duration_minutes = excluded.duration_minutes, ` +
       `warranty_days = excluded.warranty_days, ` +
+      `image = excluded.image, ` +
       `is_active = excluded.is_active, ` +
       `display_order = excluded.display_order, ` +
       `features = excluded.features, ` +

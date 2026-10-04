@@ -126,7 +126,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center gap-3">
             <span className="text-emerald-400 flex items-center gap-1 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Cloudflare D1 & Worker Active
+              System Operational
             </span>
             <span className="text-slate-600">|</span>
             <Link to="/" className="text-slate-300 hover:text-white flex items-center gap-1">

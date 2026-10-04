@@ -277,14 +277,14 @@ export const CategoryManagerModal: React.FC = () => {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
-                    Admin Catalog Manager (Cloudflare D1 & R2)
+                    Catalog & Category Manager
                   </h3>
-                  <span className="hidden sm:inline-flex text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200 uppercase tracking-wider">
-                    Live Persistence
+                  <span className="hidden sm:inline-flex text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider">
+                    Live
                   </span>
                 </div>
                 <p className="text-[11px] sm:text-xs text-slate-500 hidden sm:block">
-                  Dual-rail category & subcategory manager with instant synchronization to Reparzo D1 database.
+                  Manage categories, subcategories, banners, and storefront service offerings in real time.
                 </p>
               </div>
             </div>
@@ -751,11 +751,11 @@ export const CategoryManagerModal: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  {/* Banner Image Uploader */}
                   <ImageUploader
                     value={subImage}
                     onChange={setSubImage}
-                    label="Subcategory Image (Cloudflare R2)"
+                    label="Subcategory Banner"
                   />
 
                   <div>
@@ -899,11 +899,11 @@ export const CategoryManagerModal: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  {/* Banner Image Uploader */}
                   <ImageUploader
                     value={editingSubCategory.image || AVAILABLE_BANNERS[0].url}
                     onChange={(url) => setEditingSubCategory({ ...editingSubCategory, image: url })}
-                    label="Subcategory Image (Cloudflare R2)"
+                    label="Subcategory Banner"
                   />
 
                   <div>
@@ -1026,11 +1026,11 @@ export const CategoryManagerModal: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  {/* Banner Image Uploader */}
                   <ImageUploader
                     value={newCatImage}
                     onChange={setNewCatImage}
-                    label="Category Banner (Cloudflare R2)"
+                    label="Category Banner"
                   />
 
                   <div>
@@ -1129,11 +1129,11 @@ export const CategoryManagerModal: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Banner Image with Squoosh WebP Optimizer */}
+                  {/* Banner Image Uploader */}
                   <ImageUploader
                     value={editingCategory.image || AVAILABLE_BANNERS[0].url}
                     onChange={(url) => setEditingCategory({ ...editingCategory, image: url })}
-                    label="Category Banner (Cloudflare R2)"
+                    label="Category Banner"
                   />
 
                   <div>
