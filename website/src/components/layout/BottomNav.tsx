@@ -11,11 +11,11 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { label: 'Home', icon: Home, path: '/' },
     { label: 'Services', icon: Grid, path: '/services' },
-    { label: 'Bookings', icon: Calendar, path: '/checkout' },
+    { label: 'Bookings', icon: Calendar, path: '/profile?tab=bookings' },
     { 
-      label: user ? (user.role === 'admin' ? 'Admin' : user.role === 'partner' ? 'Partner' : user.name.split(' ')[0]) : 'Account', 
+      label: user ? (user.role === 'admin' ? 'Admin' : user.role === 'partner' ? 'Partner' : 'Profile') : 'Account', 
       icon: user?.role === 'admin' ? Shield : user?.role === 'partner' ? Wrench : User, 
-      path: user?.role === 'admin' ? '/admin' : user?.role === 'partner' ? '/partner' : undefined,
+      path: user?.role === 'admin' ? '/admin' : user?.role === 'partner' ? '/partner' : '/profile',
       action: user ? undefined : () => setAuthModalOpen(true)
     },
   ];

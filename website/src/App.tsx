@@ -17,6 +17,7 @@ import { ScrollManager } from './components/layout/ScrollManager';
 import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { PartnerDashboard } from './pages/PartnerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { HealthPage } from './pages/HealthPage';
@@ -94,6 +95,9 @@ export function App() {
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/cart" element={<CheckoutPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/account" element={<ProfilePage />} />
+            <Route path="/bookings" element={<ProfilePage />} />
             <Route path="/health" element={<HealthPage />} />
           </Routes>
         </main>

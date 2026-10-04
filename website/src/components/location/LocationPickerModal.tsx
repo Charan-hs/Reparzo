@@ -17,8 +17,10 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export const LocationPickerModal: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     isLocationModalOpen, 
     setLocationModalOpen, 
@@ -143,28 +145,18 @@ export const LocationPickerModal: React.FC = () => {
           {/* Scrollable Content: Notice + Added Addresses */}
           <div className="p-3.5 sm:p-4 overflow-y-auto space-y-3.5 flex-1 bg-[#F8FAFC]">
             
-            {/* ── Non-Serviceable Notice Banner ─────────────────── */}
+            {/* ── Non-Serviceable Notice Banner (Sleek & Minimized) ─────────────────── */}
             {location.isServiceable === false ? (
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-amber-950 shadow-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span className="text-xs font-extrabold text-amber-900 uppercase tracking-wide">
-                      Service Currently Unavailable
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                    Coming Soon 🚀
-                  </span>
+              <div className="px-3.5 py-2 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 flex items-center justify-between gap-2.5 text-xs shadow-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <p className="truncate text-xs text-amber-900 leading-tight">
+                    Service unavailable in <strong>{location.area}</strong> — expanding technician coverage soon!
+                  </p>
                 </div>
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our technician coverage to your location soon!
-                </p>
-                <div className="pt-1 flex items-center justify-between">
-                  <span className="text-[11px] text-amber-700">
-                    Add another address or select a saved location below.
-                  </span>
-                </div>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 flex-shrink-0 whitespace-nowrap">
+                  Coming Soon 🚀
+                </span>
               </div>
             ) : (
               <div className="p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs">
@@ -186,6 +178,16 @@ export const LocationPickerModal: React.FC = () => {
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
                   Your Added Addresses ({savedAddresses.length})
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationModalOpen(false);
+                    navigate('/profile?tab=addresses');
+                  }}
+                  className="text-[11px] font-bold text-[#2563EB] hover:text-blue-700 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  Manage in Profile ➔
+                </button>
               </div>
 
               {savedAddresses.length === 0 ? (

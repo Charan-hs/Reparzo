@@ -1060,7 +1060,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     platformFee: 19,
     discount: 250,
     grandTotal: 368,
-    address: 'Flat 402, Green Glen Heights, Bellandur, Bengaluru - 560103',
+    address: '18th Cross, Bellandur, Bengaluru - 560103',
     customerName: 'Arun Prasad',
     customerPhone: '+91 98111 22334',
     slot: {

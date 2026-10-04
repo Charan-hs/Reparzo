@@ -12,37 +12,8 @@ import {
   INITIAL_ORDERS 
 } from '../data/fallbackCatalog';
 
-// Default starter doorstep addresses
-export const DEFAULT_SAVED_ADDRESSES: UserAddress[] = [
-  {
-    id: 'addr-default-1',
-    label: 'Home',
-    flatNumber: 'Flat 402, Green Glen Heights',
-    landmark: 'Near BDA Complex',
-    area: 'HSR Layout Sector 2',
-    city: 'Bengaluru',
-    pincode: '560102',
-    fullAddress: 'Flat 402, Green Glen Heights, Near BDA Complex, HSR Layout Sector 2, Bengaluru - 560102',
-    latitude: 12.9116,
-    longitude: 77.6389,
-    isDefault: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'addr-default-2',
-    label: 'Work',
-    flatNumber: 'Reparzo Tech Hub, 4th Floor',
-    landmark: '100ft Road',
-    area: 'Indiranagar',
-    city: 'Bengaluru',
-    pincode: '560038',
-    fullAddress: 'Reparzo Tech Hub, 4th Floor, 100ft Road, Indiranagar, Bengaluru - 560038',
-    latitude: 12.9784,
-    longitude: 77.6408,
-    isDefault: false,
-    createdAt: new Date().toISOString(),
-  },
-];
+// Default starter doorstep addresses (empty by default; users add real doorstep addresses)
+export const DEFAULT_SAVED_ADDRESSES: UserAddress[] = [];
 
 // Re-export fallback constants for backwards-compatibility with scripts and types
 export { INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_SERVICES, INITIAL_ORDERS };
@@ -107,6 +78,7 @@ export interface AppState {
   authModalInitialRole: UserRole;
   setAuthModalOpen: (open: boolean, role?: UserRole) => void;
   setUser: (user: UserProfile | null) => void;
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
   setActiveRole: (role: UserRole) => void;
   loginSimulated: (role: UserRole, phoneOrEmail: string, name: string) => void;
   loginWithFirebaseUser: (firebaseUser: {
@@ -492,6 +464,17 @@ export const useAppStore = create<AppState>()(
         set({ user: newUser, activeRole: role, isAuthModalOpen: false });
         return detected;
       },
+      updateUserProfile: (updates) => {
+        set((state) => {
+          if (!state.user) return state;
+          return {
+            user: {
+              ...state.user,
+              ...updates,
+            },
+          };
+        });
+      },
       logout: () => {
         signOutFirebase().catch(() => {});
         set({ user: null, activeRole: 'user' });
@@ -502,7 +485,7 @@ export const useAppStore = create<AppState>()(
         area: 'HSR Layout Sector 2',
         city: 'Bengaluru',
         pincode: '560102',
-        fullAddress: 'Flat 402, Green Glen Heights, Near BDA Complex, HSR Layout Sector 2, Bengaluru - 560102',
+        fullAddress: 'HSR Layout Sector 2, Bengaluru - 560102',
         etaMinutes: 20,
         latitude: 12.9116,
         longitude: 77.6389,
@@ -510,16 +493,16 @@ export const useAppStore = create<AppState>()(
         hubId: 'hub-blr-hsr',
         hubName: 'HSR Layout Sector 2 Hub',
         distanceKm: 0.5,
-        isDefaultAddress: true,
-        addressLabel: 'Home',
+        isDefaultAddress: false,
+        addressLabel: undefined,
       },
       isLocationModalOpen: false,
       setLocationModalOpen: (open) => set({ isLocationModalOpen: open }),
       setLocation: (loc) => set({ location: loc, isLocationModalOpen: false }),
 
       serviceHubs: DEFAULT_SERVICE_HUBS,
-      savedAddresses: DEFAULT_SAVED_ADDRESSES,
-      activeAddressId: 'addr-default-1',
+      savedAddresses: [],
+      activeAddressId: null,
       isAddressModalOpen: false,
       addressModalInitialCoords: undefined,
       setAddressModalOpen: (open, initialCoords) =>
@@ -851,9 +834,24 @@ export const useAppStore = create<AppState>()(
           state.user = null;
           state.activeRole = 'user';
         }
-        if (state && (!state.savedAddresses || state.savedAddresses.length === 0)) {
-          state.savedAddresses = DEFAULT_SAVED_ADDRESSES;
-          state.activeAddressId = 'addr-default-1';
+        // Purge legacy dummy addresses from persistent browser storage
+        if (state?.savedAddresses) {
+          state.savedAddresses = state.savedAddresses.filter(
+            (a) =>
+              a.id !== 'addr-default-1' &&
+              a.id !== 'addr-default-2' &&
+              !a.fullAddress?.includes('Green Glen Heights') &&
+              !a.fullAddress?.includes('Reparzo Tech Hub')
+          );
+          if (state.activeAddressId === 'addr-default-1' || state.activeAddressId === 'addr-default-2') {
+            state.activeAddressId = state.savedAddresses[0]?.id || null;
+          }
+        }
+        // Clean dummy full address string if present in persistent location
+        if (state?.location?.fullAddress?.includes('Green Glen Heights')) {
+          state.location.fullAddress = `${state.location.area}, ${state.location.city} - ${state.location.pincode}`;
+          state.location.addressLabel = undefined;
+          state.location.isDefaultAddress = false;
         }
       },
     }

@@ -12,7 +12,8 @@ import {
   LogOut, 
   Layers,
   Menu,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -296,12 +297,30 @@ export const Navbar: React.FC = () => {
                       )}
 
                       <Link
-                        to="/checkout"
+                        to="/profile"
                         onClick={() => setRoleMenuOpen(false)}
                         className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
                       >
                         <User className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>My Profile & Account</span>
+                      </Link>
+
+                      <Link
+                        to="/profile?tab=bookings"
+                        onClick={() => setRoleMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
                         <span>My Bookings & Orders</span>
+                      </Link>
+
+                      <Link
+                        to="/profile?tab=addresses"
+                        onClick={() => setRoleMenuOpen(false)}
+                        className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Saved Addresses</span>
                       </Link>
                     </div>
 

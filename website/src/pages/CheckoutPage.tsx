@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   CheckCircle2, 
@@ -37,6 +37,7 @@ export const CheckoutPage: React.FC = () => {
     addOrder,
     setAuthModalOpen,
     savedAddresses,
+    activeAddressId,
     selectSavedAddress,
     setAddressModalOpen,
     setLocationModalOpen
@@ -45,10 +46,25 @@ export const CheckoutPage: React.FC = () => {
   const { totalItems, subtotal, inspectionFee, platformFee, discount, grandTotal } = getCartMetrics();
 
   // Form State
-  const [name, setName] = useState(user?.name || 'Charan H.S.');
-  const [phone, setPhone] = useState(user?.phone?.replace('+91 ', '') || '9845012345');
-  const [flatNumber, setFlatNumber] = useState('Flat 402, Green Glen Heights');
-  const [landmark, setLandmark] = useState('Opposite BDA Complex');
+  const activeAddress = savedAddresses.find((a) => a.id === activeAddressId);
+  const [name, setName] = useState(user?.name || '');
+  const [phone, setPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '');
+  const [flatNumber, setFlatNumber] = useState(activeAddress?.flatNumber || '');
+  const [landmark, setLandmark] = useState(activeAddress?.landmark || '');
+
+  useEffect(() => {
+    if (activeAddress) {
+      if (activeAddress.flatNumber) setFlatNumber(activeAddress.flatNumber);
+      if (activeAddress.landmark) setLandmark(activeAddress.landmark);
+    }
+  }, [activeAddress]);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name && !name) setName(user.name);
+      if (user.phone && !phone) setPhone(user.phone.replace('+91 ', ''));
+    }
+  }, [user]);
   
   // Slot selection
   const [slotType, setSlotType] = useState<'instant' | 'scheduled'>('instant');
@@ -290,24 +306,21 @@ export const CheckoutPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Serviceability Warning Banner if out of radius */}
+              {/* Serviceability Warning Banner if out of radius (Sleek & Minimized) */}
               {location.isServiceable === false && (
-                <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-start gap-2.5">
-                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold block text-amber-800">Service Currently Unavailable (Coming Soon 🚀)</span>
-                      <span className="text-amber-700 text-[11px]">
-                        Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our services to your location soon!
-                      </span>
-                    </div>
+                <div className="px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span className="truncate text-xs text-amber-900">
+                      Service unavailable in <strong>{location.area}</strong> (Coming Soon 🚀)
+                    </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setLocationModalOpen(true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap cursor-pointer transition-colors shadow-xs"
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shadow-xs flex-shrink-0"
                   >
-                    Change Address
+                    Change
                   </button>
                 </div>
               )}
