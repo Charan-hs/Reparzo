@@ -395,6 +395,16 @@ export const ProfilePage: React.FC = () => {
                 {filteredOrders.map((order) => {
                   const isActive = order.status === 'in_progress' || order.status === 'technician_assigned' || order.status === 'confirmed';
                   const orderMeta = getOrderTypeDetails(order.items);
+                  const isPartnerAssigned = Boolean(
+                    order.technicianName &&
+                    order.status !== 'confirmed' &&
+                    !order.technicianName.toLowerCase().includes('suresh') &&
+                    !order.technicianName.toLowerCase().includes('sunil') &&
+                    !order.technicianName.toLowerCase().includes('rajesh') &&
+                    !order.technicianName.toLowerCase().includes('ramesh') &&
+                    !order.technicianName.toLowerCase().includes('arun') &&
+                    !order.technicianName.toLowerCase().includes('manjunath')
+                  );
                   
                   return (
                     <div 
@@ -433,7 +443,7 @@ export const ProfilePage: React.FC = () => {
                           {order.status === 'technician_assigned' && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold">
                               <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-ping" />
-                              {order.technicianName ? orderMeta.step2 : orderMeta.partnerPendingTitle}
+                              {isPartnerAssigned ? orderMeta.step2 : orderMeta.partnerPendingTitle}
                             </span>
                           )}
                           {order.status === 'confirmed' && (
@@ -497,7 +507,7 @@ export const ProfilePage: React.FC = () => {
                             </div>
                           </div>
 
-                          {order.technicianName ? (
+                          {isPartnerAssigned && order.technicianName ? (
                             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100/80 space-y-1">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
                                 {orderMeta.partnerRoleTitle}

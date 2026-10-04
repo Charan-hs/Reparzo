@@ -133,10 +133,10 @@ export const BookingsPage: React.FC = () => {
                 <span>Doorstep Service Management</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                My Service Bookings
+                My Bookings & Orders
               </h1>
               <p className="text-xs sm:text-sm text-blue-100 max-w-xl">
-                Track live technician arrival, view completion PINs, and manage past doorstep repair history.
+                Track live order status, view completion PINs, and manage doorstep services & deliveries.
               </p>
             </div>
 
@@ -149,13 +149,13 @@ export const BookingsPage: React.FC = () => {
                     <span>{liveOrders.length} {liveOrders.length === 1 ? 'Live Booking Active' : 'Live Bookings Active'}</span>
                   </div>
                   <span className="text-[11px] text-blue-200 block mt-0.5 font-medium">
-                    Technician on schedule
+                    Order on schedule
                   </span>
                 </div>
               ) : (
                 <div className="p-3 rounded-2xl bg-white/10 border border-white/15 text-center sm:text-right">
                   <span className="text-xs font-bold text-blue-200 block">All Caught Up</span>
-                  <span className="text-[11px] text-blue-300/80 block">No pending doorstep repairs</span>
+                  <span className="text-[11px] text-blue-300/80 block">No pending doorstep orders</span>
                 </div>
               )}
             </div>
@@ -279,6 +279,16 @@ export const BookingsPage: React.FC = () => {
                   const completionPin = order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234';
                   const schedule = getOrderWorkingSchedule(order);
                   const orderMeta = getOrderTypeDetails(order.items);
+                  const isPartnerAssigned = Boolean(
+                    order.technicianName &&
+                    order.status !== 'confirmed' &&
+                    !order.technicianName.toLowerCase().includes('suresh') &&
+                    !order.technicianName.toLowerCase().includes('sunil') &&
+                    !order.technicianName.toLowerCase().includes('rajesh') &&
+                    !order.technicianName.toLowerCase().includes('ramesh') &&
+                    !order.technicianName.toLowerCase().includes('arun') &&
+                    !order.technicianName.toLowerCase().includes('manjunath')
+                  );
 
                   return (
                     <div 
@@ -510,9 +520,9 @@ export const BookingsPage: React.FC = () => {
                           {/* Partner Card */}
                           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
-                              {orderMeta.partnerRoleTitle}
+                              {isPartnerAssigned ? orderMeta.partnerRoleTitle : orderMeta.partnerPendingTitle}
                             </span>
-                            {order.technicianName ? (
+                            {isPartnerAssigned && order.technicianName ? (
                               <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2 min-w-0">
                                   <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs flex-shrink-0">

@@ -965,6 +965,31 @@ export const useAppStore = create<AppState>()(
           state.location.addressLabel = undefined;
           state.location.isDefaultAddress = false;
         }
+        // Purge mock partner data from persisted orders
+        if (state?.orders && Array.isArray(state.orders)) {
+          state.orders = state.orders.map((o) => {
+            const hasMockPartner = Boolean(
+              o.technicianName && (
+                o.technicianName.toLowerCase().includes('suresh') ||
+                o.technicianName.toLowerCase().includes('sunil') ||
+                o.technicianName.toLowerCase().includes('rajesh') ||
+                o.technicianName.toLowerCase().includes('ramesh') ||
+                o.technicianName.toLowerCase().includes('arun') ||
+                o.technicianName.toLowerCase().includes('manjunath') ||
+                o.technicianName.toLowerCase().includes('verified partner') ||
+                o.technicianName.toLowerCase().includes('master technician') ||
+                o.technicianName.toLowerCase().includes('cold-chain')
+              )
+            );
+            if (hasMockPartner || o.status === 'confirmed') {
+              const cleaned = { ...o };
+              delete cleaned.technicianName;
+              delete cleaned.technicianPhone;
+              return cleaned;
+            }
+            return o;
+          });
+        }
       },
     }
   )
