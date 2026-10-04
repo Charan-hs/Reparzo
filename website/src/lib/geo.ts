@@ -241,7 +241,7 @@ export interface PlaceSearchResult {
 }
 
 /**
- * Free Place Search Autocomplete via OpenStreetMap Nominatim.
+ * Place Search Autocomplete via OpenStreetMap Nominatim.
  */
 export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> {
   if (!query || query.trim().length < 2) return [];

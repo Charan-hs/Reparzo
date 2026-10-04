@@ -78,7 +78,7 @@ export function App() {
         {/* Location Picker Modal */}
         <LocationPickerModal />
 
-        {/* Free Map View Address Modal */}
+        {/* Interactive Map Address Modal */}
         <AddressMapModal />
 
         {/* Unified 3-Role Authentication Modal (Customer, Partner, Admin) */}

@@ -540,7 +540,7 @@ export const CheckoutPage: React.FC = () => {
                       onClick={() => setAddressModalOpen(true)}
                       className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
                     >
-                      Pick on Free Map
+                      Add to Map
                     </button>
                     <span className="text-slate-300">|</span>
                     <button

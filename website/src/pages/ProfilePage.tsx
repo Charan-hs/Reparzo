@@ -599,7 +599,7 @@ export const ProfilePage: React.FC = () => {
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md active:scale-95 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Doorstep Address on Free Map</span>
+                  <span>Add Doorstep Address to Map</span>
                 </button>
               </div>
             ) : (

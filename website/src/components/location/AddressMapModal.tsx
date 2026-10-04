@@ -80,7 +80,7 @@ export const AddressMapModal: React.FC = () => {
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Free OpenStreetMap Tiles
+    // OpenStreetMap Tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
@@ -325,7 +325,7 @@ export const AddressMapModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Free Leaflet Map Container */}
+            {/* Leaflet Map Container */}
             <div ref={mapContainerRef} className="w-full h-full z-0" />
 
             {/* GPS My Location Button */}
@@ -357,7 +357,7 @@ export const AddressMapModal: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Add Doorstep Address</h3>
-                    <p className="text-[11px] text-slate-500">Free map selection with instant pin accuracy</p>
+                    <p className="text-[11px] text-slate-500">Map selection with instant pin accuracy</p>
                   </div>
                 </div>
                 <button

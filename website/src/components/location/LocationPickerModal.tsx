@@ -129,7 +129,7 @@ export const LocationPickerModal: React.FC = () => {
               </span>
             </button>
 
-            {/* Free Map View Button */}
+            {/* Map View Button */}
             <button
               onClick={() => {
                 setLocationModalOpen(false);
@@ -138,7 +138,7 @@ export const LocationPickerModal: React.FC = () => {
               className="w-full py-2.5 px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-[#2563EB] border border-blue-200/80 flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-[0.99]"
             >
               <Plus className="w-4 h-4" />
-              Add New Address on Free Map View
+              Add New Address to Map
             </button>
           </div>
 
@@ -207,7 +207,7 @@ export const LocationPickerModal: React.FC = () => {
                     className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Add Address on Free Map
+                    Add Address to Map
                   </button>
                 </div>
               ) : (
