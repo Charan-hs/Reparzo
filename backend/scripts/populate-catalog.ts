@@ -30,10 +30,10 @@ const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
   'bike-service': '/banners/bike-service.jpg',
   'home-shifting': '/banners/home-shifting.jpg',
   'electrical-services': '/banners/electrical-service.jpg',
-  'plumbing-services': '/banners/banner-1.png',
-  'refrigerator-services': '/banners/banner-2.png',
-  'washing-machine-services': '/banners/banner-3.png',
-  'water-tank-services': '/banners/banner-1.png',
+  'plumbing-services': '/banners/plumbing-service.jpg',
+  'refrigerator-services': '/banners/refrigerator-service.jpg',
+  'washing-machine-services': '/banners/washing-machine-service.jpg',
+  'water-tank-services': '/banners/water-tank-service.jpg',
 };
 
 function generateCatalogSql(): string {

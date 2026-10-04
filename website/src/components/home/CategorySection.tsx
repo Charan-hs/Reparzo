@@ -29,6 +29,17 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Wrench,
 };
 
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  'ac-services': '/banners/ac-service.jpg',
+  'bike-service': '/banners/bike-service.jpg',
+  'home-shifting': '/banners/home-shifting.jpg',
+  'electrical-services': '/banners/electrical-service.jpg',
+  'plumbing-services': '/banners/plumbing-service.jpg',
+  'refrigerator-services': '/banners/refrigerator-service.jpg',
+  'washing-machine-services': '/banners/washing-machine-service.jpg',
+  'water-tank-services': '/banners/water-tank-service.jpg',
+};
+
 export const CategorySection: React.FC = () => {
   const { categories, setActiveCategorySlug, setActiveSubCategorySlug, user, setCategoryManagerOpen } = useAppStore();
   const navigate = useNavigate();
@@ -83,42 +94,57 @@ export const CategorySection: React.FC = () => {
         )}
       </div>
 
-      {/* ── Category Grid (Crisp White Light Cards) ────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-5">
+      {/* ── Category Grid (Urban Company Style Cards with Photo Banners) ────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 sm:gap-5">
         {activeCategories.map((cat) => {
           const Icon = ICON_MAP[cat.iconName] || Wrench;
+          const imageSrc = cat.image || DEFAULT_CATEGORY_IMAGES[cat.slug] || '/banners/ac-service.jpg';
 
           return (
             <div
               key={cat.id}
               onClick={() => handleCategoryClick(cat)}
-              className="group p-4 sm:p-5 rounded-2xl bg-white hover:bg-slate-50/80 border border-slate-200/90 hover:border-[#2563EB]/40 cursor-pointer transition-all duration-300 hover:-translate-y-1 shadow-xs hover:shadow-xl hover:shadow-blue-500/10 flex flex-col justify-between min-h-[145px] sm:min-h-[165px] relative overflow-hidden"
+              className="group rounded-2xl sm:rounded-3xl bg-white hover:bg-slate-50/50 border border-slate-200/90 hover:border-[#2563EB]/40 cursor-pointer transition-all duration-300 hover:-translate-y-1.5 shadow-2xs hover:shadow-xl hover:shadow-blue-500/10 flex flex-col overflow-hidden"
             >
-              {/* Subtle top ambient glow */}
-              <div className="absolute -right-8 -bottom-8 w-24 h-24 rounded-full bg-blue-100/50 blur-2xl group-hover:bg-blue-200/60 transition-all pointer-events-none" />
+              {/* Top Banner Photo */}
+              <div className="relative w-full h-32 sm:h-40 overflow-hidden bg-slate-100">
+                <img
+                  src={imageSrc}
+                  alt={cat.title}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/banners/ac-service.jpg';
+                  }}
+                />
 
-              {/* Top Row: Icon & Badge */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-br from-[#2563EB] to-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                  <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                {/* Subtle gradient scrim at bottom of image for contrast */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-70 group-hover:opacity-45 transition-opacity" />
+
+                {/* Category Icon Glass Badge (Top Left) */}
+                <div className="absolute top-2.5 left-2.5 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/90 backdrop-blur-md text-[#2563EB] flex items-center justify-center shadow-xs border border-white/60 group-hover:scale-110 transition-transform">
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
 
+                {/* Promo Badge (Top Right) */}
                 {cat.badge && (
-                  <span className="text-[10px] sm:text-[11px] font-extrabold uppercase px-2 sm:px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 tracking-wider">
+                  <span className="absolute top-2.5 right-2.5 text-[9px] sm:text-[10px] font-black uppercase px-2 sm:px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-slate-800 border border-white/80 shadow-xs tracking-wider">
                     {cat.badge}
                   </span>
                 )}
               </div>
 
-              {/* Bottom Row: Title & Subtitle */}
-              <div className="mt-3">
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors flex items-center justify-between">
-                  <span>{cat.title}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" />
-                </h3>
-                <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                  {cat.description}
-                </p>
+              {/* Bottom Info Section */}
+              <div className="p-3.5 sm:p-4.5 flex flex-col justify-between flex-1">
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-[#2563EB] transition-colors flex items-center justify-between">
+                    <span>{cat.title}</span>
+                    <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" />
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                    {cat.description}
+                  </p>
+                </div>
               </div>
             </div>
           );

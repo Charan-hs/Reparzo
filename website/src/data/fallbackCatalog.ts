@@ -9,6 +9,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Jet wash service, gas recharge, cooling repair & installation',
     badge: '50% OFF Rush',
     bgGradient: 'from-blue-600 to-cyan-500',
+    image: '/banners/ac-service.jpg',
     isActive: true,
     order: 1,
   },
@@ -20,6 +21,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Doorstep 24-point checkup, engine oil change, brake tuning',
     badge: 'Starts ₹199',
     bgGradient: 'from-indigo-600 to-blue-500',
+    image: '/banners/bike-service.jpg',
     isActive: true,
     order: 2,
   },
@@ -31,6 +33,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Verified packers & movers, intra-city shifting & fragile packing',
     badge: 'Insured Move',
     bgGradient: 'from-amber-600 to-orange-500',
+    image: '/banners/home-shifting.jpg',
     isActive: true,
     order: 3,
   },
@@ -42,6 +45,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'MCB tripping, switchboard wiring, fan & inverter installation',
     badge: '60 Min Arrival',
     bgGradient: 'from-amber-500 to-yellow-400',
+    image: '/banners/electrical-service.jpg',
     isActive: true,
     order: 4,
   },
@@ -53,6 +57,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Tap & pipe leaks, blockages, bathroom fitting & motor pump fix',
     badge: 'Expert Plumber',
     bgGradient: 'from-cyan-600 to-sky-500',
+    image: '/banners/plumbing-service.jpg',
     isActive: true,
     order: 5,
   },
@@ -64,6 +69,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Single & double door cooling, gas leakage, compressor check',
     badge: '30-Day Warranty',
     bgGradient: 'from-blue-700 to-indigo-600',
+    image: '/banners/refrigerator-service.jpg',
     isActive: true,
     order: 6,
   },
@@ -75,6 +81,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'Top & front load drum spin, water intake & motor repair',
     badge: 'All Brands',
     bgGradient: 'from-teal-600 to-emerald-500',
+    image: '/banners/washing-machine-service.jpg',
     isActive: true,
     order: 7,
   },
@@ -86,6 +93,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     description: 'High-pressure anti-bacterial deep cleaning & sludge removal',
     badge: 'Eco Safe',
     bgGradient: 'from-sky-600 to-blue-600',
+    image: '/banners/water-tank-service.jpg',
     isActive: true,
     order: 8,
   },
@@ -447,7 +455,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Water pressure checking & no-mess cleanup',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-1.png',
+    image: '/banners/plumbing-service.jpg',
     isPopular: true,
   },
   {
@@ -471,7 +479,7 @@ export const INITIAL_SERVICES: Service[] = [
       '100% free-flow drainage test',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-1.png',
+    image: '/banners/plumbing-service.jpg',
   },
   {
     id: 'srv-plumb-motor',
@@ -494,7 +502,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Vibration damping mounting check',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-1.png',
+    image: '/banners/plumbing-service.jpg',
   },
 
   // ── 6. Refrigerator Care ──
@@ -519,7 +527,7 @@ export const INITIAL_SERVICES: Service[] = [
       '30-day warranty on spare replacements',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-2.png',
+    image: '/banners/refrigerator-service.jpg',
   },
   {
     id: 'srv-fridge-gas',
@@ -542,7 +550,7 @@ export const INITIAL_SERVICES: Service[] = [
       '60-day compressor gas warranty',
     ],
     warrantyDays: 60,
-    image: '/banners/banner-2.png',
+    image: '/banners/refrigerator-service.jpg',
   },
 
   // ── 7. Washing Machines ──
@@ -566,7 +574,7 @@ export const INITIAL_SERVICES: Service[] = [
       'Door seal gasket & inlet valve test',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-3.png',
+    image: '/banners/washing-machine-service.jpg',
   },
   {
     id: 'srv-wash-pcb',
@@ -589,7 +597,7 @@ export const INITIAL_SERVICES: Service[] = [
       '30-day rework warranty on replaced components',
     ],
     warrantyDays: 30,
-    image: '/banners/banner-3.png',
+    image: '/banners/washing-machine-service.jpg',
   },
 
   // ── 8. Water Tank Cleaning ──
@@ -614,7 +622,7 @@ export const INITIAL_SERVICES: Service[] = [
       'UV wand microbial disinfection',
     ],
     warrantyDays: 60,
-    image: '/banners/banner-1.png',
+    image: '/banners/water-tank-service.jpg',
     isPopular: true,
   },
 ];
