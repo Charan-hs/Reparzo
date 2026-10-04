@@ -68,9 +68,23 @@ export const ServicesPage: React.FC = () => {
   useEffect(() => {
     if (itemParam) {
       const match = services.find((s: Service) => s.slug === itemParam);
-      if (match) setSelectedServiceModal(match);
+      if (match) {
+        setSelectedServiceModal(match);
+        if (!categoryParam && match.categorySlug) {
+          setActiveCategorySlug(match.categorySlug);
+        }
+      }
     }
-  }, [itemParam, services]);
+  }, [itemParam, categoryParam, services, setActiveCategorySlug]);
+
+  const handleCloseServiceModal = () => {
+    setSelectedServiceModal(null);
+    if (searchParams.get('item')) {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('item');
+      setSearchParams(newParams, { replace: true });
+    }
+  };
 
   const activeCategories: { id: string; title: string; slug: string; iconName: string }[] = [
     { id: 'all', title: 'All Services', slug: 'all', iconName: 'Layers' },
@@ -342,8 +356,14 @@ export const ServicesPage: React.FC = () => {
 
       {/* ── Detailed Service Inspection Modal ─────────── */}
       {selectedServiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden text-slate-900 animate-in fade-in zoom-in-95 duration-200">
+        <div 
+          onClick={handleCloseServiceModal}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm cursor-pointer"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden text-slate-900 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+          >
             <div className="relative h-56 sm:h-64">
               <img
                 src={selectedServiceModal.image}
@@ -351,7 +371,7 @@ export const ServicesPage: React.FC = () => {
                 className="w-full h-full object-cover"
               />
               <button
-                onClick={() => setSelectedServiceModal(null)}
+                onClick={handleCloseServiceModal}
                 className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
@@ -412,7 +432,7 @@ export const ServicesPage: React.FC = () => {
                 <button
                   onClick={() => {
                     addToCart(selectedServiceModal);
-                    setSelectedServiceModal(null);
+                    handleCloseServiceModal();
                     setCartDrawerOpen(true);
                   }}
                   className="px-6 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"

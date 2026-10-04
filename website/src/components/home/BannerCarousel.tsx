@@ -15,7 +15,10 @@ import {
   RotateCcw,
   Check,
   Sparkles,
-  Eye
+  Eye,
+  MousePointerClick,
+  Layers,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
@@ -170,10 +173,18 @@ export const BannerCarousel: React.FC = () => {
   }, [isPaused, isEditorOpen, slideIndex]);
 
   const handleSlideClick = (slide: BannerSlide) => {
-    if (slide.categorySlug) {
+    if (slide.categorySlug && slide.categorySlug !== 'all') {
       setActiveCategorySlug(slide.categorySlug);
     }
-    navigate(`/services?item=${slide.targetSlug || ''}`);
+    const params = new URLSearchParams();
+    if (slide.categorySlug && slide.categorySlug !== 'all') {
+      params.set('category', slide.categorySlug);
+    }
+    if (slide.targetSlug) {
+      params.set('item', slide.targetSlug);
+    }
+    const queryString = params.toString();
+    navigate(queryString ? `/services?${queryString}` : '/services');
   };
 
   const saveSlides = (newSlides: BannerSlide[]) => {
@@ -265,7 +276,7 @@ export const BannerCarousel: React.FC = () => {
             <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-[#4770DB]/20 rounded-full blur-[80px] pointer-events-none" />
 
             {/* ── Slide Typography & Call To Action (Bottom-aligned, High Contrast) ── */}
-            <div className="absolute bottom-5 sm:bottom-7 left-3.5 sm:left-8 right-3.5 sm:max-w-xl text-white z-10 pointer-events-none">
+            <div className="absolute bottom-5 sm:bottom-7 left-5 sm:left-8 right-5 sm:right-8 text-white z-10 pointer-events-none">
               
               {/* Badge Pill Row */}
               <div className="flex items-center gap-2 mb-1.5 xs:mb-2 pointer-events-auto">
@@ -294,8 +305,8 @@ export const BannerCarousel: React.FC = () => {
               </p>
 
               {/* Price & CTA Action */}
-              <div className="flex items-center gap-2.5 pointer-events-auto">
-                <div className="flex items-baseline gap-1.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+              <div className="flex items-center justify-between gap-3 pointer-events-auto">
+                <div className="flex items-baseline gap-1.5 bg-black/50 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border border-white/10">
                   <span className="text-sm xs:text-base sm:text-xl font-black font-mono text-white">
                     {activeSlide.price}
                   </span>
@@ -312,7 +323,7 @@ export const BannerCarousel: React.FC = () => {
                     e.stopPropagation();
                     handleSlideClick(activeSlide);
                   }}
-                  className="px-3.5 xs:px-4 sm:px-6 py-1.5 xs:py-2 sm:py-2.5 rounded-full bg-[#4770DB] hover:bg-[#385cc4] text-white text-[11px] xs:text-xs sm:text-sm font-bold shadow-xl shadow-[#4770DB]/35 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                  className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#4770DB] hover:bg-[#385cc4] text-white text-xs sm:text-sm font-bold shadow-xl shadow-[#4770DB]/35 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer shrink-0 ml-auto"
                 >
                   <span>{activeSlide.ctaText || 'Book Now'}</span>
                   <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -398,6 +409,7 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
   onReset,
   onClose,
 }) => {
+  const { services, categories } = useAppStore();
   const [draftSlides, setDraftSlides] = useState<BannerSlide[]>(() => {
     if (initialSlides && initialSlides.length > 0 && initialSlides[0]?.title) {
       return initialSlides;
@@ -408,26 +420,121 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
 
   const currentSlide = draftSlides[selectedIndex] || draftSlides[0] || DEFAULT_BANNER_SLIDES[0];
 
+  const matchedService = services.find((s) => s.slug === currentSlide.targetSlug);
+  const matchedCategory = categories.find((c) => c.slug === currentSlide.categorySlug);
+
+  const currentNavValue = currentSlide.targetSlug
+    ? `service:${currentSlide.targetSlug}`
+    : currentSlide.categorySlug && currentSlide.categorySlug !== 'all'
+    ? `category:${currentSlide.categorySlug}`
+    : 'all';
+
   const updateCurrentSlide = (field: keyof BannerSlide, value: string) => {
     setDraftSlides((prev) =>
       prev.map((s, idx) => (idx === selectedIndex ? { ...s, [field]: value } : s))
     );
   };
 
+  const handleNavTargetChange = (val: string) => {
+    if (val.startsWith('service:')) {
+      const sSlug = val.replace('service:', '');
+      const srv = services.find((s) => s.slug === sSlug);
+      if (srv) {
+        setDraftSlides((prev) =>
+          prev.map((s, idx) =>
+            idx === selectedIndex
+              ? {
+                  ...s,
+                  targetSlug: srv.slug,
+                  categorySlug: srv.categorySlug,
+                }
+              : s
+          )
+        );
+      } else {
+        setDraftSlides((prev) =>
+          prev.map((s, idx) =>
+            idx === selectedIndex
+              ? {
+                  ...s,
+                  targetSlug: sSlug,
+                }
+              : s
+          )
+        );
+      }
+    } else if (val.startsWith('category:')) {
+      const cSlug = val.replace('category:', '');
+      setDraftSlides((prev) =>
+        prev.map((s, idx) =>
+          idx === selectedIndex
+            ? {
+                ...s,
+                targetSlug: '',
+                categorySlug: cSlug,
+              }
+            : s
+        )
+      );
+    } else {
+      setDraftSlides((prev) =>
+        prev.map((s, idx) =>
+          idx === selectedIndex
+            ? {
+                ...s,
+                targetSlug: '',
+                categorySlug: 'all',
+              }
+            : s
+        )
+      );
+    }
+  };
+
+  const handleAutoFillFromService = () => {
+    if (!currentSlide.targetSlug) {
+      toast.error('Please select a specific service from the dropdown first.');
+      return;
+    }
+    const srv = services.find((s) => s.slug === currentSlide.targetSlug);
+    if (!srv) {
+      toast.error('Service details not found in catalog.');
+      return;
+    }
+    setDraftSlides((prev) =>
+      prev.map((s, idx) =>
+        idx === selectedIndex
+          ? {
+              ...s,
+              title: srv.title,
+              subtitle: srv.description || s.subtitle,
+              price: `₹${srv.price}`,
+              originalPrice: srv.originalPrice ? `₹${srv.originalPrice}` : s.originalPrice,
+              badge: `⚡ ${srv.categoryTitle.toUpperCase()}`,
+              ctaText: `Book ${srv.title.split(' ')[0]}`,
+              image: srv.image || s.image,
+            }
+          : s
+      )
+    );
+    toast.success(`Populated slide details from "${srv.title}"!`);
+  };
+
   const handleAddNewSlide = () => {
+    const defaultSrv = services[0];
     const newSlide: BannerSlide = {
       id: `banner-${Date.now()}`,
       badge: '⚡ NEW OFFER',
       badgeColor: 'bg-emerald-500 text-white',
-      title: 'New Service Campaign',
-      subtitle: 'Fast and reliable doorstep repair with certified technicians.',
+      title: defaultSrv ? defaultSrv.title : 'New Service Campaign',
+      subtitle: defaultSrv ? defaultSrv.description : 'Fast and reliable doorstep repair with certified technicians.',
       highlight: '60 Min Arrival',
-      price: '₹299',
-      originalPrice: '₹499',
-      categorySlug: 'ac-services',
-      targetSlug: 'ac-foam-jet-service',
+      price: defaultSrv ? `₹${defaultSrv.price}` : '₹299',
+      originalPrice: defaultSrv ? `₹${defaultSrv.originalPrice}` : '₹499',
+      categorySlug: defaultSrv ? defaultSrv.categorySlug : 'ac-services',
+      targetSlug: defaultSrv ? defaultSrv.slug : 'ac-foam-jet-service',
       ctaText: 'Book Service',
-      image: '/banners/ac-service.jpg',
+      image: defaultSrv?.image || '/banners/ac-service.jpg',
     };
     setDraftSlides([...draftSlides, newSlide]);
     setSelectedIndex(draftSlides.length);
@@ -553,7 +660,101 @@ const BannerEditorModal: React.FC<BannerEditorModalProps> = ({
                     {currentSlide.ctaText || 'Book Now'}
                   </span>
                 </div>
+                <div className="flex items-center gap-1.5 text-[10px] text-cyan-200/90 pt-0.5">
+                  <MousePointerClick className="w-3 h-3 text-cyan-300 shrink-0" />
+                  <span className="truncate">
+                    Destination: {matchedService 
+                      ? `Opens "${matchedService.title}" modal`
+                      : matchedCategory 
+                      ? `Filters to ${matchedCategory.title}` 
+                      : 'All Services catalog'}
+                  </span>
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* On-Click Navigation Service Dropdown & Auto-fill */}
+          <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/80 p-3.5 sm:p-4 rounded-2xl border border-blue-200/90 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
+                  <MousePointerClick className="w-4 h-4 text-[#2563EB]" />
+                  <span>On-Click Navigation Destination</span>
+                </label>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Select the service modal or category that opens when a customer taps this slide or CTA
+                </p>
+              </div>
+
+              {currentSlide.targetSlug && (
+                <button
+                  type="button"
+                  onClick={handleAutoFillFromService}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer active:scale-95"
+                  title="Auto-fill title, prices, description, and badge from selected service"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Auto-Fill Details from Service</span>
+                </button>
+              )}
+            </div>
+
+            <div>
+              <select
+                value={currentNavValue}
+                onChange={(e) => handleNavTargetChange(e.target.value)}
+                className="w-full bg-white border border-blue-200/90 focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none transition-colors cursor-pointer shadow-xs"
+              >
+                <option value="all">🌐 All Services (Opens catalog overview)</option>
+                {categories.filter((c) => c.isActive).map((cat) => {
+                  const catServices = services.filter((s) => s.categorySlug === cat.slug);
+                  return (
+                    <optgroup key={cat.id} label={`📁 Category: ${cat.title}`}>
+                      <option value={`category:${cat.slug}`}>
+                        ➔ Browse All {cat.title} Services
+                      </option>
+                      {catServices.map((srv) => (
+                        <option key={srv.id} value={`service:${srv.slug}`}>
+                          • {srv.title} (₹{srv.price})
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+                {currentSlide.targetSlug && !matchedService && (
+                  <option value={`service:${currentSlide.targetSlug}`}>
+                    Custom Slug: {currentSlide.targetSlug}
+                  </option>
+                )}
+              </select>
+            </div>
+
+            {/* Live Target Summary Indicator */}
+            <div className="flex items-center gap-2 text-xs bg-white/95 px-3 py-2 rounded-xl border border-blue-100 text-slate-700">
+              <span className="font-bold text-slate-900 shrink-0">Click Action:</span>
+              {matchedService ? (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="truncate">
+                    Directly opens booking modal for <strong className="text-[#2563EB] font-bold">{matchedService.title}</strong> (₹{matchedService.price}) in <span className="font-medium text-slate-600">{matchedService.categoryTitle}</span>
+                  </span>
+                </div>
+              ) : matchedCategory ? (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                  <span className="truncate">
+                    Filters Services to <strong className="text-[#2563EB] font-bold">{matchedCategory.title}</strong> category
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="inline-block w-2 h-2 rounded-full bg-slate-400 shrink-0" />
+                  <span className="truncate text-slate-500">
+                    Navigates to main Services catalog (/services)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
