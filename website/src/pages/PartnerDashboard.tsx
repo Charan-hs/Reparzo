@@ -17,7 +17,8 @@ import {
   AlertCircle,
   User as UserIcon,
   FileText,
-  Mail
+  Mail,
+  KeyRound
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -33,76 +34,70 @@ interface PartnerJob {
   payoutAmount: number;
   scheduledTime: string;
   status: 'available' | 'accepted' | 'completed';
+  expectedPin: string;
 }
 
 export const PartnerDashboard: React.FC = () => {
-  const { user, partnerIsOnline, setPartnerIsOnline, setAuthModalOpen } = useAppStore();
+  const { 
+    user, 
+    partnerIsOnline, 
+    setPartnerIsOnline, 
+    setAuthModalOpen,
+    orders,
+    updateOrderStatus 
+  } = useAppStore();
 
-  const [jobs, setJobs] = useState<PartnerJob[]>([
-    {
-      id: 'JOB-9021',
-      customerName: 'Kavitha R.',
-      customerPhone: '+91 6362000263',
-      address: 'House #22, 17th Cross, HSR Sector 2, Bengaluru',
-      distanceKm: 1.4,
-      serviceTitle: 'AC Foam Jet Deep Service & Coil Check',
-      category: 'AC Services',
-      payoutAmount: 499,
-      scheduledTime: 'Immediate (Arrive by 35 mins)',
-      status: 'available',
-    },
-    {
-      id: 'JOB-8812',
-      customerName: 'Vinay Kumar',
-      customerPhone: '+91 6362000263',
-      address: 'Apt 304, Palm Meadows, Koramangala 4th Block',
-      distanceKm: 2.8,
-      serviceTitle: 'Doorstep Bike General Service & Brake Tuning',
-      category: 'Bike Service',
-      payoutAmount: 349,
-      scheduledTime: 'Today, 04:30 PM',
-      status: 'available',
-    },
-    {
-      id: 'JOB-7734',
-      customerName: 'Arun Prasad',
-      customerPhone: '+91 6362000263',
-      address: 'Plot 18, 5th Main, BDA Layout, Indiranagar',
-      distanceKm: 3.9,
-      serviceTitle: 'MCB Short Circuit & Tripping Diagnosis',
-      category: 'Electrical Services',
-      payoutAmount: 249,
-      scheduledTime: 'Today, 06:00 PM',
-      status: 'available',
-    },
-  ]);
-
+  // Combine static demo jobs with live store orders so all customer bookings can be serviced
   const [activeJob, setActiveJob] = useState<PartnerJob | null>(null);
   const [completionOtp, setCompletionOtp] = useState('');
   const [earningsToday, setEarningsToday] = useState(1420);
 
+  // Map active customer orders from store into partner jobs
+  const liveStoreJobs: PartnerJob[] = orders
+    .filter((o) => o.status === 'confirmed' || o.status === 'technician_assigned' || o.status === 'in_progress')
+    .map((o) => ({
+      id: o.id,
+      customerName: o.customerName,
+      customerPhone: o.customerPhone,
+      address: o.address,
+      distanceKm: 1.8,
+      serviceTitle: o.items.map((i) => `${i.quantity}x ${i.service.title}`).join(', ') || 'Doorstep Service',
+      category: o.items[0]?.service.categoryTitle || 'Doorstep Repair',
+      payoutAmount: Math.round(o.grandTotal * 0.8),
+      scheduledTime: `${o.slot?.dateLabel || 'Today'} • ${o.slot?.timeSlot || 'Working Hours'}`,
+      status: o.status === 'in_progress' ? 'accepted' : 'available',
+      expectedPin: o.completionPin || o.id.replace(/\D/g, '').slice(-4) || '1234',
+    }));
+
   const handleAcceptJob = (job: PartnerJob) => {
-    setJobs((prev) =>
-      prev.map((j) => (j.id === job.id ? { ...j, status: 'accepted' } : j))
-    );
+    updateOrderStatus(job.id, 'in_progress');
     setActiveJob({ ...job, status: 'accepted' });
-    toast.success(`Job ${job.id} Accepted! Navigation route generated.`);
+    toast.success(`Job #${job.id} Accepted! Customer notified that technician is underway.`);
   };
 
   const handleCompleteJob = (e: React.FormEvent) => {
     e.preventDefault();
-    if (completionOtp.length !== 4) {
-      toast.error('Ask customer for their 4-digit service completion PIN');
+    const cleanOtp = completionOtp.trim();
+
+    if (cleanOtp.length !== 4) {
+      toast.error('Please enter the 4-digit service completion PIN');
       return;
     }
 
-    if (activeJob) {
-      setEarningsToday((prev) => prev + activeJob.payoutAmount);
-      setJobs((prev) => prev.filter((j) => j.id !== activeJob.id));
-      setActiveJob(null);
-      setCompletionOtp('');
-      toast.success('Job marked as Completed! Payout credited to your Reparzo wallet.');
+    if (!activeJob) return;
+
+    // Strict validation against the customer's actual PIN
+    if (cleanOtp !== activeJob.expectedPin) {
+      toast.error(`Invalid PIN (${cleanOtp})! Please ask the customer for their 4-digit Service Completion PIN shown on their Reparzo booking card.`);
+      return;
     }
+
+    // PIN is valid! Complete order in store & credit payout
+    updateOrderStatus(activeJob.id, 'completed');
+    setEarningsToday((prev) => prev + activeJob.payoutAmount);
+    setActiveJob(null);
+    setCompletionOtp('');
+    toast.success(`PIN Verified! Order #${activeJob.id} successfully marked as Completed. Payout of ₹${activeJob.payoutAmount} credited to your Reparzo wallet.`);
   };
 
   // If user is not partner, show friendly partner gate
@@ -269,25 +264,40 @@ export const PartnerDashboard: React.FC = () => {
               </a>
             </div>
 
-            {/* OTP Verification & Complete */}
-            <form onSubmit={handleCompleteJob} className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex-1 w-full">
-                <input
-                  type="text"
-                  maxLength={4}
-                  placeholder="Enter 4-digit Customer Completion PIN (e.g. 1234)"
-                  value={completionOtp}
-                  onChange={(e) => setCompletionOtp(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono outline-none focus:border-[#2563EB]"
-                />
+            {/* Service Completion PIN Verification Form */}
+            <div className="pt-4 border-t border-slate-200 space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-600">
+                <span className="font-bold flex items-center gap-1.5 text-slate-800">
+                  <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                  Service Completion Verification
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  Demo PIN for testing: <strong className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">{activeJob.expectedPin}</strong>
+                </span>
               </div>
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer"
-              >
-                Verify PIN & Mark Done
-              </button>
-            </form>
+
+              <form onSubmit={handleCompleteJob} className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex-1 w-full">
+                  <input
+                    type="text"
+                    maxLength={4}
+                    placeholder="Enter 4-digit Customer Completion PIN"
+                    value={completionOtp}
+                    onChange={(e) => setCompletionOtp(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-sm font-mono tracking-widest outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer active:scale-95 transition-all whitespace-nowrap"
+                >
+                  Verify PIN & Complete Job ✓
+                </button>
+              </form>
+              <p className="text-[11px] text-slate-500">
+                The customer sees this PIN on their Reparzo booking card. Only ask for it once physical work is completed.
+              </p>
+            </div>
           </div>
         )}
 
@@ -295,7 +305,7 @@ export const PartnerDashboard: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#2563EB]" /> Nearby Repair Orders ({jobs.filter((j) => j.status === 'available').length})
+              <Clock className="w-4 h-4 text-[#2563EB]" /> Nearby Repair Orders ({liveStoreJobs.filter((j) => j.status === 'available').length})
             </h3>
             <span className="text-xs text-slate-500">Auto-refreshing live</span>
           </div>
@@ -310,8 +320,8 @@ export const PartnerDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3.5">
-              {jobs
-                .filter((j) => j.status === 'available')
+              {liveStoreJobs
+                .filter((j) => j.status === 'available' && j.id !== activeJob?.id)
                 .map((job) => (
                   <div
                     key={job.id}

@@ -20,7 +20,8 @@ import {
   AlertTriangle,
   Plus,
   Home,
-  Briefcase
+  Briefcase,
+  KeyRound
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -188,6 +189,7 @@ export const CheckoutPage: React.FC = () => {
         createdAt: new Date().toISOString(),
         technicianName: 'Ramesh Gowda (Certified Master Technician)',
         technicianPhone: '+91 98450 88219',
+        completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
       };
 
       addOrder(newOrder);
@@ -288,28 +290,55 @@ export const CheckoutPage: React.FC = () => {
                   <span className="text-[11px] text-slate-500">{completedOrder.technicianPhone}</span>
                 </div>
               </div>
-
               <a
-                href={`tel:${completedOrder.technicianPhone}`}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-xs"
+                href={`tel:${completedOrder.technicianPhone || '+916362000263'}`}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors"
               >
-                <Phone className="w-3.5 h-3.5" /> Call Partner
+                <Phone className="w-3.5 h-3.5" />
+                <span>Call</span>
               </a>
+            </div>
+
+            {/* Service Completion PIN Card */}
+            <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold flex-shrink-0">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 block">
+                    Service Completion PIN
+                  </span>
+                  <span className="text-xs text-amber-800 leading-snug">
+                    Share this PIN with your technician only after physical work is verified and completed.
+                  </span>
+                </div>
+              </div>
+
+              <div className="px-4 py-2 rounded-xl bg-white border border-amber-300 font-mono font-black text-xl text-amber-900 tracking-widest text-center shadow-2xs flex-shrink-0">
+                {completedOrder.completionPin || completedOrder.id.replace(/\D/g, '').slice(-4) || '1234'}
+              </div>
             </div>
 
             {/* Actions */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={() => navigate('/')}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#2563EB] text-white text-xs font-bold cursor-pointer"
+                onClick={() => navigate('/bookings')}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold cursor-pointer shadow-xs active:scale-95 transition-all"
               >
-                Return to Home
+                Track Live Booking & View PIN ➔
               </button>
               <button
                 onClick={() => navigate('/services')}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-bold cursor-pointer transition-colors"
               >
                 Book Another Service
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-transparent text-slate-500 hover:text-slate-800 text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Return to Home
               </button>
             </div>
           </div>

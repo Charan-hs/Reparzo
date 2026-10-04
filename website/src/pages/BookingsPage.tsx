@@ -233,7 +233,7 @@ export const BookingsPage: React.FC = () => {
               /* List of Live Active Orders */
               <div className="space-y-5">
                 {liveOrders.map((order) => {
-                  const completionPin = order.id.replace(/\D/g, '').slice(-4) || '1234';
+                  const completionPin = order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234';
                   const schedule = getOrderWorkingSchedule(order);
 
                   return (
@@ -581,7 +581,7 @@ export const BookingsPage: React.FC = () => {
 
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        Service Completed
+                        Service Completed • PIN Verified
                       </span>
                     </div>
 

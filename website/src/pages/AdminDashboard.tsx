@@ -28,7 +28,8 @@ import {
   Trash2,
   X,
   Calendar,
-  RotateCcw
+  RotateCcw,
+  KeyRound
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
@@ -144,6 +145,7 @@ export const AdminDashboard: React.FC = () => {
     grandTotal: number;
     paymentStatus: 'paid' | 'pending';
     adminNotes: string;
+    completionPin: string;
   }>({
     status: 'confirmed',
     technicianName: '',
@@ -156,6 +158,7 @@ export const AdminDashboard: React.FC = () => {
     grandTotal: 0,
     paymentStatus: 'paid',
     adminNotes: '',
+    completionPin: '8492',
   });
 
   const handleOpenEdit = (order: OrderBooking) => {
@@ -173,6 +176,7 @@ export const AdminDashboard: React.FC = () => {
       grandTotal: order.grandTotal || 0,
       paymentStatus: order.paymentStatus || 'paid',
       adminNotes: order.adminNotes || '',
+      completionPin: order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234',
     });
   };
 
@@ -193,6 +197,7 @@ export const AdminDashboard: React.FC = () => {
       grandTotal: Number(editForm.grandTotal),
       paymentStatus: editForm.paymentStatus,
       adminNotes: editForm.adminNotes,
+      completionPin: editForm.completionPin,
       slot: {
         ...editingOrder.slot,
         timeSlot: editForm.timeSlot,
@@ -217,6 +222,7 @@ export const AdminDashboard: React.FC = () => {
     timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
     grandTotal: 499,
     status: 'confirmed' as OrderBooking['status'],
+    completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
   });
 
   const handleCreateOrder = (e: React.FormEvent) => {
@@ -256,10 +262,11 @@ export const AdminDashboard: React.FC = () => {
       createdAt: new Date().toISOString(),
       technicianName: createForm.technicianName,
       technicianPhone: createForm.technicianPhone,
+      completionPin: createForm.completionPin || Math.floor(1000 + Math.random() * 9000).toString(),
     };
 
     addOrder(newOrder);
-    toast.success(`Booking ${newOrder.id} created successfully!`);
+    toast.success(`Booking ${newOrder.id} created successfully! PIN: ${newOrder.completionPin}`);
     setIsCreateModalOpen(false);
     setCreateForm({
       customerName: '',
@@ -271,6 +278,7 @@ export const AdminDashboard: React.FC = () => {
       timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
       grandTotal: 499,
       status: 'confirmed',
+      completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
     });
   };
 
@@ -571,6 +579,12 @@ export const AdminDashboard: React.FC = () => {
                           }`}>
                             <Clock className="w-3 h-3" />
                             {schedule.targetDateNumeric} • {REPARZO_WORKING_HOURS.label}
+                          </span>
+
+                          {/* Service Completion PIN Badge */}
+                          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-200 flex items-center gap-1">
+                            <KeyRound className="w-3 h-3 text-amber-600" />
+                            PIN: {order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234'}
                           </span>
                         </div>
 
@@ -1084,6 +1098,27 @@ export const AdminDashboard: React.FC = () => {
                 />
               </div>
 
+              {/* Service Completion PIN (4 Digits) */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Service Completion PIN (4 Digits)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={4}
+                    placeholder="4-digit PIN (e.g. 8492)"
+                    value={editForm.completionPin}
+                    onChange={(e) => setEditForm({ ...editForm, completionPin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                  <KeyRound className="w-4 h-4 text-amber-600 absolute left-3 top-2.5" />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Customer holds this PIN and shares it with the technician only after physical work is completed.
+                </p>
+              </div>
+
               {/* Action Buttons */}
               <div className="pt-2 flex items-center justify-between border-t border-slate-100">
                 <button
@@ -1245,16 +1280,34 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Grand Total (₹)
-                </label>
-                <input
-                  type="number"
-                  value={createForm.grandTotal}
-                  onChange={(e) => setCreateForm({ ...createForm, grandTotal: Number(e.target.value) })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Grand Total (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={createForm.grandTotal}
+                    onChange={(e) => setCreateForm({ ...createForm, grandTotal: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Service Completion PIN (4 Digits)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      maxLength={4}
+                      placeholder="e.g. 5491"
+                      value={createForm.completionPin}
+                      onChange={(e) => setCreateForm({ ...createForm, completionPin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold text-slate-900 outline-none focus:border-[#2563EB]"
+                    />
+                    <KeyRound className="w-4 h-4 text-amber-600 absolute left-3 top-2.5" />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">

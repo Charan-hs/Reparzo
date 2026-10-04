@@ -149,5 +149,6 @@ export interface OrderBooking {
   createdAt: string;
   technicianName: string;
   technicianPhone: string;
+  completionPin?: string;
   adminNotes?: string;
 }

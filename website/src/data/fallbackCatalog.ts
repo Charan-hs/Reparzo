@@ -1047,6 +1047,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
     technicianName: 'Sunil Gowda (Verified Partner)',
     technicianPhone: '+91 98765 43210',
+    completionPin: '8492',
   },
   {
     id: 'ORD-8488',
@@ -1074,6 +1075,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     createdAt: new Date(Date.now() - 55 * 60 * 1000).toISOString(),
     technicianName: 'Rajesh Kumar',
     technicianPhone: '+91 98444 55667',
+    completionPin: '8488',
   },
   {
     id: 'ORD-8470',
@@ -1101,6 +1103,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     createdAt: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
     technicianName: 'Sunil Gowda (Verified Partner)',
     technicianPhone: '+91 98765 43210',
+    completionPin: '8470',
   },
 ];
 
