@@ -94,8 +94,8 @@ export const CheckoutPage: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState('Today');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('Working Hours (10:00 AM - 06:00 PM)');
 
-  // Payment method
-  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('upi');
+  // Payment method (Pay After Service or Delivery is the exclusive option)
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('cash');
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
 
@@ -318,6 +318,26 @@ export const CheckoutPage: React.FC = () => {
               <div className="px-4 py-2 rounded-xl bg-white border border-amber-300 font-mono font-black text-xl text-amber-900 tracking-widest text-center shadow-2xs flex-shrink-0">
                 {completedOrder.completionPin || completedOrder.id.replace(/\D/g, '').slice(-4) || '1234'}
               </div>
+            </div>
+
+            {/* Pay After Service or Delivery Banner */}
+            <div className="mt-4 p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold flex-shrink-0">
+                  <Banknote className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-900 block">
+                    Payment Due After Service or Delivery
+                  </span>
+                  <span className="text-xs text-emerald-800 leading-snug">
+                    Total Amount: <strong className="font-mono text-emerald-950 font-bold">₹{completedOrder.grandTotal}</strong> • Pay via Cash, UPI (GPay/PhonePe/Paytm), or Card once work is inspected and approved.
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-200/80 text-emerald-900 flex-shrink-0 text-center">
+                Zero Advance Paid
+              </span>
             </div>
 
             {/* Actions */}
@@ -659,76 +679,45 @@ export const CheckoutPage: React.FC = () => {
 
             {/* ── 3. Payment Option ───────────────────────── */}
             <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-              <div className="border-b border-slate-100 pb-3">
+              <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-[#2563EB]" />
-                  3. Select Payment Mode
+                  <Banknote className="w-5 h-5 text-emerald-600" />
+                  3. Payment Mode
                 </h3>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Zero Advance Required
+                </span>
               </div>
 
-              <div className="space-y-3">
-                {/* UPI Option */}
-                <div
-                  onClick={() => setPaymentMethod('upi')}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'upi'
-                      ? 'bg-blue-50/80 border-[#2563EB]'
-                      : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-xs">
-                      UPI
-                    </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">Instant UPI / QR Code</h4>
-                      <p className="text-[11px] text-slate-500">Google Pay, PhonePe, Paytm, BHIM</p>
-                    </div>
+              {/* Exclusive Option: Pay After Service or Delivery */}
+              <div className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/50 flex items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold flex-shrink-0 mt-0.5 sm:mt-0">
+                    <Banknote className="w-5 h-5" />
                   </div>
-                  {paymentMethod === 'upi' && <CheckCircle2 className="w-5 h-5 text-[#2563EB]" />}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-bold text-slate-900">Pay After Service or Delivery</h4>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white px-2 py-0.5 rounded-md">
+                        Selected
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      Pay via <strong>Cash, UPI (Google Pay, PhonePe, Paytm)</strong>, or <strong>Card</strong> directly to the technician or courier runner after inspection, job completion, or order delivery.
+                    </p>
+                  </div>
                 </div>
+                <div className="flex-shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                </div>
+              </div>
 
-                {/* Card Option */}
-                <div
-                  onClick={() => setPaymentMethod('card')}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'card'
-                      ? 'bg-blue-50/80 border-[#2563EB]'
-                      : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center font-bold text-xs">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">Credit / Debit Card</h4>
-                      <p className="text-[11px] text-slate-500">Visa, Mastercard, RuPay & Netbanking</p>
-                    </div>
-                  </div>
-                  {paymentMethod === 'card' && <CheckCircle2 className="w-5 h-5 text-[#2563EB]" />}
-                </div>
-
-                {/* Cash After Service */}
-                <div
-                  onClick={() => setPaymentMethod('cash')}
-                  className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'cash'
-                      ? 'bg-blue-50/80 border-[#2563EB]'
-                      : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
-                      <Banknote className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900">Pay After Service Done</h4>
-                      <p className="text-[11px] text-slate-500">Pay cash or UPI to technician after inspection & test</p>
-                    </div>
-                  </div>
-                  {paymentMethod === 'cash' && <CheckCircle2 className="w-5 h-5 text-[#2563EB]" />}
-                </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 text-xs text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span>
+                  <strong>100% Satisfaction Guarantee:</strong> Inspect your repair or package before making payment. No advance deposit or prepay required.
+                </span>
               </div>
             </div>
           </div>
@@ -839,7 +828,7 @@ export const CheckoutPage: React.FC = () => {
                     ? 'Service Unavailable in this Location (Coming Soon)'
                     : isSubmitting
                     ? 'Confirming Dispatch...'
-                    : 'Confirm & Place Booking'}
+                    : 'Confirm Booking • Pay After Service / Delivery'}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>

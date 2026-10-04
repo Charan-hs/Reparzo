@@ -530,7 +530,7 @@ export const ProfilePage: React.FC = () => {
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}>
-                              {order.paymentMethod.toUpperCase()} • {order.paymentStatus.toUpperCase()}
+                              {order.paymentMethod === 'cash' ? 'PAY AFTER SERVICE / DELIVERY' : order.paymentMethod.toUpperCase()} • {order.paymentStatus.toUpperCase()}
                             </span>
                           </div>
 
