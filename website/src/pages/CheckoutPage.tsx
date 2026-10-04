@@ -58,6 +58,8 @@ export const CheckoutPage: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone ? user.phone.replace('+91 ', '') : '');
   const [flatNumber, setFlatNumber] = useState(activeAddress?.flatNumber || '');
   const [landmark, setLandmark] = useState(activeAddress?.landmark || '');
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const hasCompleteAddress = Boolean(name.trim() && phone.trim().length >= 10 && flatNumber.trim());
 
   useEffect(() => {
     if (activeAddress) {
@@ -141,6 +143,7 @@ export const CheckoutPage: React.FC = () => {
     }
 
     if (!name.trim() || phone.length < 10 || !flatNumber.trim()) {
+      setIsEditingAddress(true);
       toast.error('Please fill in complete contact and doorstep address details.');
       return;
     }
@@ -392,26 +395,26 @@ export const CheckoutPage: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             
             {/* ── 1. Doorstep Address & Contact ───────────── */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-[#2563EB]" />
+            <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#2563EB]" />
                   1. Doorstep Address & Contact
                 </h3>
                 {location.isServiceable !== false ? (
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                     ✓ Serviceable Area
                   </span>
                 ) : (
-                  <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                  <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                     ⚠ Outside Service Area
                   </span>
                 )}
               </div>
 
-              {/* Serviceability Warning Banner if out of radius (Sleek & Minimized) */}
+              {/* Serviceability Warning Banner if out of radius */}
               {location.isServiceable === false && (
-                <div className="p-2.5 sm:px-3.5 sm:py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
                     <span className="text-xs text-amber-900 font-medium">
@@ -428,151 +431,189 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Saved Addresses Quick Selection */}
-              {savedAddresses.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    <span>Select Saved Doorstep Address</span>
-                    <button
-                      type="button"
-                      onClick={() => setAddressModalOpen(true)}
-                      className="text-[#2563EB] hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3 h-3" /> Add on Map
-                    </button>
+              {/* ── Minimized Summary Card (When address & contact are complete) ── */}
+              {hasCompleteAddress && !isEditingAddress ? (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-start justify-between gap-3 shadow-2xs">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#2563EB] border border-blue-200 flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
+                      {activeAddress?.label === 'Work' ? (
+                        <Briefcase className="w-4 h-4" />
+                      ) : (
+                        <Home className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0 text-xs">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {activeAddress?.label || 'Doorstep Address'}
+                        </span>
+                        {activeAddress?.isDefault && (
+                          <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-100/80 text-[#2563EB]">
+                            Default
+                          </span>
+                        )}
+                        <span className="text-slate-300">•</span>
+                        <span className="text-slate-700 font-semibold">{name}</span>
+                        <span className="text-slate-500 font-mono text-[11px]">(+91 {phone})</span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 mt-1 leading-snug break-words">
+                        {flatNumber ? `${flatNumber}, ` : ''}
+                        {landmark ? `${landmark}, ` : ''}
+                        <strong className="text-slate-800">{location.area}</strong>, {location.city} - {location.pincode}
+                      </p>
+
+                      {location.hubName && (
+                        <span className="inline-block text-[11px] text-slate-400 mt-1">
+                          Hub: {location.hubName} ({location.distanceKm || '1'} km)
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-2">
-                    {savedAddresses.map((addr) => {
-                      const isSelected = location.fullAddress === addr.fullAddress;
-                      return (
-                        <div
-                          key={addr.id}
-                          onClick={() => {
-                            selectSavedAddress(addr.id);
-                            if (addr.flatNumber) setFlatNumber(addr.flatNumber);
-                            if (addr.landmark) setLandmark(addr.landmark);
-                          }}
-                          className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between text-left ${
-                            isSelected
-                              ? 'bg-blue-50/80 border-[#2563EB] shadow-xs'
-                              : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                              isSelected ? 'bg-[#2563EB] text-white' : 'bg-slate-200 text-slate-600'
-                            }`}>
-                              {addr.label === 'Home' ? (
-                                <Home className="w-3.5 h-3.5" />
-                              ) : addr.label === 'Work' ? (
-                                <Briefcase className="w-3.5 h-3.5" />
-                              ) : (
-                                <MapPin className="w-3.5 h-3.5" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <span className="text-xs font-bold text-slate-900 block truncate">
-                                {addr.label} {addr.isDefault && <strong className="text-[10px] text-emerald-600 font-extrabold uppercase">(Default)</strong>}
-                              </span>
-                              <span className="text-[11px] text-slate-500 block truncate">{addr.fullAddress}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingAddress(true)}
+                      className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 hover:text-slate-900 text-xs font-bold cursor-pointer transition-colors shadow-2xs"
+                    >
+                      Change
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* ── Compact Form View (When editing or filling initial details) ── */
+                <div className="space-y-3 pt-0.5">
+                  {/* Quick Address Pills */}
+                  {savedAddresses.length > 0 && (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+                      {savedAddresses.map((addr) => {
+                        const isSelected = activeAddress?.id === addr.id || location.fullAddress === addr.fullAddress;
+                        return (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => {
+                              selectSavedAddress(addr.id);
+                              if (addr.flatNumber) setFlatNumber(addr.flatNumber);
+                              if (addr.landmark) setLandmark(addr.landmark);
+                              if (name && phone && addr.flatNumber) {
+                                setIsEditingAddress(false);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all ${
+                              isSelected
+                                ? 'bg-blue-50 border-[#2563EB] text-[#2563EB] shadow-2xs'
+                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                            }`}
+                          >
+                            {addr.label === 'Work' ? <Briefcase className="w-3.5 h-3.5" /> : <Home className="w-3.5 h-3.5" />}
+                            <span>{addr.label}</span>
+                            {addr.isDefault && <span className="text-[10px] opacity-70">(Default)</span>}
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => setAddressModalOpen(true)}
+                        className="px-2.5 py-1.5 rounded-xl border border-dashed border-blue-300 text-[#2563EB] hover:bg-blue-50 text-xs font-bold flex items-center gap-1 whitespace-nowrap cursor-pointer transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add on Map</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* 2x2 Input Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Customer Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Mobile Number
+                      </label>
+                      <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 overflow-hidden focus-within:bg-white focus-within:border-[#2563EB]">
+                        <span className="px-2.5 py-1.5 bg-slate-100 text-slate-600 font-mono text-xs border-r border-slate-200">
+                          +91
+                        </span>
+                        <input
+                          type="tel"
+                          required
+                          maxLength={10}
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                          className="flex-1 px-3 py-1.5 bg-transparent text-slate-900 font-mono text-xs outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        House / Flat / Building
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={flatNumber}
+                        onChange={(e) => setFlatNumber(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Landmark / Street (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={landmark}
+                        onChange={(e) => setLandmark(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs outline-none focus:bg-white focus:border-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* 1-Line Compact Location Bar */}
+                  <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between gap-2">
+                    <span className="truncate">
+                      Area: <strong className="text-slate-900">{location.area}</strong> ({location.city} - {location.pincode})
+                      {location.hubName && <span className="text-slate-400 ml-1.5">• Hub: {location.hubName}</span>}
+                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setLocationModalOpen(true)}
+                        className="text-[#2563EB] font-bold hover:underline cursor-pointer"
+                      >
+                        Change
+                      </button>
+                      {hasCompleteAddress && (
+                        <>
+                          <span className="text-slate-300">|</span>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingAddress(false)}
+                            className="text-emerald-700 font-bold hover:underline cursor-pointer"
+                          >
+                            Done
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Customer Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Mobile Number
-                  </label>
-                  <div className="flex items-center rounded-xl bg-slate-50 border border-slate-200 overflow-hidden focus-within:bg-white focus-within:border-[#2563EB]">
-                    <span className="px-3 py-2.5 bg-slate-100 text-slate-600 font-mono text-xs border-r border-slate-200">
-                      +91
-                    </span>
-                    <input
-                      type="tel"
-                      required
-                      maxLength={10}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      className="flex-1 px-3.5 py-2.5 bg-transparent text-slate-900 font-mono text-sm outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    House / Flat / Building Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={flatNumber}
-                    onChange={(e) => setFlatNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    Landmark / Street (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={landmark}
-                    onChange={(e) => setLandmark(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm outline-none focus:bg-white focus:border-[#2563EB]"
-                  />
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <span>Selected Area: <strong className="text-slate-900">{location.area}</strong> ({location.city} - {location.pincode})</span>
-                    {location.hubName && (
-                      <span className="block text-[11px] text-slate-400 mt-0.5">
-                        Nearest Hub: {location.hubName} ({location.distanceKm || '1'} km)
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setAddressModalOpen(true)}
-                      className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
-                    >
-                      Add to Map
-                    </button>
-                    <span className="text-slate-300">|</span>
-                    <button
-                      type="button"
-                      onClick={() => setLocationModalOpen(true)}
-                      className="text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
-                    >
-                      Change Hub
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* ── 2. Time Slot & Urgency Selection ────────── */}
