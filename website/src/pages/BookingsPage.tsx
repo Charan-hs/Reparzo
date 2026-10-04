@@ -37,6 +37,7 @@ import {
   formatShortDate, 
   REPARZO_WORKING_HOURS 
 } from '../lib/workingHours';
+import { getOrderTypeDetails } from '../lib/orderType';
 
 export const BookingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -277,6 +278,7 @@ export const BookingsPage: React.FC = () => {
                 {liveOrders.map((order) => {
                   const completionPin = order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234';
                   const schedule = getOrderWorkingSchedule(order);
+                  const orderMeta = getOrderTypeDetails(order.items);
 
                   return (
                     <div 
@@ -459,9 +461,9 @@ export const BookingsPage: React.FC = () => {
                             }`}>
                               3
                             </div>
-                            <span className="text-[11px] font-bold text-slate-900">Doorstep Fix</span>
+                            <span className="text-[11px] font-bold text-slate-900">{orderMeta.step3}</span>
                             <span className="text-[10px] text-slate-500">
-                              {order.status === 'in_progress' ? 'Underway Now' : 'Inspection & Fix'}
+                              {order.status === 'in_progress' ? 'Underway Now' : orderMeta.kind === 'service' ? 'Inspection & Fix' : 'Safe Delivery / Handover'}
                             </span>
                           </div>
                         </div>
@@ -505,15 +507,15 @@ export const BookingsPage: React.FC = () => {
                         {/* Assigned Partner & Doorstep Location Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                           
-                          {/* Technician Card */}
+                          {/* Partner Card */}
                           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
-                              Assigned Service Technician
+                              {orderMeta.partnerRoleTitle}
                             </span>
                             <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-2 min-w-0">
                                 <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                  RG
+                                  {orderMeta.partnerInitial}
                                 </div>
                                 <div className="min-w-0">
                                   <h5 className="text-xs font-bold text-slate-900 truncate">
@@ -530,7 +532,7 @@ export const BookingsPage: React.FC = () => {
                                 className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors flex-shrink-0 cursor-pointer"
                               >
                                 <Phone className="w-3.5 h-3.5" />
-                                <span>Call</span>
+                                <span>{orderMeta.partnerCallAction}</span>
                               </a>
                             </div>
                           </div>
@@ -538,7 +540,7 @@ export const BookingsPage: React.FC = () => {
                           {/* Delivery Address */}
                           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
                             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block">
-                              Doorstep Service Address
+                              {orderMeta.addressCardTitle}
                             </span>
                             <div className="flex items-start gap-1.5 text-xs text-slate-700">
                               <MapPin className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -556,10 +558,10 @@ export const BookingsPage: React.FC = () => {
                             </div>
                             <div>
                               <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 block">
-                                Service Completion PIN
+                                {orderMeta.pinTitle}
                               </span>
                               <span className="text-xs text-amber-800">
-                                Share this PIN with your technician only after physical work is completed.
+                                {orderMeta.pinSubtitle}
                               </span>
                             </div>
                           </div>
@@ -644,68 +646,70 @@ export const BookingsPage: React.FC = () => {
             ) : (
               /* List of Previous Orders */
               <div className="space-y-4">
-                {previousOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="rounded-3xl bg-white border border-slate-200/90 shadow-2xs overflow-hidden hover:border-slate-300 transition-all"
-                  >
-                    {/* Header */}
-                    <div className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs font-mono">
-                          #
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-black font-mono text-slate-900">{order.id}</span>
-                            <span className="text-[11px] text-slate-400">•</span>
-                            <span className="text-xs font-medium text-slate-500">
-                              {formatOrderDate(order.createdAt)}
-                            </span>
+                {previousOrders.map((order) => {
+                  const orderMeta = getOrderTypeDetails(order.items);
+                  return (
+                    <div
+                      key={order.id}
+                      className="rounded-3xl bg-white border border-slate-200/90 shadow-2xs overflow-hidden hover:border-slate-300 transition-all"
+                    >
+                      {/* Header */}
+                      <div className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs font-mono">
+                            #
                           </div>
-                          <span className="text-[11px] text-slate-500">
-                            Delivered to: {order.address.split(',')[0]}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        Service Completed • PIN Verified
-                      </span>
-                    </div>
-
-                    {/* Services Items */}
-                    <div className="p-4 sm:p-5 space-y-3">
-                      <div className="divide-y divide-slate-100">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-3 text-xs">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="font-bold text-slate-900 truncate">{item.service.title}</span>
-                              <span className="text-[11px] text-slate-500">Qty: {item.quantity}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-black font-mono text-slate-900">{order.id}</span>
+                              <span className="text-[11px] text-slate-400">•</span>
+                              <span className="text-xs font-medium text-slate-500">
+                                {formatOrderDate(order.createdAt)}
+                              </span>
                             </div>
-                            <span className="font-mono font-bold text-slate-900">
-                              ₹{item.service.price * item.quantity}
+                            <span className="text-[11px] text-slate-500">
+                              Delivered to: {order.address.split(',')[0]}
                             </span>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Footer Actions */}
-                      <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <span className="text-[10px] uppercase text-slate-400 block font-semibold">Total Paid</span>
-                          <span className="text-base font-black font-mono text-slate-900">₹{order.grandTotal}</span>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleReorder(order)}
-                            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#2563EB] hover:text-white text-slate-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border border-slate-200"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Book Again</span>
-                          </button>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          {orderMeta.kind === 'service' ? 'Service Completed • PIN Verified' : 'Delivered • Handover PIN Verified'}
+                        </span>
+                      </div>
+
+                      {/* Services Items */}
+                      <div className="p-4 sm:p-5 space-y-3">
+                        <div className="divide-y divide-slate-100">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-3 text-xs">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="font-bold text-slate-900 truncate">{item.service.title}</span>
+                                <span className="text-[11px] text-slate-500">Qty: {item.quantity}</span>
+                              </div>
+                              <span className="font-mono font-bold text-slate-900">
+                                ₹{item.service.price * item.quantity}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] uppercase text-slate-400 block font-semibold">Total Paid</span>
+                            <span className="text-base font-black font-mono text-slate-900">₹{order.grandTotal}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleReorder(order)}
+                              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#2563EB] hover:text-white text-slate-800 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 border border-slate-200"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>{orderMeta.kind === 'service' ? 'Book Again' : 'Order Again'}</span>
+                            </button>
                           <button
                             onClick={() => {
                               toast.success(`Tax Invoice for ${order.id} ready.`);
@@ -718,7 +722,8 @@ export const BookingsPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             )}
           </div>

@@ -32,6 +32,7 @@ import {
   getOrderWorkingSchedule, 
   REPARZO_WORKING_HOURS 
 } from '../lib/workingHours';
+import { getOrderTypeDetails } from '../lib/orderType';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ export const CheckoutPage: React.FC = () => {
   } = useAppStore();
 
   const { totalItems, subtotal, inspectionFee, platformFee, discount, grandTotal } = getCartMetrics();
+  const orderMeta = getOrderTypeDetails(cart);
 
   // Form State
   const activeAddress = savedAddresses.find((a) => a.id === activeAddressId);
@@ -112,9 +114,9 @@ export const CheckoutPage: React.FC = () => {
         <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-4">
           <ShoppingBag className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">No Services in Checkout</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">No Items in Checkout</h2>
         <p className="text-sm text-slate-500 max-w-sm mb-6">
-          Add an AC repair, bike service, or home care package to proceed with doorstep booking.
+          Add a doorstep service, fresh meat cuts, parcel pick-drop, or home care package to proceed with checkout.
         </p>
         <button
           onClick={() => navigate('/services')}
@@ -190,20 +192,22 @@ export const CheckoutPage: React.FC = () => {
         paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
         status: 'confirmed',
         createdAt: new Date().toISOString(),
-        technicianName: 'Ramesh Gowda (Certified Master Technician)',
-        technicianPhone: '+91 98450 88219',
+        technicianName: orderMeta.partnerName,
+        technicianPhone: orderMeta.partnerPhone,
         completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
       };
 
       addOrder(newOrder);
       setCompletedOrder(newOrder);
       clearCart();
-      toast.success('Booking Confirmed! Technician assigned.');
+      toast.success(orderMeta.toastSuccess);
     }, 800);
   };
 
   // ── Confirmation Screen ──────────────────────────────
   if (completedOrder) {
+    const completedMeta = getOrderTypeDetails(completedOrder.items);
+
     return (
       <div className="min-h-screen bg-[#F8FAFC] py-10 px-4 sm:px-6 lg:px-8 text-slate-900">
         <div className="max-w-2xl mx-auto space-y-6">
@@ -214,14 +218,14 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#2563EB] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-              Booking ID: {completedOrder.id}
+              {completedMeta.kind === 'service' ? 'Booking ID' : 'Order ID'}: {completedOrder.id}
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-3">
-              Doorstep Service Confirmed!
+              {completedMeta.confirmedTitle}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto">
-              Our verified technician is preparing tools and dispatched to your location.
+              {completedMeta.confirmedSubtitle}
             </p>
 
             {/* Live Tracking Stepper */}
@@ -244,7 +248,7 @@ export const CheckoutPage: React.FC = () => {
                         ✓
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">Booking Confirmed</span>
+                        <span className="text-xs font-bold text-slate-900 block">{completedMeta.step1}</span>
                         <span className="text-[11px] text-slate-500">
                           {(() => {
                             const d = new Date(completedOrder.createdAt);
@@ -259,7 +263,7 @@ export const CheckoutPage: React.FC = () => {
                         2
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">Technician Assigned</span>
+                        <span className="text-xs font-bold text-slate-900 block">{completedMeta.step2}</span>
                         <span className="text-[11px] text-[#2563EB] font-semibold">
                           {completedOrder.technicianName} • Background Verified
                         </span>
@@ -271,7 +275,7 @@ export const CheckoutPage: React.FC = () => {
                         3
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 block">Scheduled Doorstep Visit</span>
+                        <span className="text-xs font-bold text-slate-900 block">{completedMeta.step3}</span>
                         <span className="text-[11px] text-slate-600 font-medium">
                           {schedule.scheduleSubtitle}
                         </span>
@@ -285,10 +289,13 @@ export const CheckoutPage: React.FC = () => {
             {/* Assigned Partner Card */}
             <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3 text-left">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold">
-                  RG
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#2563EB] flex items-center justify-center font-bold text-sm">
+                  {completedMeta.partnerInitial}
                 </div>
                 <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                    {completedMeta.partnerRoleTitle}
+                  </span>
                   <h4 className="text-xs font-bold text-slate-900">{completedOrder.technicianName}</h4>
                   <span className="text-[11px] text-slate-500">{completedOrder.technicianPhone}</span>
                 </div>
@@ -298,7 +305,7 @@ export const CheckoutPage: React.FC = () => {
                 className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 shadow-xs transition-colors"
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>Call</span>
+                <span>{completedMeta.partnerCallAction}</span>
               </a>
             </div>
 
@@ -310,10 +317,10 @@ export const CheckoutPage: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-900 block">
-                    Service Completion PIN
+                    {completedMeta.pinTitle}
                   </span>
                   <span className="text-xs text-amber-800 leading-snug">
-                    Share this PIN with your technician only after physical work is verified and completed.
+                    {completedMeta.pinSubtitle}
                   </span>
                 </div>
               </div>
@@ -381,11 +388,11 @@ export const CheckoutPage: React.FC = () => {
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              Secure Checkout
+              {orderMeta.badge}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
-            Confirm Doorstep Repair Booking
+            {orderMeta.checkoutTitle}
           </h1>
         </div>
 
@@ -399,7 +406,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#2563EB]" />
-                  1. Doorstep Address & Contact
+                  {orderMeta.addressSectionTitle}
                 </h3>
                 {location.isServiceable !== false ? (
                   <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -445,7 +452,7 @@ export const CheckoutPage: React.FC = () => {
                     <div className="min-w-0 text-xs">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-slate-900 text-sm">
-                          {activeAddress?.label || 'Doorstep Address'}
+                          {activeAddress?.label || orderMeta.addressCardTitle}
                         </span>
                         {activeAddress?.isDefault && (
                           <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-100/80 text-[#2563EB]">
@@ -621,12 +628,11 @@ export const CheckoutPage: React.FC = () => {
               <div className="border-b border-slate-100 pb-3">
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-[#2563EB]" />
-                  2. Choose Preferred Arrival Time
+                  {orderMeta.slotSectionTitle}
                 </h3>
               </div>
 
               {/* Instant Express vs Scheduled Tabs */}
-              {/* Instant vs Scheduled Tabs */}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -640,14 +646,14 @@ export const CheckoutPage: React.FC = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`w-2 h-2 rounded-full ${isWithinWorkingHours ? 'bg-emerald-500 animate-ping' : 'bg-amber-500'}`} />
                     <span className="text-xs font-extrabold uppercase text-[#2563EB]">
-                      {isWithinWorkingHours ? 'Today (Working Hours)' : 'Next Working Day'}
+                      {isWithinWorkingHours ? orderMeta.instantSlotLabel : 'Next Working Day'}
                     </span>
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">
                     {isWithinWorkingHours ? `Today (${formatShortDate(todayObj)})` : `Tomorrow (${formatShortDate(tomorrowObj)})`}
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    {isWithinWorkingHours ? 'Technician arrives today (10 AM - 6 PM)' : 'Service window starts tomorrow at 10 AM'}
+                    {isWithinWorkingHours ? orderMeta.instantSlotDesc : 'Service window starts tomorrow at 10 AM'}
                   </p>
                 </button>
 
@@ -767,7 +773,7 @@ export const CheckoutPage: React.FC = () => {
           <div className="space-y-6">
             <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs space-y-4">
               <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
-                Booking Summary ({totalItems})
+                {orderMeta.summaryTitle} ({totalItems})
               </h3>
 
               {/* Service Items mini-list */}
@@ -869,14 +875,14 @@ export const CheckoutPage: React.FC = () => {
                     ? 'Service Unavailable in this Location (Coming Soon)'
                     : isSubmitting
                     ? 'Confirming Dispatch...'
-                    : 'Confirm Booking • Pay After Service / Delivery'}
+                    : orderMeta.confirmCtaText}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Zero cancellation fee before technician arrival</span>
+                <span>{orderMeta.cancellationText}</span>
               </div>
 
               {/* Terms & Privacy Notice */}
