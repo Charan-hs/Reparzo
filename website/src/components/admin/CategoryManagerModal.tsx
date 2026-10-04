@@ -125,9 +125,9 @@ export const CategoryManagerModal: React.FC = () => {
     if (!editingCategory) return;
     const ok = await updateCategory(editingCategory.id, editingCategory);
     if (ok) {
-      toast.success(`Category "${editingCategory.title}" updated in database!`);
+      toast.success(`Category "${editingCategory.title}" updated successfully!`);
     } else {
-      toast.warning(`Updated locally`);
+      toast.info(`Saved locally`);
     }
     setEditingCategory(null);
   };
@@ -153,7 +153,7 @@ export const CategoryManagerModal: React.FC = () => {
     });
 
     if (created) {
-      toast.success(`Category "${newCatTitle}" created and saved to database!`);
+      toast.success(`Category "${newCatTitle}" created successfully!`);
       setSelectedCatId(created.id);
     }
     setNewCatTitle('');
@@ -172,7 +172,7 @@ export const CategoryManagerModal: React.FC = () => {
       const fallback = categories.find((c) => c.id !== id);
       if (fallback) setSelectedCatId(fallback.id);
     }
-    toast.info(`Category "${title}" deleted from database.`);
+    toast.info(`Category "${title}" removed successfully.`);
   };
 
   // ── SubCategory Handlers ──
@@ -246,16 +246,16 @@ export const CategoryManagerModal: React.FC = () => {
 
     const ok = await updateSubCategory(editingSubCategory.id, payload);
     if (ok) {
-      toast.success(`Subcategory "${editingSubCategory.title}" updated in database!`);
+      toast.success(`Subcategory "${editingSubCategory.title}" updated successfully!`);
     } else {
-      toast.warning(`Updated locally`);
+      toast.info(`Saved locally`);
     }
     setEditingSubCategory(null);
   };
 
   const handleDeleteSubCategory = async (id: string, title: string) => {
     await deleteSubCategory(id);
-    toast.info(`Subcategory "${title}" deleted from database.`);
+    toast.info(`Subcategory "${title}" removed successfully.`);
   };
 
   return (

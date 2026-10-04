@@ -29,7 +29,7 @@ export default {
     const assetResponse = await env.ASSETS.fetch(request);
 
     // 3. Prevent SPA index.html fallback from masking missing images
-    // If an image asset was requested but ASSETS returned HTML or 404, check backend R2 storage
+    // If an image asset was requested but ASSETS returned HTML or 404, check backend media storage
     const isImageRequest = /\.(webp|jpg|jpeg|png|gif|svg|avif|ico)$/i.test(url.pathname);
     if (isImageRequest) {
       const contentType = assetResponse.headers.get('content-type') || '';

@@ -24,14 +24,14 @@ export interface AppState {
   catalogError: string | null;
   fetchCatalog: () => Promise<void>;
 
-  // Categories (Admin-editable & Persisted in Cloudflare D1)
+  // Categories (Admin-editable & Cloud-persisted)
   categories: Category[];
   updateCategory: (id: string, updates: Partial<Category>) => Promise<boolean>;
   addCategory: (newCat: Omit<Category, 'id'>) => Promise<Category | null>;
   deleteCategory: (id: string) => Promise<boolean>;
   reorderCategories: (newCats: Category[]) => void;
 
-  // SubCategories (Two-Step Admin Hierarchy & Persisted in Cloudflare D1)
+  // SubCategories (Two-Step Admin Hierarchy & Cloud-persisted)
   subCategories: SubCategory[];
   activeSubCategorySlug: string;
   setActiveSubCategorySlug: (slug: string) => void;
@@ -40,7 +40,7 @@ export interface AppState {
   deleteSubCategory: (id: string) => Promise<boolean>;
   getSubCategoriesByCategory: (categorySlug: string) => SubCategory[];
 
-  // Services (Catalog from Cloudflare D1)
+  // Services (Catalog from API)
   services: Service[];
   activeCategorySlug: string;
   setActiveCategorySlug: (slug: string) => void;
@@ -128,7 +128,7 @@ export interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // Catalog state: booted from fallback constants, hydrated from Cloudflare D1
+      // Catalog state: initialized from local cache, hydrated from API service
       isLoadingCatalog: false,
       catalogError: null,
       categories: INITIAL_CATEGORIES,
@@ -214,7 +214,7 @@ export const useAppStore = create<AppState>()(
         }
       },
 
-      // Categories Management (persisting to D1)
+      // Categories Management (persisting to Cloud API)
       addCategory: async (newCat) => {
         try {
           const res = await fetch('/api/categories', {
@@ -271,7 +271,7 @@ export const useAppStore = create<AppState>()(
 
       reorderCategories: (newCats) => set({ categories: newCats }),
 
-      // SubCategories Management (persisting to D1)
+      // SubCategories Management (persisting to Cloud API)
       setActiveSubCategorySlug: (slug) => set({ activeSubCategorySlug: slug }),
 
       addSubCategory: async (newSub) => {

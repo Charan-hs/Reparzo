@@ -6,17 +6,17 @@ export const healthRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 healthRoutes.get('/', async (c) => {
   const start = Date.now();
-  let d1Status = 'disconnected';
+  let dbStatus = 'disconnected';
 
   try {
     if (c.env.DB) {
       const result = await c.env.DB.prepare('SELECT 1 as alive').first<{ alive: number }>();
       if (result && result.alive === 1) {
-        d1Status = 'connected';
+        dbStatus = 'connected';
       }
     }
   } catch (err) {
-    d1Status = `error: ${err instanceof Error ? err.message : String(err)}`;
+    dbStatus = `error: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   const durationMs = Date.now() - start;
@@ -27,17 +27,17 @@ healthRoutes.get('/', async (c) => {
         service: 'reparzo-backend',
         status: 'healthy',
         environment: c.env.ENVIRONMENT || 'development',
-        edgeRuntime: 'Cloudflare Workers (V8 Isolate)',
+        edgeRuntime: 'Distributed Edge Runtime (High Availability)',
         database: {
-          engine: 'Cloudflare D1 (Distributed SQLite)',
-          status: d1Status,
+          engine: 'Distributed Relational Database',
+          status: dbStatus,
         },
         cache: {
-          engine: 'Cloudflare KV',
+          engine: 'High-Performance Edge Cache',
           status: c.env.CACHE ? 'configured' : 'optional',
         },
         storage: {
-          engine: 'Cloudflare R2',
+          engine: 'Cloud Object Storage',
           status: c.env.MEDIA ? 'configured' : 'optional',
         },
       },

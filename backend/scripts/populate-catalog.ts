@@ -263,9 +263,9 @@ function runWithRetry(cmd: string, maxRetries = 3, delayMs = 1500): string {
   throw lastErr;
 }
 
-async function uploadImagesToR2(target: 'remote' | 'local' | 'both') {
+async function uploadImagesToMediaStorage(target: 'remote' | 'local' | 'both') {
   const images = discoverImages();
-  console.log(`\n📸 Discovered ${images.length} images to sync with Cloudflare R2:`);
+  console.log(`\n📸 Discovered ${images.length} images to sync with Media Storage:`);
   for (const img of images) {
     console.log(`  • ${img.relKey} (${img.mime})`);
   }
@@ -273,7 +273,7 @@ async function uploadImagesToR2(target: 'remote' | 'local' | 'both') {
   const targets = target === 'both' ? ['remote', 'local'] : [target];
 
   for (const tgt of targets) {
-    console.log(`\n🚀 Uploading images to Cloudflare R2 [${tgt.toUpperCase()}] (bucket: reparzo-media)...`);
+    console.log(`\n🚀 Uploading images to Media Storage [${tgt.toUpperCase()}] (bucket: reparzo-media)...`);
     for (const img of images) {
       try {
         const flag = tgt === 'remote' ? '--remote' : '--local';
@@ -299,16 +299,16 @@ async function populateDatabases(target: 'remote' | 'local' | 'both') {
   const targets = target === 'both' ? ['local', 'remote'] : [target];
 
   for (const tgt of targets) {
-    console.log(`\n🗄️  Executing seed on Cloudflare D1 [${tgt.toUpperCase()}] (database: reparzo-db)...`);
+    console.log(`\n🗄️  Executing seed on Database [${tgt.toUpperCase()}] (database: reparzo-db)...`);
     try {
       const flag = tgt === 'remote' ? '--remote' : '--local';
       const cmd = `CI=true npx wrangler d1 execute reparzo-db ${flag} --file="seeds/seed_catalog.sql"`;
       const output = runWithRetry(cmd, 3, 2000);
-      console.log(`  ✅ [${tgt}] D1 catalog populated successfully!`);
+      console.log(`  ✅ [${tgt}] Catalog database populated successfully!`);
       const lines = output.trim().split('\n');
       console.log(`     ${lines[lines.length - 1] || 'Success'}`);
     } catch (err: unknown) {
-      console.error(`  ❌ [${tgt}] D1 execution failed:`, err instanceof Error ? err.message : String(err));
+      console.error(`  ❌ [${tgt}] Database execution failed:`, err instanceof Error ? err.message : String(err));
     }
   }
 }
@@ -327,7 +327,7 @@ async function main() {
       : 'both';
 
   console.log('╔═══════════════════════════════════════════════════════════╗');
-  console.log('║        REPARZO D1 & R2 CATALOG POPULATOR SCRIPT          ║');
+  console.log('║         REPARZO CATALOG & MEDIA SEED ENGINE               ║');
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log(`Environment Target: ${targetEnv.toUpperCase()}`);
 
@@ -336,10 +336,10 @@ async function main() {
   }
 
   if (!isDbOnly) {
-    await uploadImagesToR2(targetEnv);
+    await uploadImagesToMediaStorage(targetEnv);
   }
 
-  console.log('\n🎉 ALL CATALOG DATA & R2 MEDIA SYNCHRONIZATION COMPLETE!\n');
+  console.log('\n🎉 ALL CATALOG DATA & MEDIA SYNCHRONIZATION COMPLETE!\n');
 }
 
 main().catch((err) => {

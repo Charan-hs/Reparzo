@@ -41,8 +41,8 @@ app.get('/', (c) => {
     successResponse({
       name: 'Reparzo API',
       version: '1.0.0',
-      runtime: 'Cloudflare Workers (Edge)',
-      database: 'Cloudflare D1',
+      runtime: 'Reparzo High-Performance Edge Engine',
+      database: 'Distributed Cloud Database',
       documentation: '/api/health',
     })
   );

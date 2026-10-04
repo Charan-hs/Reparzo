@@ -5,7 +5,7 @@
  * - High-fidelity bicubic resampling to preserve crisp edge details
  * - High-quality WebP encoding (0.90 quality level for visually lossless fidelity)
  * - Automatic resolution downsampling with aspect ratio preservation (max 1920x1080)
- * - Direct Cloudflare R2 upload pipeline via /api/media/upload
+ * - Direct cloud media storage upload pipeline via /api/media/upload
  */
 
 export interface CompressionResult {
@@ -115,9 +115,9 @@ export async function compressImageToWebP(
 }
 
 /**
- * Uploads an optimized WebP blob to Cloudflare R2 via Reparzo's /api/media/upload endpoint.
+ * Uploads an optimized WebP blob to secure media cloud storage via Reparzo's /api/media/upload endpoint.
  */
-export async function uploadImageToR2(
+export async function uploadImageToStorage(
   webpBlob: Blob,
   filename: string
 ): Promise<{ url: string; key: string; size: number }> {
@@ -137,7 +137,7 @@ export async function uploadImageToR2(
 
   const json = await response.json();
   if (!response.ok || !json.success) {
-    throw new Error(json?.error?.message || 'Failed to upload image to Cloudflare R2.');
+    throw new Error(json?.error?.message || 'Failed to upload image. Please try again.');
   }
 
   return {
@@ -146,6 +146,9 @@ export async function uploadImageToR2(
     size: json.data.size,
   };
 }
+
+// Backwards-compatible alias for existing imports
+export const uploadImageToR2 = uploadImageToStorage;
 
 /**
  * Format bytes into human-readable string (KB, MB).

@@ -15,10 +15,10 @@ const MIME_TYPES: Record<string, string> = {
   avif: 'image/avif',
 };
 
-// POST /api/media/upload - Upload and store an image in Cloudflare R2
+// POST /api/media/upload - Upload and store an image in cloud media storage
 mediaRoutes.post('/upload', async (c) => {
   if (!c.env.MEDIA) {
-    throw new NotFoundError('Media storage (Cloudflare R2) is not bound to this Worker environment.');
+    throw new NotFoundError('Media storage service is temporarily unavailable. Please try again later.');
   }
 
   const contentTypeHeader = c.req.header('content-type') || '';
@@ -76,13 +76,13 @@ mediaRoutes.post('/upload', async (c) => {
   );
 });
 
-// GET /api/media/list - List stored assets in R2
+// GET /api/media/list - List stored assets in media storage
 mediaRoutes.get('/list', async (c) => {
   if (!c.env.MEDIA) {
     return c.json(
       successResponse({
         configured: false,
-        message: 'R2 MEDIA bucket not bound',
+        message: 'Media storage is not configured',
         objects: [],
       })
     );
@@ -126,10 +126,10 @@ mediaRoutes.options('*', (c) => {
   });
 });
 
-// GET /* - Retrieve & stream image/media from R2
+// GET /* - Retrieve & stream image/media from storage
 mediaRoutes.get('*', async (c) => {
   if (!c.env.MEDIA) {
-    throw new NotFoundError('Media storage (Cloudflare R2) is not bound to this Worker environment.');
+    throw new NotFoundError('Media storage service is temporarily unavailable. Please try again later.');
   }
 
   const rawPath = c.req.path;
@@ -160,7 +160,7 @@ mediaRoutes.get('*', async (c) => {
   }
 
   if (!object) {
-    throw new NotFoundError(`Asset '${key}' not found in Reparzo R2 storage.`);
+    throw new NotFoundError(`Requested asset '${key}' was not found.`);
   }
 
   const ext = key.split('.').pop()?.toLowerCase() || '';

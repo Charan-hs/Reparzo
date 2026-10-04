@@ -58,7 +58,7 @@ export async function fetchApi<T>(path: string, options: RequestInit = {}): Prom
     success: false,
     error: {
       code: 'PARSE_ERROR',
-      message: 'Failed to parse JSON response from edge API.',
+      message: 'Unable to parse server response. Please try again.',
     },
   }));
 

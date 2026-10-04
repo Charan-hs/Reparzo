@@ -39,7 +39,7 @@ export function App() {
     initLocationLifecycle 
   } = useAppStore();
 
-  // Fetch live categories, subcategories & services from Cloudflare D1 + Hubs + Init Location Lifecycle
+  // Fetch live categories, subcategories & services from backend API + Hubs + Init Location Lifecycle
   useEffect(() => {
     fetchCatalog();
     fetchServiceHubs();
