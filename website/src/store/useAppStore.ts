@@ -4,12 +4,45 @@ import type { Category, SubCategory, Service, CartItem, UserProfile, UserRole, L
 import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
 import { signOutFirebase } from '../lib/firebase';
 import { DEFAULT_SERVICE_HUBS, checkServiceability, reverseGeocode, calculateDistanceKm, estimateEtaMinutes } from '../lib/geo';
+import { toast } from 'sonner';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_SUBCATEGORIES, 
   INITIAL_SERVICES, 
   INITIAL_ORDERS 
 } from '../data/fallbackCatalog';
+
+// Default starter doorstep addresses
+export const DEFAULT_SAVED_ADDRESSES: UserAddress[] = [
+  {
+    id: 'addr-default-1',
+    label: 'Home',
+    flatNumber: 'Flat 402, Green Glen Heights',
+    landmark: 'Near BDA Complex',
+    area: 'HSR Layout Sector 2',
+    city: 'Bengaluru',
+    pincode: '560102',
+    fullAddress: 'Flat 402, Green Glen Heights, Near BDA Complex, HSR Layout Sector 2, Bengaluru - 560102',
+    latitude: 12.9116,
+    longitude: 77.6389,
+    isDefault: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'addr-default-2',
+    label: 'Work',
+    flatNumber: 'Reparzo Tech Hub, 4th Floor',
+    landmark: '100ft Road',
+    area: 'Indiranagar',
+    city: 'Bengaluru',
+    pincode: '560038',
+    fullAddress: 'Reparzo Tech Hub, 4th Floor, 100ft Road, Indiranagar, Bengaluru - 560038',
+    latitude: 12.9784,
+    longitude: 77.6408,
+    isDefault: false,
+    createdAt: new Date().toISOString(),
+  },
+];
 
 // Re-export fallback constants for backwards-compatibility with scripts and types
 export { INITIAL_CATEGORIES, INITIAL_SUBCATEGORIES, INITIAL_SERVICES, INITIAL_ORDERS };
@@ -354,16 +387,26 @@ export const useAppStore = create<AppState>()(
       // Cart
       cart: [],
       addToCart: (service) => {
-        set((state) => {
-          const existing = state.cart.find((item) => item.service.id === service.id);
+        const state = get();
+        if (state.location.isServiceable === false) {
+          toast.error(`Service currently unavailable in ${state.location.area}. We are expanding here soon!`, {
+            action: {
+              label: 'Change Location',
+              onClick: () => state.setLocationModalOpen(true),
+            },
+          });
+          return;
+        }
+        set((s) => {
+          const existing = s.cart.find((item) => item.service.id === service.id);
           if (existing) {
             return {
-              cart: state.cart.map((item) =>
+              cart: s.cart.map((item) =>
                 item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item
               ),
             };
           }
-          return { cart: [...state.cart, { service, quantity: 1 }] };
+          return { cart: [...s.cart, { service, quantity: 1 }] };
         });
       },
       removeFromCart: (serviceId) =>
@@ -456,10 +499,10 @@ export const useAppStore = create<AppState>()(
 
       // Location & Serviceability
       location: {
-        area: 'HSR Layout, Sector 2',
+        area: 'HSR Layout Sector 2',
         city: 'Bengaluru',
         pincode: '560102',
-        fullAddress: '14th Main, HSR Layout Sector 2, Bengaluru, Karnataka',
+        fullAddress: 'Flat 402, Green Glen Heights, Near BDA Complex, HSR Layout Sector 2, Bengaluru - 560102',
         etaMinutes: 20,
         latitude: 12.9116,
         longitude: 77.6389,
@@ -467,16 +510,16 @@ export const useAppStore = create<AppState>()(
         hubId: 'hub-blr-hsr',
         hubName: 'HSR Layout Sector 2 Hub',
         distanceKm: 0.5,
-        isDefaultAddress: false,
-        addressLabel: 'Hub',
+        isDefaultAddress: true,
+        addressLabel: 'Home',
       },
       isLocationModalOpen: false,
       setLocationModalOpen: (open) => set({ isLocationModalOpen: open }),
       setLocation: (loc) => set({ location: loc, isLocationModalOpen: false }),
 
       serviceHubs: DEFAULT_SERVICE_HUBS,
-      savedAddresses: [],
-      activeAddressId: null,
+      savedAddresses: DEFAULT_SAVED_ADDRESSES,
+      activeAddressId: 'addr-default-1',
       isAddressModalOpen: false,
       addressModalInitialCoords: undefined,
       setAddressModalOpen: (open, initialCoords) =>
@@ -506,33 +549,27 @@ export const useAppStore = create<AppState>()(
           get().serviceHubs
         );
 
-        if (makeDefault) {
-          set({
-            savedAddresses: updatedAddresses,
-            activeAddressId: id,
-            isAddressModalOpen: false,
-            location: {
-              area: newAddress.area,
-              city: newAddress.city,
-              pincode: newAddress.pincode,
-              fullAddress: newAddress.fullAddress,
-              latitude: newAddress.latitude,
-              longitude: newAddress.longitude,
-              etaMinutes: serviceCheck.etaMinutes,
-              distanceKm: serviceCheck.distanceKm,
-              isServiceable: serviceCheck.isServiceable,
-              hubId: serviceCheck.nearestHub?.id,
-              hubName: serviceCheck.nearestHub?.name,
-              isDefaultAddress: true,
-              addressLabel: newAddress.label,
-            },
-          });
-        } else {
-          set({
-            savedAddresses: updatedAddresses,
-            isAddressModalOpen: false,
-          });
-        }
+        // Always activate newly added address so user immediately sees location state
+        set({
+          savedAddresses: updatedAddresses,
+          activeAddressId: id,
+          isAddressModalOpen: false,
+          location: {
+            area: newAddress.area,
+            city: newAddress.city,
+            pincode: newAddress.pincode,
+            fullAddress: newAddress.fullAddress,
+            latitude: newAddress.latitude,
+            longitude: newAddress.longitude,
+            etaMinutes: serviceCheck.etaMinutes,
+            distanceKm: serviceCheck.distanceKm,
+            isServiceable: serviceCheck.isServiceable,
+            hubId: serviceCheck.nearestHub?.id,
+            hubName: serviceCheck.nearestHub?.name,
+            isDefaultAddress: newAddress.isDefault,
+            addressLabel: newAddress.label,
+          },
+        });
 
         return newAddress;
       },
@@ -813,6 +850,10 @@ export const useAppStore = create<AppState>()(
         if (state?.user && (state.user.phone?.includes('98450') || state.user.name?.includes('Charan H.S.') || state.user.name === 'Charan H S')) {
           state.user = null;
           state.activeRole = 'user';
+        }
+        if (state && (!state.savedAddresses || state.savedAddresses.length === 0)) {
+          state.savedAddresses = DEFAULT_SAVED_ADDRESSES;
+          state.activeAddressId = 'addr-default-1';
         }
       },
     }

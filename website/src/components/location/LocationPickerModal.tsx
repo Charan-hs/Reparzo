@@ -10,9 +10,10 @@ import {
   Briefcase, 
   Plus, 
   Star, 
-  ShieldCheck, 
   AlertTriangle,
-  Radio
+  Sparkles,
+  ShieldCheck,
+  Building
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { toast } from 'sonner';
@@ -22,12 +23,10 @@ export const LocationPickerModal: React.FC = () => {
     isLocationModalOpen, 
     setLocationModalOpen, 
     location, 
-    setLocation,
     savedAddresses,
     selectSavedAddress,
     setDefaultAddress,
     setAddressModalOpen,
-    serviceHubs,
     detectCurrentGpsLocation
   } = useAppStore();
 
@@ -36,17 +35,11 @@ export const LocationPickerModal: React.FC = () => {
 
   if (!isLocationModalOpen) return null;
 
-  // Real Service Hubs from store / backend
-  const filteredHubs = serviceHubs.filter((hub) =>
-    hub.name.toLowerCase().includes(searchLocation.toLowerCase()) ||
-    hub.area.toLowerCase().includes(searchLocation.toLowerCase()) ||
-    hub.pincode.includes(searchLocation)
-  );
-
   // Filtered Saved Addresses
   const filteredAddresses = savedAddresses.filter((addr) =>
     addr.fullAddress.toLowerCase().includes(searchLocation.toLowerCase()) ||
     addr.label.toLowerCase().includes(searchLocation.toLowerCase()) ||
+    addr.area.toLowerCase().includes(searchLocation.toLowerCase()) ||
     addr.pincode.includes(searchLocation)
   );
 
@@ -56,31 +49,11 @@ export const LocationPickerModal: React.FC = () => {
     setIsDetecting(false);
 
     if (res.success) {
-      toast.success('Current GPS location detected & matched to nearest hub!');
+      toast.success('Current GPS location detected!');
       setLocationModalOpen(false);
     } else {
       toast.error(res.error || 'Failed to detect GPS location. Please allow browser location access.');
     }
-  };
-
-  const handleSelectHub = (hub: typeof serviceHubs[0]) => {
-    setLocation({
-      area: hub.area,
-      city: hub.city,
-      pincode: hub.pincode,
-      fullAddress: hub.fullAddress,
-      etaMinutes: hub.baseEtaMinutes,
-      latitude: hub.latitude,
-      longitude: hub.longitude,
-      isServiceable: true,
-      hubId: hub.id,
-      hubName: hub.name,
-      distanceKm: 0.8,
-      isDefaultAddress: false,
-      addressLabel: 'Hub',
-    });
-    setLocationModalOpen(false);
-    toast.success(`Service location set to ${hub.name}`);
   };
 
   return (
@@ -104,7 +77,7 @@ export const LocationPickerModal: React.FC = () => {
                   Select Service Location
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Real-time dispatch from our nearest verified service hubs
+                  Choose your doorstep address for doorstep service
                 </p>
               </div>
             </div>
@@ -125,13 +98,13 @@ export const LocationPickerModal: React.FC = () => {
                 type="text"
                 value={searchLocation}
                 onChange={(e) => setSearchLocation(e.target.value)}
-                placeholder="Search area, landmark or pincode..."
+                placeholder="Search your saved addresses..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100 outline-none transition-all"
               />
             </div>
           </div>
 
-          {/* GPS Auto-detect Button */}
+          {/* GPS Auto-detect & Add Address Buttons */}
           <div className="p-3.5 sm:p-4 border-b border-slate-100 bg-slate-50/40 space-y-2.5">
             <button
               onClick={handleUseCurrentLocation}
@@ -167,17 +140,75 @@ export const LocationPickerModal: React.FC = () => {
             </button>
           </div>
 
-          {/* Scrollable Content (Saved Addresses + Real Hubs) */}
-          <div className="p-3.5 sm:p-4 overflow-y-auto space-y-4 flex-1 bg-[#F8FAFC]">
-            {/* 1. Saved Addresses Section */}
-            {savedAddresses.length > 0 && (
-              <div>
-                <div className="flex items-center justify-between px-1 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                    Saved Doorstep Addresses ({savedAddresses.length})
+          {/* Scrollable Content: Notice + Added Addresses */}
+          <div className="p-3.5 sm:p-4 overflow-y-auto space-y-3.5 flex-1 bg-[#F8FAFC]">
+            
+            {/* ── Non-Serviceable Notice Banner ─────────────────── */}
+            {location.isServiceable === false ? (
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 text-amber-950 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span className="text-xs font-extrabold text-amber-900 uppercase tracking-wide">
+                      Service Currently Unavailable
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                    Coming Soon 🚀
                   </span>
                 </div>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our technician coverage to your location soon!
+                </p>
+                <div className="pt-1 flex items-center justify-between">
+                  <span className="text-[11px] text-amber-700">
+                    Add another address or select a saved location below.
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span className="truncate">
+                    Current Location: <strong>{location.area}</strong> (Service Active)
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200 flex-shrink-0">
+                  ~{location.etaMinutes} mins
+                </span>
+              </div>
+            )}
 
+            {/* ── Saved Addresses Added by User ─────────────────── */}
+            <div>
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                  Your Added Addresses ({savedAddresses.length})
+                </span>
+              </div>
+
+              {savedAddresses.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-white border border-slate-200/90 text-center space-y-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-800">No Saved Addresses Added Yet</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    Save your Home, Work, or other doorstep addresses using our interactive map for seamless 1-click booking.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setLocationModalOpen(false);
+                      setAddressModalOpen(true);
+                    }}
+                    className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Address on Free Map
+                  </button>
+                </div>
+              ) : (
                 <div className="space-y-2">
                   {filteredAddresses.map((addr) => {
                     const isCurrent = location.fullAddress === addr.fullAddress;
@@ -192,10 +223,10 @@ export const LocationPickerModal: React.FC = () => {
                       >
                         <div
                           onClick={() => selectSavedAddress(addr.id)}
-                          className="flex items-center gap-3 flex-1 cursor-pointer"
+                          className="flex items-center gap-3 flex-1 cursor-pointer min-w-0"
                         >
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
                               isCurrent ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600'
                             }`}
                           >
@@ -207,22 +238,22 @@ export const LocationPickerModal: React.FC = () => {
                               <MapPin className="w-4 h-4" />
                             )}
                           </div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <h4
-                                className={`text-sm font-bold ${
+                                className={`text-sm font-bold truncate ${
                                   isCurrent ? 'text-[#2563EB]' : 'text-slate-900'
                                 }`}
                               >
                                 {addr.label}
                               </h4>
                               {addr.isDefault && (
-                                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex-shrink-0">
                                   Default
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-slate-500 line-clamp-1">{addr.fullAddress}</p>
+                            <p className="text-xs text-slate-500 truncate">{addr.fullAddress}</p>
                           </div>
                         </div>
 
@@ -250,79 +281,7 @@ export const LocationPickerModal: React.FC = () => {
                     );
                   })}
                 </div>
-              </div>
-            )}
-
-            {/* 2. Real Service Hubs Section */}
-            <div>
-              <div className="flex items-center justify-between px-1 mb-2">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
-                  Service Hubs ({filteredHubs.length})
-                </span>
-                <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Active Coverage
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {filteredHubs.map((hub) => {
-                  const isSelected = location.hubId === hub.id || location.area === hub.area;
-                  return (
-                    <div
-                      key={hub.id}
-                      onClick={() => handleSelectHub(hub)}
-                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between shadow-xs ${
-                        isSelected
-                          ? 'bg-blue-50/80 border-[#2563EB]'
-                          : 'bg-white border-slate-200/90 hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                            isSelected ? 'bg-[#2563EB] text-white' : 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
-                          <Radio className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4
-                              className={`text-sm font-bold ${
-                                isSelected ? 'text-[#2563EB]' : 'text-slate-900'
-                              }`}
-                            >
-                              {hub.name}
-                            </h4>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              ({hub.radiusKm} km radius)
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500 line-clamp-1">{hub.fullAddress}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <span
-                          className={`text-xs font-mono font-bold px-2 py-0.5 rounded border ${
-                            isSelected
-                              ? 'text-[#2563EB] bg-white border-blue-200'
-                              : 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                          }`}
-                        >
-                          ~{hub.baseEtaMinutes} mins
-                        </span>
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-xs">
-                            <Check className="w-3.5 h-3.5" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              )}
             </div>
           </div>
         </motion.div>

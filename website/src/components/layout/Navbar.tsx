@@ -135,8 +135,8 @@ export const Navbar: React.FC = () => {
                 : location.area}
             </span>
             {location.isServiceable === false && (
-              <span className="hidden sm:inline-block text-[9px] font-extrabold uppercase px-1 rounded bg-amber-100 text-amber-800 flex-shrink-0">
-                Out of Area
+              <span className="hidden sm:inline-block text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex-shrink-0 border border-amber-200">
+                Coming Soon
               </span>
             )}
             <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-700 flex-shrink-0 transition-colors" />

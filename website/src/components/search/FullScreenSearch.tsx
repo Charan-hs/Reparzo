@@ -34,7 +34,8 @@ export const FullScreenSearch: React.FC = () => {
     cart,
     addToCart,
     updateQuantity,
-    setActiveCategorySlug
+    setActiveCategorySlug,
+    location
   } = useAppStore();
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
@@ -353,7 +354,16 @@ export const FullScreenSearch: React.FC = () => {
 
                       {/* Right: + ADD Counter */}
                       <div className="flex-shrink-0">
-                        {quantity === 0 ? (
+                        {location.isServiceable === false ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 font-bold text-xs uppercase tracking-wider cursor-not-allowed select-none shadow-none"
+                            title={`Service currently unavailable in ${location.area}. Coming soon!`}
+                          >
+                            <span>Unavailable</span>
+                          </button>
+                        ) : quantity === 0 ? (
                           <button
                             onClick={() => addToCart(service)}
                             className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/40 font-bold text-xs uppercase tracking-wider shadow-xs active:scale-95 transition-all flex items-center gap-1 cursor-pointer"

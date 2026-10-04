@@ -19,7 +19,8 @@ import {
   Shirt,
   Waves,
   Wrench,
-  Shield
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import type { Service, Category, CartItem } from '../types';
@@ -51,7 +52,9 @@ export const ServicesPage: React.FC = () => {
     cart,
     addToCart,
     updateQuantity,
-    setCartDrawerOpen
+    setCartDrawerOpen,
+    location,
+    setLocationModalOpen
   } = useAppStore();
 
   const [sortBy, setSortBy] = useState<'popular' | 'price_asc' | 'price_desc' | 'rating' | 'duration'>('popular');
@@ -196,6 +199,37 @@ export const ServicesPage: React.FC = () => {
           </div>
         </div>
 
+        {/* ── Non-Serviceable Notice Banner ── */}
+        {location.isServiceable === false && (
+          <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/90 text-amber-950 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100/90 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-amber-950">
+                    Service Currently Unavailable in Your Location
+                  </h3>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                    Coming Soon 🚀
+                  </span>
+                </div>
+                <p className="text-xs text-amber-800 leading-relaxed max-w-2xl">
+                  Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our services to your location soon!
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setLocationModalOpen(true)}
+              className="self-start sm:self-center px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all whitespace-nowrap cursor-pointer"
+            >
+              Change Location
+            </button>
+          </div>
+        )}
+
         {/* Zero State */}
         {displayedServices.length === 0 ? (
           <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500 shadow-xs">
@@ -315,7 +349,16 @@ export const ServicesPage: React.FC = () => {
 
                       {/* Add Button / Quantity Counter */}
                       <div>
-                        {quantity === 0 ? (
+                        {location.isServiceable === false ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 font-bold text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-1 select-none shadow-none"
+                            title={`Service currently unavailable in ${location.area}. Coming soon!`}
+                          >
+                            <span>Unavailable</span>
+                          </button>
+                        ) : quantity === 0 ? (
                           <button
                             onClick={() => addToCart(service)}
                             className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/40 font-extrabold text-xs uppercase tracking-wider active:scale-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
@@ -430,14 +473,20 @@ export const ServicesPage: React.FC = () => {
                 </div>
 
                 <button
+                  disabled={location.isServiceable === false}
                   onClick={() => {
+                    if (location.isServiceable === false) return;
                     addToCart(selectedServiceModal);
                     handleCloseServiceModal();
                     setCartDrawerOpen(true);
                   }}
-                  className="px-6 py-2.5 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+                  className={`px-6 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+                    location.isServiceable === false
+                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none select-none'
+                      : 'bg-[#2563EB] hover:bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer'
+                  }`}
                 >
-                  Book Service Now
+                  {location.isServiceable === false ? 'Service Unavailable (Coming Soon)' : 'Book Service Now'}
                 </button>
               </div>
             </div>

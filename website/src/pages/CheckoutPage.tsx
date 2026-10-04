@@ -97,7 +97,7 @@ export const CheckoutPage: React.FC = () => {
 
   const handleConfirmBooking = () => {
     if (location.isServiceable === false) {
-      toast.error('Your current doorstep location is outside our technician service radius. Please choose an address inside our active Bengaluru hubs.');
+      toast.error('Currently service is not available in your location. We are working to expand our services here soon!');
       return;
     }
 
@@ -281,7 +281,7 @@ export const CheckoutPage: React.FC = () => {
                 </h3>
                 {location.isServiceable !== false ? (
                   <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    ⚡ {location.etaMinutes} Mins Hub
+                    ⚡ ~{location.etaMinutes} Mins Doorstep Arrival
                   </span>
                 ) : (
                   <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
@@ -296,9 +296,9 @@ export const CheckoutPage: React.FC = () => {
                   <div className="flex items-start gap-2.5">
                     <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold block text-amber-800">Delivery Unavailable to this Address</span>
+                      <span className="font-bold block text-amber-800">Service Currently Unavailable (Coming Soon 🚀)</span>
                       <span className="text-amber-700 text-[11px]">
-                        This location is beyond our active technician service radius. Please choose an address within our Bengaluru hubs.
+                        Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our services to your location soon!
                       </span>
                     </div>
                   </div>
@@ -705,16 +705,26 @@ export const CheckoutPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleConfirmBooking}
-                disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                disabled={isSubmitting || location.isServiceable === false}
+                className={`w-full py-4 rounded-2xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+                  location.isServiceable === false
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none select-none'
+                    : 'bg-[#2563EB] hover:bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer'
+                }`}
               >
-                <span>{isSubmitting ? 'Confirming Dispatch...' : 'Confirm & Place Booking'}</span>
+                <span>
+                  {location.isServiceable === false
+                    ? 'Service Unavailable in this Location (Coming Soon)'
+                    : isSubmitting
+                    ? 'Confirming Dispatch...'
+                    : 'Confirm & Place Booking'}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-slate-500 pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Zero cancellation fee until technician leaves hub</span>
+                <span>Zero cancellation fee before technician arrival</span>
               </div>
             </div>
           </div>

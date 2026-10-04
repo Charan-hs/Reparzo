@@ -11,7 +11,8 @@ import {
   Sparkles, 
   ShoppingBag,
   Percent,
-  Check
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -23,7 +24,9 @@ export const CartDrawer: React.FC = () => {
     updateQuantity, 
     removeFromCart, 
     clearCart,
-    getCartMetrics 
+    getCartMetrics,
+    location,
+    setLocationModalOpen
   } = useAppStore();
 
   const navigate = useNavigate();
@@ -227,17 +230,50 @@ export const CartDrawer: React.FC = () => {
           {/* Sticky Checkout CTA Footer */}
           {cart.length > 0 && (
             <div className="p-4 border-t border-slate-200 bg-white">
+              {location.isServiceable === false && (
+                <div className="mb-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-950 text-xs space-y-1.5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-amber-900">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                      <span>Service Unavailable in this Area</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 uppercase">
+                      Coming Soon 🚀
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-snug">
+                    Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are working to expand our services here soon!
+                  </p>
+                  <button
+                    onClick={() => {
+                      setCartDrawerOpen(false);
+                      setLocationModalOpen(true);
+                    }}
+                    className="text-[#2563EB] hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer pt-0.5"
+                  >
+                    Select or Add Serviceable Address →
+                  </button>
+                </div>
+              )}
+
               <button
+                disabled={location.isServiceable === false}
                 onClick={handleProceedToCheckout}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer"
+                className={`w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-between transition-all ${
+                  location.isServiceable === false
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none select-none'
+                    : 'bg-[#2563EB] hover:bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/25 active:scale-[0.98] cursor-pointer'
+                }`}
               >
                 <div className="text-left leading-tight">
                   <span className="text-[10px] block opacity-80 font-mono">To Pay</span>
-                  <span className="text-base font-mono font-black">₹{grandTotal}</span>
+                  <span className={`text-base font-mono font-black ${location.isServiceable === false ? 'text-slate-400' : 'text-white'}`}>
+                    ₹{grandTotal}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span>Proceed to Checkout</span>
+                  <span>{location.isServiceable === false ? 'Service Unavailable (Coming Soon)' : 'Proceed to Checkout'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </button>

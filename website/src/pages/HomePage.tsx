@@ -17,7 +17,8 @@ import {
   Flame,
   Award,
   Shield,
-  Wrench
+  Wrench,
+  AlertTriangle
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { BannerCarousel } from '../components/home/BannerCarousel';
@@ -32,7 +33,9 @@ export const HomePage: React.FC = () => {
     updateQuantity, 
     setActiveCategorySlug,
     setAuthModalOpen,
-    user
+    user,
+    location,
+    setLocationModalOpen
   } = useAppStore();
 
   const popularServices = services.filter((s) => s.isPopular);
@@ -41,6 +44,39 @@ export const HomePage: React.FC = () => {
     <div className="space-y-6 sm:space-y-12 pb-24 text-slate-900 bg-[#F8FAFC]">
       {/* ── 1. Infinite Banner Carousel (Themallige Style) ── */}
       <BannerCarousel />
+
+      {/* ── Non-Serviceable Area Notice Banner ── */}
+      {location.isServiceable === false && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/90 text-amber-950 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100/90 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-amber-950">
+                    Service Currently Unavailable in Your Location
+                  </h3>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                    Coming Soon 🚀
+                  </span>
+                </div>
+                <p className="text-xs text-amber-800 leading-relaxed max-w-2xl">
+                  Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our services to your location soon!
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setLocationModalOpen(true)}
+              className="self-start sm:self-center px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all whitespace-nowrap cursor-pointer"
+            >
+              Change Location
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Role-Specific Operational Hub Banner ── */}
       {user && (
@@ -244,7 +280,16 @@ export const HomePage: React.FC = () => {
 
                   {/* Blinkit Quick Add Button */}
                   <div>
-                    {quantity === 0 ? (
+                    {location.isServiceable === false ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-400 border border-slate-200 font-bold text-xs uppercase tracking-wider cursor-not-allowed select-none shadow-none"
+                        title={`Service currently unavailable in ${location.area}. Coming soon!`}
+                      >
+                        <span>Unavailable</span>
+                      </button>
+                    ) : quantity === 0 ? (
                       <button
                         onClick={() => addToCart(service)}
                         className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/40 font-extrabold text-xs uppercase tracking-wider active:scale-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs"
