@@ -93,7 +93,7 @@ export const HomePage: React.FC = () => {
                     Welcome, {user.name}
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Live telemetry: 24 active dispatches, 56 fleet partners online across Bangalore.
+                    Live telemetry: 24 active dispatches, 56 fleet partners online across Davangere.
                   </p>
                 </div>
               </div>
@@ -326,7 +326,7 @@ export const HomePage: React.FC = () => {
         <div className="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
           <div className="text-center max-w-xl mx-auto mb-8">
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              Why Bengaluru Chooses Reparzo
+              Why Davangere Chooses Reparzo
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
               Engineered for Speed, Trust & Precision

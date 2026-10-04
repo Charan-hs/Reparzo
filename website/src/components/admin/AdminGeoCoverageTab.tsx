@@ -54,10 +54,10 @@ export const AdminGeoCoverageTab: React.FC = () => {
   const [newHubName, setNewHubName] = useState('');
   const [newHubCode, setNewHubCode] = useState('');
   const [newHubArea, setNewHubArea] = useState('');
-  const [newHubCity, setNewHubCity] = useState('Bengaluru');
-  const [newHubPincode, setNewHubPincode] = useState('560001');
-  const [newHubLat, setNewHubLat] = useState(12.9716);
-  const [newHubLng, setNewHubLng] = useState(77.5946);
+  const [newHubCity, setNewHubCity] = useState('Davangere');
+  const [newHubPincode, setNewHubPincode] = useState('577002');
+  const [newHubLat, setNewHubLat] = useState(14.4660);
+  const [newHubLng, setNewHubLng] = useState(75.9260);
   const [newHubRadius, setNewHubRadius] = useState(8.0);
   const [newHubBaseEta, setNewHubBaseEta] = useState(15);
   const [isSubmitting, setIsSubmitting] = useState(false);

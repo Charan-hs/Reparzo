@@ -97,7 +97,7 @@ Creates a new on-demand service appointment.
   "customerPhone": "9876543210",
   "customerEmail": "charan@example.com",
   "address": "124, 4th Main, Indiranagar",
-  "city": "Bangalore",
+  "city": "Davangere",
   "pincode": "560038",
   "issueDescription": "Cooling not effective, compressor clicking sound",
   "scheduledAt": "2026-10-02T10:00:00Z"

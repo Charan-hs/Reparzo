@@ -8,7 +8,7 @@ export const serviceHubs = sqliteTable(
     code: text('code').notNull().unique(),
     name: text('name').notNull(),
     area: text('area').notNull(),
-    city: text('city').default('Bengaluru').notNull(),
+    city: text('city').default('Davangere').notNull(),
     pincode: text('pincode').notNull(),
     fullAddress: text('full_address').notNull(),
     latitude: real('latitude').notNull(),

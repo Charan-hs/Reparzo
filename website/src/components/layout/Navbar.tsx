@@ -80,7 +80,7 @@ export const Navbar: React.FC = () => {
           <div className="flex items-center gap-4 text-slate-300">
             <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live in Bengaluru
+              Live in Davangere
             </span>
             <span className="text-slate-600">|</span>
             {user?.role === 'admin' ? (

@@ -34,10 +34,10 @@ export const AddressMapModal: React.FC = () => {
   const markerRef = useRef<L.Marker | null>(null);
   const circlesLayerRef = useRef<L.LayerGroup | null>(null);
 
-  // Default coordinate (HSR Layout Central)
+  // Default coordinate (Davangere Central)
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({
-    lat: addressModalInitialCoords?.lat || 12.9116,
-    lng: addressModalInitialCoords?.lng || 77.6389,
+    lat: addressModalInitialCoords?.lat || 14.4485,
+    lng: addressModalInitialCoords?.lng || 75.9189,
   });
 
   const [isGeocoding, setIsGeocoding] = useState(false);
@@ -51,8 +51,8 @@ export const AddressMapModal: React.FC = () => {
   const [flatNumber, setFlatNumber] = useState('');
   const [landmark, setLandmark] = useState('');
   const [area, setArea] = useState('');
-  const [city, setCity] = useState('Bengaluru');
-  const [pincode, setPincode] = useState('560102');
+  const [city, setCity] = useState('Davangere');
+  const [pincode, setPincode] = useState('577005');
   const [fullAddress, setFullAddress] = useState('');
   const [isDefault, setIsDefault] = useState(savedAddresses.length === 0);
 

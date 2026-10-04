@@ -524,17 +524,17 @@ export const useAppStore = create<AppState>()(
 
       // Location & Serviceability
       location: {
-        area: 'HSR Layout Sector 2',
-        city: 'Bengaluru',
-        pincode: '560102',
-        fullAddress: 'HSR Layout Sector 2, Bengaluru - 560102',
-        etaMinutes: 20,
-        latitude: 12.9116,
-        longitude: 77.6389,
+        area: 'Vidyanagar',
+        city: 'Davangere',
+        pincode: '577005',
+        fullAddress: 'Vidyanagar, Davangere - 577005',
+        etaMinutes: 18,
+        latitude: 14.4485,
+        longitude: 75.9189,
         isServiceable: true,
-        hubId: 'hub-blr-hsr',
-        hubName: 'HSR Layout Sector 2 Hub',
-        distanceKm: 0.5,
+        hubId: 'hub-dvg-vid',
+        hubName: 'Vidyanagar Hub',
+        distanceKm: 0.8,
         isDefaultAddress: false,
         addressLabel: undefined,
       },
@@ -959,11 +959,35 @@ export const useAppStore = create<AppState>()(
             state.activeAddressId = state.savedAddresses[0]?.id || null;
           }
         }
-        // Clean dummy full address string if present in persistent location
-        if (state?.location?.fullAddress?.includes('Green Glen Heights')) {
-          state.location.fullAddress = `${state.location.area}, ${state.location.city} - ${state.location.pincode}`;
-          state.location.addressLabel = undefined;
-          state.location.isDefaultAddress = false;
+        // Clean legacy dummy address string or Bengaluru location in persistent storage
+        if (
+          state?.location?.fullAddress?.includes('Green Glen Heights') ||
+          state?.location?.city === 'Bengaluru' ||
+          state?.location?.fullAddress?.includes('Bengaluru') ||
+          state?.location?.fullAddress?.includes('HSR Layout')
+        ) {
+          state.location = {
+            area: 'Vidyanagar',
+            city: 'Davangere',
+            pincode: '577005',
+            fullAddress: 'Vidyanagar, Davangere - 577005',
+            etaMinutes: 18,
+            latitude: 14.4485,
+            longitude: 75.9189,
+            isServiceable: true,
+            hubId: 'hub-dvg-vid',
+            hubName: 'Vidyanagar Hub',
+            distanceKm: 0.8,
+            isDefaultAddress: false,
+            addressLabel: undefined,
+          };
+        }
+        // Migrate legacy Bengaluru hubs to Davangere hubs in persistent storage
+        if (
+          state?.serviceHubs &&
+          state.serviceHubs.some((h) => h.city === 'Bengaluru' || h.code?.startsWith('BLR'))
+        ) {
+          state.serviceHubs = DEFAULT_SERVICE_HUBS;
         }
         // Purge mock partner data from persisted orders
         if (state?.orders && Array.isArray(state.orders)) {

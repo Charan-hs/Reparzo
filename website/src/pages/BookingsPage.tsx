@@ -53,20 +53,18 @@ export const BookingsPage: React.FC = () => {
     setCustomRequestModalOpen
   } = useAppStore();
 
-  // URL query parameter support: /bookings?tab=custom or /bookings?view=custom
+  // URL query parameter support: /bookings?tab=previous
   const paramView = searchParams.get('tab') || searchParams.get('view');
-  const initialView: 'live' | 'previous' | 'custom' = 
-    paramView === 'custom' ? 'custom' : paramView === 'previous' ? 'previous' : 'live';
+  const initialView: 'live' | 'previous' = paramView === 'previous' ? 'previous' : 'live';
 
-  const [activeTab, setActiveTab] = useState<'live' | 'previous' | 'custom'>(initialView);
+  const [activeTab, setActiveTab] = useState<'live' | 'previous'>(initialView);
   const [scheduleInfoModalOrder, setScheduleInfoModalOrder] = useState<OrderBooking | null>(null);
   const [expandedScheduleOrderId, setExpandedScheduleOrderId] = useState<string | null>(null);
 
-  const handleTabChange = (tab: 'live' | 'previous' | 'custom') => {
+  const handleTabChange = (tab: 'live' | 'previous') => {
     setActiveTab(tab);
     setSearchParams(tab === 'live' ? {} : { tab });
   };
-
 
   // Live active orders: confirmed, technician_assigned, in_progress
   const liveOrders = orders.filter(
@@ -75,6 +73,17 @@ export const BookingsPage: React.FC = () => {
 
   // Past completed orders
   const previousOrders = orders.filter((o) => o.status === 'completed');
+
+  // Custom Requests categorized into Live vs Previous
+  const liveCustomRequests = customRequests.filter(
+    (r) => r.status !== 'completed' && r.status !== 'cancelled'
+  );
+  const previousCustomRequests = customRequests.filter(
+    (r) => r.status === 'completed' || r.status === 'cancelled'
+  );
+
+  const totalLiveCount = liveOrders.length + liveCustomRequests.length;
+  const totalPreviousCount = previousOrders.length + previousCustomRequests.length;
 
   // Safe date formatting helper to completely prevent 'Invalid Date' and show numeric dates
   const formatOrderDate = (dateStr?: string) => {
@@ -92,6 +101,236 @@ export const BookingsPage: React.FC = () => {
     });
     setCartDrawerOpen(true);
     toast.success(`Added ${order.items.length} services to cart`);
+  };
+
+  const renderCustomRequestCard = (req: CustomRequest, isPreviousView: boolean) => {
+    const isSubmitted = req.status === 'submitted' || req.status === 'under_review';
+    const isQuoted = req.status === 'quoted';
+    const isAssigned = req.status === 'assigned';
+    const isInProgress = req.status === 'in_progress';
+    const isCompleted = req.status === 'completed';
+    const isCancelled = req.status === 'cancelled';
+
+    const categoryEmoji = 
+      req.categoryType === 'meat_delivery' ? '🥩' :
+      req.categoryType === 'parcel_pickup' ? '📦' :
+      req.categoryType === 'courier_express' ? '🚚' :
+      req.categoryType === 'unique_repair' ? '🔧' :
+      req.categoryType === 'errand' ? '⚡' : '✨';
+
+    const isPartnerAssigned = Boolean(
+      req.partnerName &&
+      !req.partnerName.toLowerCase().includes('suresh') &&
+      !req.partnerName.toLowerCase().includes('sunil') &&
+      !req.partnerName.toLowerCase().includes('rajesh') &&
+      !req.partnerName.toLowerCase().includes('ramesh') &&
+      !req.partnerName.toLowerCase().includes('arun') &&
+      !req.partnerName.toLowerCase().includes('manjunath')
+    );
+
+    return (
+      <div
+        key={req.id}
+        className={`p-5 sm:p-6 rounded-3xl bg-white border shadow-2xs space-y-4 hover:shadow-md transition-shadow ${
+          !isPreviousView ? 'border-purple-300/80 shadow-xs' : 'border-slate-200/90'
+        }`}
+      >
+        {/* Top Header Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">{categoryEmoji}</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black font-mono text-slate-900">
+                  #{req.id}
+                </span>
+                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60">
+                  Custom Request • {req.categoryTitle}
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Submitted {formatOrderDate(req.createdAt)}
+              </span>
+            </div>
+          </div>
+
+          {/* Status Badge */}
+          <div>
+            {isSubmitted && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                Under Admin Review
+              </span>
+            )}
+            {isQuoted && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
+                <DollarSign className="w-3.5 h-3.5" />
+                Quote Ready: ₹{req.quotedPrice}
+              </span>
+            )}
+            {isAssigned && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                <User className="w-3.5 h-3.5" />
+                Runner / Specialist Assigned
+              </span>
+            )}
+            {isInProgress && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                In Progress
+              </span>
+            )}
+            {isCompleted && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Completed
+              </span>
+            )}
+            {isCancelled && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-800 border border-rose-200">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                Cancelled
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Request Title & Description */}
+        <div>
+          <h4 className="text-base font-extrabold text-slate-900">
+            {req.title}
+          </h4>
+          <p className="text-xs text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            {req.description}
+          </p>
+        </div>
+
+        {/* Location & Scheduling Info */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          {req.isDelivery && req.pickupAddress ? (
+            <>
+              <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60">
+                <span className="text-[10px] font-extrabold uppercase text-amber-800 flex items-center gap-1 mb-0.5">
+                  <MapPin className="w-3 h-3 text-amber-600" /> Pickup Location:
+                </span>
+                <span className="text-slate-800 font-medium">{req.pickupAddress}</span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-200/60">
+                <span className="text-[10px] font-extrabold uppercase text-blue-800 flex items-center gap-1 mb-0.5">
+                  <Navigation className="w-3 h-3 text-[#2563EB]" /> Drop Destination:
+                </span>
+                <span className="text-slate-800 font-medium">{req.dropAddress || req.serviceAddress}</span>
+              </div>
+            </>
+          ) : (
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 sm:col-span-2">
+              <span className="text-[10px] font-extrabold uppercase text-slate-500 flex items-center gap-1 mb-0.5">
+                <MapPin className="w-3 h-3 text-[#2563EB]" /> Doorstep Service Address:
+              </span>
+              <span className="text-slate-800 font-medium">{req.serviceAddress}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Urgency & Timing Badge */}
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span>Slot: <strong className="text-slate-800">{req.preferredDate} ({req.preferredTimeSlot})</strong></span>
+          </div>
+          {req.estimatedBudget && (
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Target Budget: <strong className="text-slate-800">₹{req.estimatedBudget}</strong></span>
+            </div>
+          )}
+        </div>
+
+        {/* Admin Operational Updates / Notes */}
+        {req.adminNotes && (
+          <div className="p-3 rounded-2xl bg-purple-50/80 border border-purple-200/70 text-xs">
+            <span className="text-[10px] font-black uppercase text-purple-900 block mb-0.5">
+              Admin Operations Note:
+            </span>
+            <p className="text-purple-950 font-medium leading-relaxed">
+              {req.adminNotes}
+            </p>
+          </div>
+        )}
+
+        {/* Assigned Partner Card */}
+        {isPartnerAssigned && (
+          <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                <User className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold uppercase text-emerald-800 block">
+                  Assigned Runner / Specialist:
+                </span>
+                <span className="font-extrabold text-slate-900 block">{req.partnerName}</span>
+                {req.partnerPhone && (
+                  <span className="text-slate-600 font-mono text-[11px]">{req.partnerPhone}</span>
+                )}
+              </div>
+            </div>
+
+            {req.partnerPhone && (
+              <a
+                href={`tel:${req.partnerPhone}`}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>Call</span>
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Bottom Action Bar */}
+        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            {req.quotedPrice ? (
+              <div>
+                <span className="text-[10px] uppercase text-slate-400 block font-semibold">Admin Quote</span>
+                <span className="text-lg font-black font-mono text-[#2563EB]">₹{req.quotedPrice}</span>
+              </div>
+            ) : (
+              <div>
+                <span className="text-[10px] uppercase text-slate-400 block font-semibold">Pricing Status</span>
+                <span className="text-xs font-bold text-amber-700">Awaiting Admin Calculation</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {isQuoted && (
+              <button
+                type="button"
+                onClick={() => {
+                  updateCustomRequestStatus(req.id, 'assigned');
+                  toast.success(`Quote accepted for #${req.id}! Operations desk is assigning the closest runner.`);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Accept Quote & Confirm</span>
+              </button>
+            )}
+
+            <a
+              href="tel:+918045678900"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Phone className="w-3.5 h-3.5 text-slate-500" />
+              <span>Contact Admin Desk</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -142,11 +381,11 @@ export const BookingsPage: React.FC = () => {
 
             {/* Live Status Badge Indicator */}
             <div className="flex-shrink-0">
-              {liveOrders.length > 0 ? (
+              {totalLiveCount > 0 ? (
                 <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-center sm:text-right">
                   <div className="flex items-center justify-center sm:justify-end gap-2 text-xs font-bold text-emerald-300">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span>{liveOrders.length} {liveOrders.length === 1 ? 'Live Booking Active' : 'Live Bookings Active'}</span>
+                    <span>{totalLiveCount} {totalLiveCount === 1 ? 'Live Booking Active' : 'Live Bookings Active'}</span>
                   </div>
                   <span className="text-[11px] text-blue-200 block mt-0.5 font-medium">
                     Order on schedule
@@ -164,75 +403,48 @@ export const BookingsPage: React.FC = () => {
 
         {/* ── Primary Live vs Previous Segmented Tabs ──────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
-          <div className="overflow-x-auto no-scrollbar -mx-1 px-1 max-w-full">
-            <div className="inline-flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
-              <button
-                onClick={() => handleTabChange('live')}
-                className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                  activeTab === 'live'
-                    ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  liveOrders.length > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-300'
-                }`} />
-                <span>Live Bookings</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex-shrink-0 ${
-                  activeTab === 'live' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {liveOrders.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleTabChange('previous')}
-                className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                  activeTab === 'previous'
-                    ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <RotateCcw className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>Previous Bookings</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex-shrink-0 ${
-                  activeTab === 'previous' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {previousOrders.length}
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleTabChange('custom')}
-                className={`px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap flex-shrink-0 ${
-                  activeTab === 'custom'
-                    ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                <span>Custom Requests</span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex-shrink-0 ${
-                  activeTab === 'custom' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {customRequests.length}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+          <div className="inline-flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200/90 shadow-2xs">
             <button
-              onClick={() => setCustomRequestModalOpen(true, 'other')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 whitespace-nowrap"
+              onClick={() => handleTabChange('live')}
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'live'
+                  ? 'bg-[#2563EB] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 flex-shrink-0" />
-              <span>+ Custom Request</span>
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                totalLiveCount > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-300'
+              }`} />
+              <span>Live Bookings</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex-shrink-0 ${
+                activeTab === 'live' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+              }`}>
+                {totalLiveCount}
+              </span>
             </button>
 
             <button
+              onClick={() => handleTabChange('previous')}
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'previous'
+                  ? 'bg-[#2563EB] text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <RotateCcw className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>Previous Bookings</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex-shrink-0 ${
+                activeTab === 'previous' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
+              }`}>
+                {totalPreviousCount}
+              </span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
               onClick={() => navigate('/services')}
-              className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 whitespace-nowrap"
             >
               <span>+ Book Service</span>
             </button>
@@ -242,7 +454,7 @@ export const BookingsPage: React.FC = () => {
         {/* ── View 1: LIVE BOOKINGS (Default View) ─────────────────── */}
         {activeTab === 'live' && (
           <div className="space-y-4">
-            {liveOrders.length === 0 ? (
+            {totalLiveCount === 0 ? (
               /* Empty state for Live Bookings */
               <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 text-center space-y-4 shadow-sm">
                 <div className="w-16 h-16 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center mx-auto">
@@ -251,7 +463,7 @@ export const BookingsPage: React.FC = () => {
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900">No Live Bookings Right Now</h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                    You do not have any ongoing repairs or active technician dispatches in progress.
+                    You do not have any ongoing repairs, active deliveries, or custom requests in progress.
                   </p>
                 </div>
 
@@ -263,19 +475,19 @@ export const BookingsPage: React.FC = () => {
                     <span>Book a Doorstep Repair</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                  {previousOrders.length > 0 && (
+                  {totalPreviousCount > 0 && (
                     <button
                       onClick={() => handleTabChange('previous')}
                       className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>View Previous Bookings ({previousOrders.length})</span>
+                      <span>View Previous Bookings ({totalPreviousCount})</span>
                     </button>
                   )}
                 </div>
               </div>
             ) : (
-              /* List of Live Active Orders */
+              /* List of Live Active Orders & Custom Requests */
               <div className="space-y-5">
                 {liveOrders.map((order) => {
                   const completionPin = order.completionPin || order.id.replace(/\D/g, '').slice(-4) || '1234';
@@ -639,6 +851,8 @@ export const BookingsPage: React.FC = () => {
                     </div>
                   );
                 })}
+                {/* Live Custom Requests */}
+                {liveCustomRequests.map((req) => renderCustomRequestCard(req, false))}
               </div>
             )}
           </div>
@@ -647,7 +861,7 @@ export const BookingsPage: React.FC = () => {
         {/* ── View 2: PREVIOUS / PAST BOOKINGS ─────────────────────── */}
         {activeTab === 'previous' && (
           <div className="space-y-4">
-            {previousOrders.length === 0 ? (
+            {totalPreviousCount === 0 ? (
               /* Empty state for Previous Bookings */
               <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 text-center space-y-4 shadow-sm">
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -656,7 +870,7 @@ export const BookingsPage: React.FC = () => {
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900">No Previous Bookings Yet</h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto">
-                    Once your doorstep repair services are completed, your past invoices and reorder shortcuts will appear here.
+                    Once your doorstep repair services or custom deliveries are completed, your past invoices and records will appear here.
                   </p>
                 </div>
                 <button
@@ -667,7 +881,7 @@ export const BookingsPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              /* List of Previous Orders */
+              /* List of Previous Orders & Previous Custom Requests */
               <div className="space-y-4">
                 {previousOrders.map((order) => {
                   const orderMeta = getOrderTypeDetails(order.items);
@@ -733,268 +947,22 @@ export const BookingsPage: React.FC = () => {
                               <RotateCcw className="w-3.5 h-3.5" />
                               <span>{orderMeta.kind === 'service' ? 'Book Again' : 'Order Again'}</span>
                             </button>
-                          <button
-                            onClick={() => {
-                              toast.success(`Tax Invoice for ${order.id} ready.`);
-                            }}
-                            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer border border-slate-200"
-                          >
-                            Download Invoice
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── View 3: CUSTOM & UNIQUE REQUESTS ───────────────────── */}
-        {activeTab === 'custom' && (
-          <div className="space-y-4">
-            {customRequests.length === 0 ? (
-              /* Empty state for Custom Requests */
-              <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 text-center space-y-4 shadow-sm">
-                <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto">
-                  <Sparkles className="w-8 h-8 text-amber-500" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900">No Custom Requests Submitted Yet</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                    Have a unique requirement? From fresh meat cuts at a local butcher to forgotten parcel pickup or specialized appliance fixes, submit directly to Reparzo Admin.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCustomRequestModalOpen(true, 'other')}
-                  className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer inline-flex items-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Submit Your First Custom Request ➔</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {customRequests.map((req: CustomRequest) => {
-                  const isSubmitted = req.status === 'submitted' || req.status === 'under_review';
-                  const isQuoted = req.status === 'quoted';
-                  const isAssigned = req.status === 'assigned';
-                  const isInProgress = req.status === 'in_progress';
-                  const isCompleted = req.status === 'completed';
-                  const isCancelled = req.status === 'cancelled';
-
-                  const categoryEmoji = 
-                    req.categoryType === 'meat_delivery' ? '🥩' :
-                    req.categoryType === 'parcel_pickup' ? '📦' :
-                    req.categoryType === 'courier_express' ? '🚚' :
-                    req.categoryType === 'unique_repair' ? '🔧' :
-                    req.categoryType === 'errand' ? '⚡' : '✨';
-
-                  return (
-                    <div
-                      key={req.id}
-                      className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-2xs space-y-4 hover:shadow-md transition-shadow"
-                    >
-                      {/* Top Header Row */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-2xl">{categoryEmoji}</span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-black font-mono text-slate-900">
-                                #{req.id}
-                              </span>
-                              <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                                {req.categoryTitle}
-                              </span>
-                            </div>
-                            <span className="text-[11px] text-slate-400">
-                              Submitted {formatOrderDate(req.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div>
-                          {isSubmitted && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
-                              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                              Under Admin Review
-                            </span>
-                          )}
-                          {isQuoted && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                              <DollarSign className="w-3.5 h-3.5" />
-                              Quote Ready: ₹{req.quotedPrice}
-                            </span>
-                          )}
-                          {isAssigned && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
-                              <User className="w-3.5 h-3.5" />
-                              Runner / Specialist Assigned
-                            </span>
-                          )}
-                          {isInProgress && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                              <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-                              In Progress
-                            </span>
-                          )}
-                          {isCompleted && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                              Completed
-                            </span>
-                          )}
-                          {isCancelled && (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-50 text-rose-800 border border-rose-200">
-                              <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                              Cancelled
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Request Title & Description */}
-                      <div>
-                        <h4 className="text-base font-extrabold text-slate-900">
-                          {req.title}
-                        </h4>
-                        <p className="text-xs text-slate-600 mt-1 leading-relaxed bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                          {req.description}
-                        </p>
-                      </div>
-
-                      {/* Location & Scheduling Info */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        {req.isDelivery && req.pickupAddress ? (
-                          <>
-                            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60">
-                              <span className="text-[10px] font-extrabold uppercase text-amber-800 flex items-center gap-1 mb-0.5">
-                                <MapPin className="w-3 h-3 text-amber-600" /> Pickup Location:
-                              </span>
-                              <span className="text-slate-800 font-medium">{req.pickupAddress}</span>
-                            </div>
-
-                            <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-200/60">
-                              <span className="text-[10px] font-extrabold uppercase text-blue-800 flex items-center gap-1 mb-0.5">
-                                <Navigation className="w-3 h-3 text-[#2563EB]" /> Drop Destination:
-                              </span>
-                              <span className="text-slate-800 font-medium">{req.dropAddress || req.serviceAddress}</span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 sm:col-span-2">
-                            <span className="text-[10px] font-extrabold uppercase text-slate-500 flex items-center gap-1 mb-0.5">
-                              <MapPin className="w-3 h-3 text-[#2563EB]" /> Doorstep Service Address:
-                            </span>
-                            <span className="text-slate-800 font-medium">{req.serviceAddress}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Urgency & Timing Badge */}
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-blue-600" />
-                          <span>Slot: <strong className="text-slate-800">{req.preferredDate} ({req.preferredTimeSlot})</strong></span>
-                        </div>
-                        {req.estimatedBudget && (
-                          <div className="flex items-center gap-1.5">
-                            <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>Your Target Budget: <strong className="text-slate-800">₹{req.estimatedBudget}</strong></span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Admin Operational Updates / Notes */}
-                      {req.adminNotes && (
-                        <div className="p-3 rounded-2xl bg-purple-50/80 border border-purple-200/70 text-xs">
-                          <span className="text-[10px] font-black uppercase text-purple-900 block mb-0.5">
-                            Admin Operations Note:
-                          </span>
-                          <p className="text-purple-950 font-medium leading-relaxed">
-                            {req.adminNotes}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Assigned Partner Card */}
-                      {req.partnerName && (
-                        <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                              <User className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-extrabold uppercase text-emerald-800 block">
-                                Assigned Runner / Specialist:
-                              </span>
-                              <span className="font-extrabold text-slate-900 block">{req.partnerName}</span>
-                              {req.partnerPhone && (
-                                <span className="text-slate-600 font-mono text-[11px]">{req.partnerPhone}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          {req.partnerPhone && (
-                            <a
-                              href={`tel:${req.partnerPhone}`}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                            >
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>Call</span>
-                            </a>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Bottom Action Bar */}
-                      <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          {req.quotedPrice ? (
-                            <div>
-                              <span className="text-[10px] uppercase text-slate-400 block font-semibold">Admin Quote</span>
-                              <span className="text-lg font-black font-mono text-[#2563EB]">₹{req.quotedPrice}</span>
-                            </div>
-                          ) : (
-                            <div>
-                              <span className="text-[10px] uppercase text-slate-400 block font-semibold">Pricing Status</span>
-                              <span className="text-xs font-bold text-amber-700">Awaiting Admin Calculation</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {isQuoted && (
                             <button
-                              type="button"
                               onClick={() => {
-                                updateCustomRequestStatus(req.id, 'assigned');
-                                toast.success(`Quote accepted for #${req.id}! Operations desk is assigning the closest runner.`);
+                                toast.success(`Tax Invoice for ${order.id} ready.`);
                               }}
-                              className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-extrabold uppercase tracking-wider shadow-xs active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer border border-slate-200"
                             >
-                              <Check className="w-3.5 h-3.5" />
-                              <span>Accept Quote & Confirm</span>
+                              Download Invoice
                             </button>
-                          )}
-
-                          <a
-                            href="tel:+918045678900"
-                            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Phone className="w-3.5 h-3.5 text-slate-500" />
-                            <span>Contact Admin Desk</span>
-                          </a>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
+                {/* Previous Custom Requests */}
+                {previousCustomRequests.map((req) => renderCustomRequestCard(req, true))}
               </div>
             )}
           </div>

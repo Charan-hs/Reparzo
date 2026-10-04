@@ -2,81 +2,81 @@ import type { ServiceHub, ServiceabilityResult } from '../types';
 
 export const DEFAULT_SERVICE_HUBS: ServiceHub[] = [
   {
-    id: 'hub-blr-hsr',
-    code: 'BLR-HSR-01',
-    name: 'HSR Layout Sector 2 Hub',
-    area: 'HSR Layout, Sector 2',
-    city: 'Bengaluru',
-    pincode: '560102',
-    fullAddress: '14th Main Road, HSR Layout Sector 2, Bengaluru, Karnataka 560102',
-    latitude: 12.9116,
-    longitude: 77.6389,
-    radiusKm: 8.0,
-    baseEtaMinutes: 18,
+    id: 'hub-dvg-vid',
+    code: 'DVG-VID-01',
+    name: 'Vidyanagar Hub',
+    area: 'Vidyanagar',
+    city: 'Davangere',
+    pincode: '577005',
+    fullAddress: 'Main Road, Vidyanagar, Davangere, Karnataka 577005',
+    latitude: 14.4485,
+    longitude: 75.9189,
+    radiusKm: 10.0,
+    baseEtaMinutes: 15,
     perKmEtaMinutes: 2.0,
     isActive: true,
     order: 1,
   },
   {
-    id: 'hub-blr-kor',
-    code: 'BLR-KOR-02',
-    name: 'Koramangala 4th Block Hub',
-    area: 'Koramangala 4th Block',
-    city: 'Bengaluru',
-    pincode: '560034',
-    fullAddress: '80 Feet Road, 4th Block Koramangala, Bengaluru, Karnataka 560034',
-    latitude: 12.9345,
-    longitude: 77.6264,
-    radiusKm: 7.5,
-    baseEtaMinutes: 20,
-    perKmEtaMinutes: 2.2,
+    id: 'hub-dvg-mcc',
+    code: 'DVG-MCC-02',
+    name: "MCC 'B' Block Hub",
+    area: 'MCC B Block',
+    city: 'Davangere',
+    pincode: '577004',
+    fullAddress: 'Near Kuvempu Park, MCC B Block, Davangere, Karnataka 577004',
+    latitude: 14.4690,
+    longitude: 75.9220,
+    radiusKm: 10.0,
+    baseEtaMinutes: 18,
+    perKmEtaMinutes: 2.0,
     isActive: true,
     order: 2,
   },
   {
-    id: 'hub-blr-ind',
-    code: 'BLR-IND-03',
-    name: 'Indiranagar 100ft Road Hub',
-    area: 'Indiranagar 100ft Road',
-    city: 'Bengaluru',
-    pincode: '560038',
-    fullAddress: '12th Main, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560038',
-    latitude: 12.9719,
-    longitude: 77.6412,
-    radiusKm: 8.0,
-    baseEtaMinutes: 22,
+    id: 'hub-dvg-pb',
+    code: 'DVG-PBR-03',
+    name: 'PB Road Central Hub',
+    area: 'PB Road, Clock Tower',
+    city: 'Davangere',
+    pincode: '577002',
+    fullAddress: 'PB Road Central, City Center, Davangere, Karnataka 577002',
+    latitude: 14.4660,
+    longitude: 75.9260,
+    radiusKm: 12.0,
+    baseEtaMinutes: 15,
     perKmEtaMinutes: 2.0,
     isActive: true,
     order: 3,
   },
   {
-    id: 'hub-blr-whf',
-    code: 'BLR-WHF-04',
-    name: 'Whitefield Inner Circle Hub',
-    area: 'Whitefield Inner Circle',
-    city: 'Bengaluru',
-    pincode: '560066',
-    fullAddress: 'ITPL Main Road, Whitefield, Bengaluru, Karnataka 560066',
-    latitude: 12.9698,
-    longitude: 77.7500,
+    id: 'hub-dvg-nij',
+    code: 'DVG-NIJ-04',
+    name: 'Nijalingappa Layout Hub',
+    area: 'Nijalingappa Layout',
+    city: 'Davangere',
+    pincode: '577004',
+    fullAddress: 'Ring Road, Nijalingappa Layout, Davangere, Karnataka 577004',
+    latitude: 14.4550,
+    longitude: 75.9350,
     radiusKm: 10.0,
-    baseEtaMinutes: 25,
-    perKmEtaMinutes: 2.5,
+    baseEtaMinutes: 20,
+    perKmEtaMinutes: 2.0,
     isActive: true,
     order: 4,
   },
   {
-    id: 'hub-blr-jay',
-    code: 'BLR-JAY-05',
-    name: 'Jayanagar 4th T Block Hub',
-    area: 'Jayanagar 4th T Block',
-    city: 'Bengaluru',
-    pincode: '560041',
-    fullAddress: '11th Main, 4th Block Jayanagar, Bengaluru, Karnataka 560041',
-    latitude: 12.9250,
-    longitude: 77.5838,
-    radiusKm: 7.0,
-    baseEtaMinutes: 20,
+    id: 'hub-dvg-ktj',
+    code: 'DVG-KTJ-05',
+    name: 'KTJ Nagar Hub',
+    area: 'KTJ Nagar',
+    city: 'Davangere',
+    pincode: '577002',
+    fullAddress: 'Station Road, KTJ Nagar, Davangere, Karnataka 577002',
+    latitude: 14.4750,
+    longitude: 75.9120,
+    radiusKm: 10.0,
+    baseEtaMinutes: 18,
     perKmEtaMinutes: 2.0,
     isActive: true,
     order: 5,
@@ -202,9 +202,9 @@ export async function reverseGeocode(
 
     const suburb = addr.suburb || addr.neighbourhood || addr.residential || addr.subdistrict;
     const road = addr.road || addr.pedestrian || addr.street;
-    const city = addr.city || addr.town || addr.village || addr.county || 'Bengaluru';
+    const city = addr.city || addr.town || addr.village || addr.county || 'Davangere';
     const state = addr.state || 'Karnataka';
-    const pincode = addr.postcode || '560001';
+    const pincode = addr.postcode || '577002';
 
     const areaName = suburb ? (road ? `${road}, ${suburb}` : suburb) : (road || `${city} Central`);
     const fullAddress = data.display_name || `${areaName}, ${city}, ${state} - ${pincode}`;
@@ -223,9 +223,9 @@ export async function reverseGeocode(
     // Fallback coordinates representation
     return {
       area: `Location (${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E)`,
-      city: 'Bengaluru',
-      pincode: '560001',
-      fullAddress: `Detected coordinates [${lat.toFixed(4)}, ${lng.toFixed(4)}], Bengaluru, Karnataka`,
+      city: 'Davangere',
+      pincode: '577002',
+      fullAddress: `Detected coordinates [${lat.toFixed(4)}, ${lng.toFixed(4)}], Davangere, Karnataka`,
     };
   }
 }
@@ -266,7 +266,7 @@ export async function searchPlaces(query: string): Promise<PlaceSearchResult[]> 
 
     return data.map((item: any) => {
       const addr = item.address || {};
-      const city = addr.city || addr.town || addr.county || 'Bengaluru';
+      const city = addr.city || addr.town || addr.county || 'Davangere';
       const pincode = addr.postcode || '';
       return {
         placeId: String(item.place_id || Math.random()),

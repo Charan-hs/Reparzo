@@ -21,7 +21,7 @@ bookingsRoutes.post('/', async (c) => {
     customerEmail,
     customerPhone,
     address,
-    city = 'Bangalore',
+    city = 'Davangere',
     pincode,
     issueDescription,
     scheduledAt,

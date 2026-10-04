@@ -15,7 +15,7 @@ export const bookings = sqliteTable(
     customerEmail: text('customer_email').notNull(),
     customerPhone: text('customer_phone').notNull(),
     address: text('address').notNull(),
-    city: text('city').default('Bangalore').notNull(),
+    city: text('city').default('Davangere').notNull(),
     pincode: text('pincode').notNull(),
     issueDescription: text('issue_description'),
     status: text('status', {

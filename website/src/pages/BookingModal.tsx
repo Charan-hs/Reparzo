@@ -58,7 +58,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         customerEmail: customerEmail || 'Contact@reparzo.com',
         address,
         pincode,
-        city: 'Bangalore',
+        city: 'Davangere',
         issueDescription,
         scheduledAt: new Date(scheduledDate).toISOString(),
       });

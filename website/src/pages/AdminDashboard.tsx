@@ -302,7 +302,7 @@ export const AdminDashboard: React.FC = () => {
 
   const handleToggleSurge = () => {
     setSurgeActive(!surgeActive);
-    toast.info(!surgeActive ? 'Rain / High-Demand Surge Pricing (+15%) enabled across Bengaluru' : 'Surge Pricing deactivated');
+    toast.info(!surgeActive ? 'Rain / High-Demand Surge Pricing (+15%) enabled across Davangere' : 'Surge Pricing deactivated');
   };
 
   return (
@@ -315,7 +315,7 @@ export const AdminDashboard: React.FC = () => {
               SuperAdmin
             </span>
             <span className="font-bold text-slate-200">
-              Reparzo Central Operations Hub • Bengaluru Metropolitan Grid
+              Reparzo Central Operations Hub • Davangere Operations Grid
             </span>
           </div>
 
@@ -427,7 +427,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="text-2xl sm:text-3xl font-mono font-black text-emerald-600">
               21 mins
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Across 8 Bangalore Zones</p>
+            <p className="text-[11px] text-slate-400 mt-1">Across 5 Davangere Hub Zones</p>
           </div>
         </div>
 

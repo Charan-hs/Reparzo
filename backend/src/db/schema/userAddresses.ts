@@ -11,7 +11,7 @@ export const userAddresses = sqliteTable(
     flatNumber: text('flat_number'),
     landmark: text('landmark'),
     area: text('area').notNull(),
-    city: text('city').default('Bengaluru').notNull(),
+    city: text('city').default('Davangere').notNull(),
     pincode: text('pincode').notNull(),
     latitude: real('latitude'),
     longitude: real('longitude'),

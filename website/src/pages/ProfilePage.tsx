@@ -216,7 +216,7 @@ export const ProfilePage: React.FC = () => {
                   )}
                   <span className="inline-flex items-center gap-1.5 text-slate-500 font-medium">
                     <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                    {location.area || 'Bengaluru'}
+                    {location.area || 'Davangere'}
                   </span>
                 </div>
               </div>
