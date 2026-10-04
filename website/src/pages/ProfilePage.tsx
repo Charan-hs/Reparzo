@@ -68,8 +68,22 @@ export const ProfilePage: React.FC = () => {
   const [editPhone, setEditPhone] = useState(user?.phone || '');
   const [editEmail, setEditEmail] = useState(user?.email || '');
 
-  // Bookings filter
-  const [bookingFilter, setBookingFilter] = useState<'all' | 'active' | 'completed'>('all');
+  // Safe date formatting helper to prevent 'Invalid Date'
+  const formatOrderDate = (dateStr?: string) => {
+    if (!dateStr) return 'Recently';
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-IN', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+    return dateStr;
+  };
+
+  // Bookings filter - default to active live repairs
+  const [bookingFilter, setBookingFilter] = useState<'all' | 'active' | 'completed'>('active');
 
   const openEditProfile = () => {
     if (!user) {
@@ -335,13 +349,22 @@ export const ProfilePage: React.FC = () => {
                 </button>
               </div>
 
-              <button
-                onClick={() => navigate('/services')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Book New Service</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/bookings"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold transition-all border border-blue-200"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Live Dispatch View ➔</span>
+                </Link>
+                <button
+                  onClick={() => navigate('/services')}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Book New Service</span>
+                </button>
+              </div>
             </div>
 
             {filteredOrders.length === 0 ? (
@@ -386,11 +409,7 @@ export const ProfilePage: React.FC = () => {
                               <span className="text-sm font-black font-mono text-slate-900">{order.id}</span>
                               <span className="text-[11px] text-slate-400">•</span>
                               <span className="text-xs font-medium text-slate-500">
-                                {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric'
-                                })}
+                                {formatOrderDate(order.createdAt)}
                               </span>
                             </div>
                             <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1 mt-0.5">

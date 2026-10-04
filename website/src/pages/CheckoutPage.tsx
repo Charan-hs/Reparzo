@@ -148,7 +148,7 @@ export const CheckoutPage: React.FC = () => {
         paymentMethod,
         paymentStatus: paymentMethod === 'cash' ? 'pending' : 'paid',
         status: 'confirmed',
-        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: new Date().toISOString(),
         technicianName: 'Ramesh Gowda (Certified Master Technician)',
         technicianPhone: '+91 98450 88219',
       };
@@ -195,7 +195,12 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-xs font-bold text-slate-900 block">Booking Confirmed</span>
-                    <span className="text-[11px] text-slate-500">{completedOrder.createdAt}</span>
+                    <span className="text-[11px] text-slate-500">
+                      {(() => {
+                        const d = new Date(completedOrder.createdAt);
+                        return !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : completedOrder.createdAt;
+                      })()}
+                    </span>
                   </div>
                 </div>
 

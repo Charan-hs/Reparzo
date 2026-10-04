@@ -314,7 +314,7 @@ export const Navbar: React.FC = () => {
                       </Link>
 
                       <Link
-                        to="/profile?tab=bookings"
+                        to="/bookings"
                         onClick={() => setRoleMenuOpen(false)}
                         className="w-full px-4 py-2 text-left text-xs font-bold text-slate-800 hover:bg-slate-50 flex items-center gap-2"
                       >

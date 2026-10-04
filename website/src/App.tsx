@@ -18,6 +18,7 @@ import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { BookingsPage } from './pages/BookingsPage';
 import { PartnerDashboard } from './pages/PartnerDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { HealthPage } from './pages/HealthPage';
@@ -100,7 +101,8 @@ export function App() {
             <Route path="/cart" element={<CheckoutPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/account" element={<ProfilePage />} />
-            <Route path="/bookings" element={<ProfilePage />} />
+            <Route path="/bookings" element={<BookingsPage />} />
+            <Route path="/orders" element={<BookingsPage />} />
             <Route path="/health" element={<HealthPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/terms-and-conditions" element={<TermsPage />} />
