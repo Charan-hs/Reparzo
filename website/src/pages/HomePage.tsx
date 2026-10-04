@@ -45,31 +45,30 @@ export const HomePage: React.FC = () => {
       {/* ── 1. Infinite Banner Carousel (Themallige Style) ── */}
       <BannerCarousel />
 
-      {/* ── Non-Serviceable Area Notice Banner (Compact & Sleek) ── */}
+      {/* ── Non-Serviceable Area Notice Banner (Fully readable & compact) ── */}
       {location.isServiceable === false && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2 mb-2">
-          <div className="px-3.5 py-2 sm:py-2.5 rounded-2xl bg-amber-50/95 border border-amber-200/90 text-amber-950 shadow-2xs flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 min-w-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-2 mb-2">
+          <div className="p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-amber-50/95 border border-amber-200/90 text-amber-950 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-              <div className="flex items-center gap-2 truncate">
-                <span className="text-xs text-amber-950 font-medium truncate">
-                  Service currently unavailable in <strong className="font-bold">{location.area}</strong>
-                </span>
-                <span className="hidden sm:inline-block text-amber-700 text-[11px]">
-                  — expanding coverage soon!
-                </span>
-              </div>
-              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-900 flex-shrink-0 whitespace-nowrap">
-                Coming Soon 🚀
-              </span>
+              <p className="text-xs text-amber-950 font-medium leading-snug">
+                Service currently unavailable in <strong className="font-bold text-amber-900">{location.area}</strong>
+                <span className="hidden md:inline text-amber-700 text-[11px]"> — expanding technician coverage soon!</span>
+              </p>
             </div>
 
-            <button
-              onClick={() => setLocationModalOpen(true)}
-              className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition-all whitespace-nowrap cursor-pointer flex-shrink-0"
-            >
-              Change Location
-            </button>
+            <div className="flex items-center justify-between sm:justify-end gap-2.5 pl-6 sm:pl-0">
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-900 flex-shrink-0">
+                Coming Soon 🚀
+              </span>
+              <button
+                type="button"
+                onClick={() => setLocationModalOpen(true)}
+                className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition-all whitespace-nowrap cursor-pointer"
+              >
+                Change Location
+              </button>
+            </div>
           </div>
         </div>
       )}

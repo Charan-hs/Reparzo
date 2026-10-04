@@ -308,19 +308,19 @@ export const CheckoutPage: React.FC = () => {
 
               {/* Serviceability Warning Banner if out of radius (Sleek & Minimized) */}
               {location.isServiceable === false && (
-                <div className="px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between gap-3 shadow-xs">
-                  <div className="flex items-center gap-2 min-w-0">
+                <div className="p-2.5 sm:px-3.5 sm:py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                  <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span className="truncate text-xs text-amber-900">
+                    <span className="text-xs text-amber-900 font-medium">
                       Service unavailable in <strong>{location.area}</strong> (Coming Soon 🚀)
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setLocationModalOpen(true)}
-                    className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shadow-xs flex-shrink-0"
+                    className="self-end sm:self-center px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] whitespace-nowrap cursor-pointer transition-colors shadow-xs flex-shrink-0"
                   >
-                    Change
+                    Change Address
                   </button>
                 </div>
               )}

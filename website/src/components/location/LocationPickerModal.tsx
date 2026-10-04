@@ -147,11 +147,11 @@ export const LocationPickerModal: React.FC = () => {
             
             {/* ── Non-Serviceable Notice Banner (Sleek & Minimized) ─────────────────── */}
             {location.isServiceable === false ? (
-              <div className="px-3.5 py-2 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 flex items-center justify-between gap-2.5 text-xs shadow-xs">
-                <div className="flex items-center gap-2 min-w-0">
+              <div className="px-3.5 py-2.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-950 flex items-center justify-between gap-2.5 text-xs shadow-xs">
+                <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <p className="truncate text-xs text-amber-900 leading-tight">
-                    Service unavailable in <strong>{location.area}</strong> — expanding technician coverage soon!
+                  <p className="text-xs text-amber-900 leading-snug">
+                    Service unavailable in <strong>{location.area}</strong>
                   </p>
                 </div>
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 flex-shrink-0 whitespace-nowrap">
