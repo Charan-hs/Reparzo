@@ -123,6 +123,9 @@ export interface AppState {
   orders: OrderBooking[];
   addOrder: (order: OrderBooking) => void;
   updateOrderStatus: (orderId: string, status: OrderBooking['status']) => void;
+  updateOrder: (orderId: string, updates: Partial<OrderBooking>) => void;
+  deleteOrder: (orderId: string) => void;
+  resetOrdersToDefault: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -815,6 +818,16 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           orders: state.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
         })),
+      updateOrder: (orderId, updates) =>
+        set((state) => ({
+          orders: state.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
+        })),
+      deleteOrder: (orderId) =>
+        set((state) => ({
+          orders: state.orders.filter((o) => o.id !== orderId),
+        })),
+      resetOrdersToDefault: () =>
+        set({ orders: INITIAL_ORDERS }),
     }),
     {
       name: 'reparzo-app-storage',

@@ -73,7 +73,7 @@ export const Navbar: React.FC = () => {
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-[#E32402] text-white">
               ⚡ Live Fast Service
             </span>
-            <span>Technicians available right now • Average Doorstep Arrival: <strong className="text-white">18–25 mins</strong></span>
+            <span>Doorstep service active • Working Hours: <strong className="text-white">10:00 AM – 06:00 PM</strong></span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-300">

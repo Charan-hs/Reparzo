@@ -155,7 +155,7 @@ export const HomePage: React.FC = () => {
                   Welcome back, {user.name.split(' ')[0]}!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Verified technicians nearby in your area. Doorstep arrival in 18-25 minutes with verified genuine spare parts.
+                  Verified technicians nearby in your area. Doorstep service during working hours (10:00 AM – 06:00 PM) with verified genuine spare parts.
                 </p>
               </div>
 
@@ -335,11 +335,11 @@ export const HomePage: React.FC = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
-              <div className="text-2xl sm:text-4xl font-black font-mono text-[#2563EB]">
-                18–25m
+              <div className="text-xl sm:text-2xl font-black font-mono text-[#2563EB]">
+                10 AM–6 PM
               </div>
-              <div className="text-xs font-bold text-slate-800 mt-1">Average Arrival</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Technicians in every neighborhood</div>
+              <div className="text-xs font-bold text-slate-800 mt-1">Daily Service Window</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Prompt same-day & scheduled visits</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">

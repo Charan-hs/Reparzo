@@ -1039,7 +1039,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     slot: {
       type: 'instant',
       dateLabel: 'Today',
-      timeSlot: 'Doorstep arrival in 25 mins',
+      timeSlot: 'Working Hours (10:00 AM – 06:00 PM)',
     },
     paymentMethod: 'upi',
     paymentStatus: 'paid',
@@ -1066,7 +1066,7 @@ export const INITIAL_ORDERS: OrderBooking[] = [
     slot: {
       type: 'instant',
       dateLabel: 'Today',
-      timeSlot: 'Doorstep arrival in 40 mins',
+      timeSlot: 'Working Hours (10:00 AM – 06:00 PM)',
     },
     paymentMethod: 'cash',
     paymentStatus: 'pending',

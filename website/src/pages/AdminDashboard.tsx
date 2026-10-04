@@ -23,19 +23,35 @@ import {
   Sliders,
   Check,
   Radio,
-  Power
+  Power,
+  Edit3,
+  Trash2,
+  X,
+  Calendar,
+  RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
 import type { OrderBooking } from '../types';
 import { AdminGeoCoverageTab } from '../components/admin/AdminGeoCoverageTab';
+import { 
+  getOrderWorkingSchedule, 
+  formatNumericDate, 
+  formatShortDate, 
+  REPARZO_WORKING_HOURS 
+} from '../lib/workingHours';
+import { INITIAL_SERVICES } from '../data/fallbackCatalog';
 
 export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { 
     user, 
     orders, 
+    addOrder,
     updateOrderStatus, 
+    updateOrder,
+    deleteOrder,
+    resetOrdersToDefault,
     categories, 
     services, 
     serviceHubs,
@@ -105,6 +121,157 @@ export const AdminDashboard: React.FC = () => {
 
     updateOrderStatus(order.id, nextStatus);
     toast.success(`Order ${order.id} status updated to: ${nextStatus.replace('_', ' ').toUpperCase()}`);
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    if (window.confirm(`Are you sure you want to delete booking ${orderId}? This removes it from live tracking.`)) {
+      deleteOrder(orderId);
+      toast.success(`Booking ${orderId} deleted.`);
+    }
+  };
+
+  // ── Edit Booking State ────────────────────────────────
+  const [editingOrder, setEditingOrder] = useState<OrderBooking | null>(null);
+  const [editForm, setEditForm] = useState<{
+    status: OrderBooking['status'];
+    technicianName: string;
+    technicianPhone: string;
+    scheduledDate: string;
+    timeSlot: string;
+    customerName: string;
+    customerPhone: string;
+    address: string;
+    grandTotal: number;
+    paymentStatus: 'paid' | 'pending';
+    adminNotes: string;
+  }>({
+    status: 'confirmed',
+    technicianName: '',
+    technicianPhone: '',
+    scheduledDate: '',
+    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    grandTotal: 0,
+    paymentStatus: 'paid',
+    adminNotes: '',
+  });
+
+  const handleOpenEdit = (order: OrderBooking) => {
+    setEditingOrder(order);
+    const existingDate = order.slot?.scheduledDate ? order.slot.scheduledDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    setEditForm({
+      status: order.status,
+      technicianName: order.technicianName || '',
+      technicianPhone: order.technicianPhone || '',
+      scheduledDate: existingDate,
+      timeSlot: order.slot?.timeSlot || 'Working Hours (10:00 AM - 06:00 PM)',
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      address: order.address || '',
+      grandTotal: order.grandTotal || 0,
+      paymentStatus: order.paymentStatus || 'paid',
+      adminNotes: order.adminNotes || '',
+    });
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+
+    const parsedDate = new Date(editForm.scheduledDate);
+    const formattedDateNumeric = !isNaN(parsedDate.getTime()) ? formatNumericDate(parsedDate) : editForm.scheduledDate;
+
+    updateOrder(editingOrder.id, {
+      status: editForm.status,
+      technicianName: editForm.technicianName,
+      technicianPhone: editForm.technicianPhone,
+      customerName: editForm.customerName,
+      customerPhone: editForm.customerPhone,
+      address: editForm.address,
+      grandTotal: Number(editForm.grandTotal),
+      paymentStatus: editForm.paymentStatus,
+      adminNotes: editForm.adminNotes,
+      slot: {
+        ...editingOrder.slot,
+        timeSlot: editForm.timeSlot,
+        dateLabel: formattedDateNumeric,
+        scheduledDate: editForm.scheduledDate,
+      },
+    });
+
+    toast.success(`Booking ${editingOrder.id} successfully updated! Live changes applied.`);
+    setEditingOrder(null);
+  };
+
+  // ── Create Booking State ──────────────────────────────
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    technicianName: 'Ramesh Gowda (Certified Master Technician)',
+    technicianPhone: '+91 98450 88219',
+    scheduledDate: new Date().toISOString().slice(0, 10),
+    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
+    grandTotal: 499,
+    status: 'confirmed' as OrderBooking['status'],
+  });
+
+  const handleCreateOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createForm.customerName.trim() || !createForm.customerPhone.trim() || !createForm.address.trim()) {
+      toast.error('Please enter customer name, phone, and address');
+      return;
+    }
+
+    const parsedDate = new Date(createForm.scheduledDate);
+    const formattedDate = !isNaN(parsedDate.getTime()) ? formatNumericDate(parsedDate) : createForm.scheduledDate;
+
+    const newOrder: OrderBooking = {
+      id: `RPZ-${Math.floor(100000 + Math.random() * 900000)}`,
+      items: [
+        {
+          service: services[0] || INITIAL_SERVICES[0],
+          quantity: 1,
+        }
+      ],
+      itemTotal: Number(createForm.grandTotal),
+      platformFee: 19,
+      discount: 0,
+      grandTotal: Number(createForm.grandTotal),
+      address: createForm.address,
+      customerName: createForm.customerName,
+      customerPhone: createForm.customerPhone.startsWith('+91') ? createForm.customerPhone : `+91 ${createForm.customerPhone}`,
+      slot: {
+        type: 'scheduled',
+        dateLabel: formattedDate,
+        timeSlot: createForm.timeSlot,
+        scheduledDate: createForm.scheduledDate,
+      },
+      paymentMethod: 'cash',
+      paymentStatus: 'pending',
+      status: createForm.status,
+      createdAt: new Date().toISOString(),
+      technicianName: createForm.technicianName,
+      technicianPhone: createForm.technicianPhone,
+    };
+
+    addOrder(newOrder);
+    toast.success(`Booking ${newOrder.id} created successfully!`);
+    setIsCreateModalOpen(false);
+    setCreateForm({
+      customerName: '',
+      customerPhone: '',
+      address: '',
+      technicianName: 'Ramesh Gowda (Certified Master Technician)',
+      technicianPhone: '+91 98450 88219',
+      scheduledDate: new Date().toISOString().slice(0, 10),
+      timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
+      grandTotal: 499,
+      status: 'confirmed',
+    });
   };
 
   const handleToggleSurge = () => {
@@ -304,13 +471,13 @@ export const AdminDashboard: React.FC = () => {
         {/* ── TAB 1: Live Bookings Dispatch ─────────────── */}
         {activeTab === 'bookings' && (
           <div className="space-y-4">
-            {/* Filter and Search Bar */}
+            {/* Filter, Search, and Action Bar */}
             <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="relative w-full sm:w-72">
+              <div className="relative w-full sm:w-64">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search by Order ID, name, or phone..."
+                  placeholder="Search by ID, name, or phone..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
@@ -319,7 +486,7 @@ export const AdminDashboard: React.FC = () => {
 
               {/* Status Filter Chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto">
-                {['all', 'confirmed', 'technician_assigned', 'in_progress', 'completed'].map((st) => (
+                {['all', 'confirmed', 'technician_assigned', 'in_progress', 'completed', 'cancelled'].map((st) => (
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
@@ -333,6 +500,30 @@ export const AdminDashboard: React.FC = () => {
                   </button>
                 ))}
               </div>
+
+              {/* Action Buttons: New Booking & Reset Demo */}
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer whitespace-nowrap active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>New Booking</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (window.confirm('Reset bookings to initial default dataset?')) {
+                      resetOrdersToDefault();
+                      toast.success('Bookings reset to default demo dataset');
+                    }
+                  }}
+                  title="Reset Demo Dataset"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Bookings Table / Cards */}
@@ -343,75 +534,126 @@ export const AdminDashboard: React.FC = () => {
                   <p className="text-sm font-bold">No bookings found matching current filter</p>
                 </div>
               ) : (
-                filteredOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="p-5 rounded-3xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono font-extrabold text-sm text-slate-900">
-                          {order.id}
-                        </span>
-                        <span
-                          className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full ${
-                            order.status === 'completed'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : order.status === 'in_progress'
-                              ? 'bg-blue-50 text-[#2563EB] border border-blue-200 animate-pulse'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}
-                        >
-                          ● {order.status.replace('_', ' ')}
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                          Slot: {order.slot.timeSlot}
-                        </span>
-                      </div>
+                filteredOrders.map((order) => {
+                  const schedule = getOrderWorkingSchedule(order);
 
-                      <div className="text-sm font-bold text-slate-800">
-                        {order.items.map((i) => `${i.quantity}x ${i.service.title}`).join(', ')}
-                      </div>
+                  return (
+                    <div
+                      key={order.id}
+                      className="p-5 rounded-3xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono font-extrabold text-sm text-slate-900">
+                            {order.id}
+                          </span>
+                          <span
+                            className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full ${
+                              order.status === 'completed'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : order.status === 'in_progress'
+                                ? 'bg-blue-50 text-[#2563EB] border border-blue-200 animate-pulse'
+                                : order.status === 'cancelled'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            ● {order.status.replace('_', ' ')}
+                          </span>
 
-                      <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-                        <span>Customer: <strong>{order.customerName}</strong> ({order.customerPhone})</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-rose-500" /> {order.address}
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-slate-500 flex items-center gap-2 pt-1">
-                        <span className="font-semibold text-slate-700">Assigned Partner:</span>
-                        <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-bold text-[11px] border border-amber-200 flex items-center gap-1">
-                          <Wrench className="w-3 h-3" /> {order.technicianName}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
-                      <div className="text-right">
-                        <div className="text-xl font-mono font-black text-slate-900">
-                          ₹{order.grandTotal}
+                          {/* Dynamic Working Schedule Badge */}
+                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-md border flex items-center gap-1 ${
+                            schedule.statusBadgeVariant === 'active-today'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : schedule.statusBadgeVariant === 'outside-hours'
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : 'bg-blue-50 text-blue-800 border-blue-200'
+                          }`}>
+                            <Clock className="w-3 h-3" />
+                            {schedule.targetDateNumeric} • {REPARZO_WORKING_HOURS.label}
+                          </span>
                         </div>
-                        <span className="text-[10px] uppercase font-bold text-emerald-600">
-                          {order.paymentStatus === 'paid' ? 'PAID (UPI)' : 'PAY ON SERVICE'}
-                        </span>
+
+                        <div className="text-sm font-bold text-slate-800">
+                          {order.items.map((i) => `${i.quantity}x ${i.service.title}`).join(', ')}
+                        </div>
+
+                        <div className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
+                          <span>Customer: <strong>{order.customerName}</strong> ({order.customerPhone})</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-rose-500" /> {order.address}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-slate-700">Assigned Partner:</span>
+                            <span className="text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md font-bold text-[11px] border border-amber-200 flex items-center gap-1">
+                              <Wrench className="w-3 h-3 text-amber-600" /> {order.technicianName}
+                            </span>
+                            {order.technicianPhone && (
+                              <a href={`tel:${order.technicianPhone}`} className="text-blue-600 hover:underline text-[11px] font-mono">
+                                ({order.technicianPhone})
+                              </a>
+                            )}
+                          </div>
+
+                          {order.adminNotes && (
+                            <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded text-[11px] italic">
+                              Note: {order.adminNotes}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      {order.status !== 'completed' && (
-                        <button
-                          onClick={() => handleAdvanceStatus(order)}
-                          className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs whitespace-nowrap"
-                        >
-                          {order.status === 'confirmed' && 'Assign Partner ➔'}
-                          {order.status === 'technician_assigned' && 'Mark In-Progress ➔'}
-                          {order.status === 'in_progress' && 'Mark Completed ✓'}
-                        </button>
-                      )}
+                      {/* Right Side: Total & Actions */}
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100 flex-shrink-0">
+                        <div className="text-right">
+                          <div className="text-xl font-mono font-black text-slate-900">
+                            ₹{order.grandTotal}
+                          </div>
+                          <span className="text-[10px] uppercase font-bold text-emerald-600 block">
+                            {order.paymentStatus === 'paid' ? 'PAID (UPI)' : 'PAY ON SERVICE'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {/* Edit Booking Button */}
+                          <button
+                            onClick={() => handleOpenEdit(order)}
+                            className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-blue-200 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                            title="Edit booking details, partner, date and status"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>Edit</span>
+                          </button>
+
+                          {/* Delete Booking Button */}
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-all cursor-pointer"
+                            title="Delete booking from live system"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Quick Advance Status Button */}
+                          {order.status !== 'completed' && order.status !== 'cancelled' && (
+                            <button
+                              onClick={() => handleAdvanceStatus(order)}
+                              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs whitespace-nowrap"
+                            >
+                              {order.status === 'confirmed' && 'Assign Partner ➔'}
+                              {order.status === 'technician_assigned' && 'Mark In-Progress ➔'}
+                              {order.status === 'in_progress' && 'Mark Completed ✓'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -626,6 +868,414 @@ export const AdminDashboard: React.FC = () => {
         {/* ── TAB 5: Geo Hubs & Serviceable Radius Coverage ─── */}
         {activeTab === 'coverage' && <AdminGeoCoverageTab />}
       </div>
+
+      {/* ── Admin Edit Booking Modal ───────────────────────── */}
+      {editingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#2563EB] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  Edit Booking Dispatch
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-1">
+                  Booking #{editingOrder.id}
+                </h3>
+              </div>
+
+              <button
+                onClick={() => setEditingOrder(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              {/* Order Status */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Order Status
+                </label>
+                <select
+                  value={editForm.status}
+                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value as OrderBooking['status'] })}
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 outline-none focus:border-[#2563EB]"
+                >
+                  <option value="confirmed">Confirmed (Order Placed)</option>
+                  <option value="technician_assigned">Technician Assigned</option>
+                  <option value="in_progress">Repair In Progress</option>
+                  <option value="completed">Completed (Service Done)</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {/* Technician Assignment */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-700 block">
+                  Assigned Service Partner
+                </label>
+                <input
+                  type="text"
+                  placeholder="Technician Name"
+                  value={editForm.technicianName}
+                  onChange={(e) => setEditForm({ ...editForm, technicianName: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+                <input
+                  type="text"
+                  placeholder="Technician Phone (e.g. +91 98450 88219)"
+                  value={editForm.technicianPhone}
+                  onChange={(e) => setEditForm({ ...editForm, technicianPhone: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+
+                {/* Quick Fleet Select Pills */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[10px] text-slate-400 font-semibold self-center mr-1">Quick Select:</span>
+                  {[
+                    { name: 'Ramesh Gowda (Certified Master Technician)', phone: '+91 98450 88219' },
+                    { name: 'Sunil Gowda (Verified Partner)', phone: '+91 98765 43210' },
+                    { name: 'Rajesh Kumar (Senior Partner)', phone: '+91 98444 55667' },
+                    { name: 'Manjunath K (BMS Specialist)', phone: '+91 97333 44556' },
+                  ].map((p) => (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, technicianName: p.name, technicianPhone: p.phone })}
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-[10px] font-bold text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                    >
+                      {p.name.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scheduled Date & Working Hours Slot */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Scheduled Date (Numbers)
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.scheduledDate}
+                    onChange={(e) => setEditForm({ ...editForm, scheduledDate: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                  <div className="flex gap-1 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, scheduledDate: new Date().toISOString().slice(0, 10) })}
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      Today
+                    </button>
+                    <span className="text-slate-300">•</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 1);
+                        setEditForm({ ...editForm, scheduledDate: d.toISOString().slice(0, 10) });
+                      }}
+                      className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer"
+                    >
+                      Tomorrow
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Working Hours Slot
+                  </label>
+                  <select
+                    value={editForm.timeSlot}
+                    onChange={(e) => setEditForm({ ...editForm, timeSlot: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value="Working Hours (10:00 AM - 06:00 PM)">Working Hours (10:00 AM – 06:00 PM)</option>
+                    <option value="Morning Slot (10:00 AM - 01:00 PM)">Morning Slot (10:00 AM – 01:00 PM)</option>
+                    <option value="Afternoon Slot (01:00 PM - 04:00 PM)">Afternoon Slot (01:00 PM – 04:00 PM)</option>
+                    <option value="Late Afternoon Slot (04:00 PM - 06:00 PM)">Late Afternoon Slot (04:00 PM – 06:00 PM)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Customer Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Customer Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.customerName}
+                    onChange={(e) => setEditForm({ ...editForm, customerName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Customer Phone
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.customerPhone}
+                    onChange={(e) => setEditForm({ ...editForm, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+              </div>
+
+              {/* Doorstep Address */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Doorstep Service Address
+                </label>
+                <textarea
+                  rows={2}
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              {/* Grand Total & Payment Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Grand Total Payable (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.grandTotal}
+                    onChange={(e) => setEditForm({ ...editForm, grandTotal: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Payment Status
+                  </label>
+                  <select
+                    value={editForm.paymentStatus}
+                    onChange={(e) => setEditForm({ ...editForm, paymentStatus: e.target.value as 'paid' | 'pending' })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value="paid">PAID (UPI/Card)</option>
+                    <option value="pending">PENDING (Pay on Service)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Admin Notes */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Internal Admin Dispatch Notes
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Call customer 15m prior, spare parts dispatched from hub"
+                  value={editForm.adminNotes}
+                  onChange={(e) => setEditForm({ ...editForm, adminNotes: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Delete booking ${editingOrder.id}?`)) {
+                      deleteOrder(editingOrder.id);
+                      toast.success(`Booking ${editingOrder.id} deleted.`);
+                      setEditingOrder(null);
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors cursor-pointer"
+                >
+                  Delete Booking
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingOrder(null)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Admin Create Manual Booking Modal ──────────────── */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Phone-in / Manual Booking
+                </span>
+                <h3 className="text-lg font-black text-slate-900 mt-1">
+                  Create New Doorstep Booking
+                </h3>
+              </div>
+
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrder} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Customer Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={createForm.customerName}
+                    onChange={(e) => setCreateForm({ ...createForm, customerName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Customer Phone *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="9845012345"
+                    value={createForm.customerPhone}
+                    onChange={(e) => setCreateForm({ ...createForm, customerPhone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Doorstep Service Address *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  placeholder="Door No, Building, Street, Area, Pincode"
+                  value={createForm.address}
+                  onChange={(e) => setCreateForm({ ...createForm, address: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Scheduled Date (Numbers)
+                  </label>
+                  <input
+                    type="date"
+                    value={createForm.scheduledDate}
+                    onChange={(e) => setCreateForm({ ...createForm, scheduledDate: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Working Hours Slot
+                  </label>
+                  <select
+                    value={createForm.timeSlot}
+                    onChange={(e) => setCreateForm({ ...createForm, timeSlot: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value="Working Hours (10:00 AM - 06:00 PM)">Working Hours (10:00 AM – 06:00 PM)</option>
+                    <option value="Morning Slot (10:00 AM - 01:00 PM)">Morning Slot (10:00 AM – 01:00 PM)</option>
+                    <option value="Afternoon Slot (01:00 PM - 04:00 PM)">Afternoon Slot (01:00 PM – 04:00 PM)</option>
+                    <option value="Late Afternoon Slot (04:00 PM - 06:00 PM)">Late Afternoon Slot (04:00 PM – 06:00 PM)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Assigned Technician
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.technicianName}
+                    onChange={(e) => setCreateForm({ ...createForm, technicianName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Initial Status
+                  </label>
+                  <select
+                    value={createForm.status}
+                    onChange={(e) => setCreateForm({ ...createForm, status: e.target.value as OrderBooking['status'] })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value="confirmed">Confirmed</option>
+                    <option value="technician_assigned">Technician Assigned</option>
+                    <option value="in_progress">Repair In Progress</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Grand Total (₹)
+                </label>
+                <input
+                  type="number"
+                  value={createForm.grandTotal}
+                  onChange={(e) => setCreateForm({ ...createForm, grandTotal: Number(e.target.value) })}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-[#2563EB] text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+                >
+                  Create Booking
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

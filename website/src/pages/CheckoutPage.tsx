@@ -25,6 +25,12 @@ import {
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
 import type { BookingSlot, OrderBooking, CartItem } from '../types';
+import { 
+  formatNumericDate, 
+  formatShortDate, 
+  getOrderWorkingSchedule, 
+  REPARZO_WORKING_HOURS 
+} from '../lib/workingHours';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -66,10 +72,26 @@ export const CheckoutPage: React.FC = () => {
     }
   }, [user]);
   
+  // Real-time Working Hours & Date Calculations
+  const now = new Date();
+  const currentHour = now.getHours();
+  const isWithinWorkingHours = currentHour >= REPARZO_WORKING_HOURS.startHour && currentHour < REPARZO_WORKING_HOURS.endHour;
+  const isAfterWorkingHours = currentHour >= REPARZO_WORKING_HOURS.endHour;
+
+  const todayObj = new Date();
+  const tomorrowObj = new Date();
+  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+  const dayAfterObj = new Date();
+  dayAfterObj.setDate(dayAfterObj.getDate() + 2);
+
+  const todayLabel = `Today (${formatShortDate(todayObj)})`;
+  const tomorrowLabel = `Tomorrow (${formatShortDate(tomorrowObj)})`;
+  const dayAfterLabel = `Day After (${formatShortDate(dayAfterObj)})`;
+
   // Slot selection
   const [slotType, setSlotType] = useState<'instant' | 'scheduled'>('instant');
   const [selectedDate, setSelectedDate] = useState('Today');
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('Morning (09:00 AM - 12:00 PM)');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('Working Hours (10:00 AM - 06:00 PM)');
 
   // Payment method
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('upi');
@@ -126,10 +148,25 @@ export const CheckoutPage: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false);
 
+      let chosenDateObj = todayObj;
+      if (slotType === 'scheduled') {
+        if (selectedDate.includes('Tomorrow')) chosenDateObj = tomorrowObj;
+        else if (selectedDate.includes('Day After')) chosenDateObj = dayAfterObj;
+      } else {
+        if (isAfterWorkingHours) chosenDateObj = tomorrowObj;
+      }
+
+      const formattedTargetDate = formatNumericDate(chosenDateObj);
+
       const slot: BookingSlot = {
         type: slotType,
-        dateLabel: slotType === 'instant' ? 'Today (Instant Express)' : selectedDate,
-        timeSlot: slotType === 'instant' ? 'Arriving in 60-90 Mins' : selectedTimeSlot,
+        dateLabel: slotType === 'instant' 
+          ? (isAfterWorkingHours ? `Tomorrow (${formattedTargetDate})` : `Today (${formattedTargetDate})`)
+          : `${selectedDate} (${formattedTargetDate})`,
+        timeSlot: slotType === 'instant' 
+          ? `Working Hours (${REPARZO_WORKING_HOURS.label})` 
+          : selectedTimeSlot,
+        scheduledDate: chosenDateObj.toISOString(),
       };
 
       const finalGrandTotal = Math.max(0, grandTotal - couponDiscount);
@@ -183,50 +220,62 @@ export const CheckoutPage: React.FC = () => {
             </p>
 
             {/* Live Tracking Stepper */}
-            <div className="mt-8 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-4 block">
-                Live Status Tracker
-              </span>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    ✓
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block">Booking Confirmed</span>
-                    <span className="text-[11px] text-slate-500">
-                      {(() => {
-                        const d = new Date(completedOrder.createdAt);
-                        return !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : completedOrder.createdAt;
-                      })()}
+            {(() => {
+              const schedule = getOrderWorkingSchedule(completedOrder);
+              return (
+                <div className="mt-8 p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                      Live Status Tracker
+                    </span>
+                    <span className="text-[10px] font-bold text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full">
+                      {schedule.statusBadgeText}
                     </span>
                   </div>
-                </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 animate-pulse">
-                    2
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-900 block">Technician Assigned</span>
-                    <span className="text-[11px] text-[#2563EB] font-semibold">
-                      {completedOrder.technicianName} • Rating 4.9 ★
-                    </span>
-                  </div>
-                </div>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        ✓
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">Booking Confirmed</span>
+                        <span className="text-[11px] text-slate-500">
+                          {(() => {
+                            const d = new Date(completedOrder.createdAt);
+                            return !isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : completedOrder.createdAt;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
 
-                <div className="flex items-start gap-3 opacity-60">
-                  <div className="w-6 h-6 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    3
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-700 block">Transit to Customer Doorstep</span>
-                    <span className="text-[11px] text-slate-400">Estimated Arrival: 18-25 mins</span>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 animate-pulse">
+                        2
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">Technician Assigned</span>
+                        <span className="text-[11px] text-[#2563EB] font-semibold">
+                          {completedOrder.technicianName} • Background Verified
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        3
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">Scheduled Doorstep Visit</span>
+                        <span className="text-[11px] text-slate-600 font-medium">
+                          {schedule.scheduleSubtitle}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Assigned Partner Card */}
             <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
@@ -487,6 +536,7 @@ export const CheckoutPage: React.FC = () => {
               </div>
 
               {/* Instant Express vs Scheduled Tabs */}
+              {/* Instant vs Scheduled Tabs */}
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -498,13 +548,17 @@ export const CheckoutPage: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-[#E32402] animate-ping" />
-                    <span className="text-xs font-extrabold uppercase text-[#E32402]">
-                      Instant Express
+                    <span className={`w-2 h-2 rounded-full ${isWithinWorkingHours ? 'bg-emerald-500 animate-ping' : 'bg-amber-500'}`} />
+                    <span className="text-xs font-extrabold uppercase text-[#2563EB]">
+                      {isWithinWorkingHours ? 'Today (Working Hours)' : 'Next Working Day'}
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">In 60–90 Minutes</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Technician heads directly to you</p>
+                  <h4 className="text-sm font-bold text-slate-900">
+                    {isWithinWorkingHours ? `Today (${formatShortDate(todayObj)})` : `Tomorrow (${formatShortDate(tomorrowObj)})`}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {isWithinWorkingHours ? 'Technician arrives today (10 AM - 6 PM)' : 'Service window starts tomorrow at 10 AM'}
+                  </p>
                 </button>
 
                 <button
@@ -519,8 +573,8 @@ export const CheckoutPage: React.FC = () => {
                   <span className="text-xs font-extrabold uppercase text-[#2563EB] block mb-1">
                     Schedule Later
                   </span>
-                  <h4 className="text-sm font-bold text-slate-900">Specific Date & Hour</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Convenient morning / evening slot</p>
+                  <h4 className="text-sm font-bold text-slate-900">Choose Date & Slot</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Select working hour slot (10 AM - 6 PM)</p>
                 </button>
               </div>
 
@@ -528,27 +582,32 @@ export const CheckoutPage: React.FC = () => {
               {slotType === 'scheduled' && (
                 <div className="pt-2 space-y-3">
                   <div className="grid grid-cols-3 gap-2">
-                    {['Today', 'Tomorrow', 'Day After'].map((d) => (
+                    {[
+                      { key: 'Today', label: todayLabel },
+                      { key: 'Tomorrow', label: tomorrowLabel },
+                      { key: 'Day After', label: dayAfterLabel },
+                    ].map((d) => (
                       <button
-                        key={d}
+                        key={d.key}
                         type="button"
-                        onClick={() => setSelectedDate(d)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                          selectedDate === d
+                        onClick={() => setSelectedDate(d.key)}
+                        className={`py-2 px-1 text-center rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          selectedDate === d.key
                             ? 'bg-[#2563EB] text-white border-[#2563EB]'
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        {d}
+                        {d.label}
                       </button>
                     ))}
                   </div>
 
                   <div className="space-y-2">
                     {[
-                      'Morning (09:00 AM - 12:00 PM)',
-                      'Afternoon (12:00 PM - 03:00 PM)',
-                      'Evening (03:00 PM - 07:00 PM)',
+                      'Working Hours (10:00 AM - 06:00 PM)',
+                      'Morning Slot (10:00 AM - 01:00 PM)',
+                      'Afternoon Slot (01:00 PM - 04:00 PM)',
+                      'Late Afternoon Slot (04:00 PM - 06:00 PM)',
                     ].map((slot) => (
                       <button
                         key={slot}

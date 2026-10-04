@@ -18,11 +18,19 @@ import {
   HelpCircle,
   FileText,
   KeyRound,
-  MessageSquare
+  MessageSquare,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
 import { OrderBooking } from '../types';
+import { 
+  getOrderWorkingSchedule, 
+  formatNumericDate, 
+  formatShortDate, 
+  REPARZO_WORKING_HOURS 
+} from '../lib/workingHours';
 
 export const BookingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -52,16 +60,12 @@ export const BookingsPage: React.FC = () => {
   // Past completed orders
   const previousOrders = orders.filter((o) => o.status === 'completed');
 
-  // Safe date formatting helper to completely prevent 'Invalid Date'
+  // Safe date formatting helper to completely prevent 'Invalid Date' and show numeric dates
   const formatOrderDate = (dateStr?: string) => {
     if (!dateStr) return 'Recently';
     const parsed = new Date(dateStr);
     if (!isNaN(parsed.getTime())) {
-      return parsed.toLocaleDateString('en-IN', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
+      return formatNumericDate(parsed);
     }
     return dateStr;
   };
@@ -230,6 +234,7 @@ export const BookingsPage: React.FC = () => {
               <div className="space-y-5">
                 {liveOrders.map((order) => {
                   const completionPin = order.id.replace(/\D/g, '').slice(-4) || '1234';
+                  const schedule = getOrderWorkingSchedule(order);
 
                   return (
                     <div 
@@ -247,12 +252,12 @@ export const BookingsPage: React.FC = () => {
                               <span className="text-base font-black font-mono text-slate-900">{order.id}</span>
                               <span className="text-[11px] text-slate-400">•</span>
                               <span className="text-xs font-bold text-slate-600">
-                                {formatOrderDate(order.createdAt)}
+                                Booked {formatOrderDate(order.createdAt)}
                               </span>
                             </div>
-                            <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
-                              <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                              Scheduled: {order.slot.dateLabel} • {order.slot.timeSlot}
+                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5 mt-0.5">
+                              <Clock className="w-3.5 h-3.5 text-[#2563EB]" />
+                              <span>Service Window: <strong className="text-slate-900">{schedule.targetDateNumeric}</strong> • {REPARZO_WORKING_HOURS.label}</span>
                             </span>
                           </div>
                         </div>
@@ -280,7 +285,60 @@ export const BookingsPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Live Dispatch Stepper Tracker */}
+                      {/* Dynamic Working Hours & Working Day Schedule Banner */}
+                      <div className={`px-5 py-3.5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        schedule.statusBadgeVariant === 'active-today'
+                          ? 'bg-emerald-50/70 border-emerald-100 text-emerald-950'
+                          : schedule.statusBadgeVariant === 'outside-hours'
+                          ? 'bg-amber-50/70 border-amber-100 text-amber-950'
+                          : 'bg-blue-50/70 border-blue-100 text-blue-950'
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                            schedule.statusBadgeVariant === 'active-today'
+                              ? 'bg-emerald-600 text-white shadow-xs'
+                              : schedule.statusBadgeVariant === 'outside-hours'
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'bg-[#2563EB] text-white shadow-xs'
+                          }`}>
+                            {schedule.statusBadgeVariant === 'outside-hours' ? (
+                              <Moon className="w-4 h-4" />
+                            ) : (
+                              <Sun className="w-4 h-4" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-xs sm:text-sm font-extrabold">
+                                {schedule.scheduleTitle}
+                              </h4>
+                              <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                                schedule.statusBadgeVariant === 'active-today'
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  : schedule.statusBadgeVariant === 'outside-hours'
+                                  ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                  : 'bg-blue-100 text-blue-800 border-blue-300'
+                              }`}>
+                                {schedule.statusBadgeText}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-700 mt-0.5 leading-relaxed font-medium">
+                              {schedule.scheduleSubtitle}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="sm:text-right flex-shrink-0">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                            Standard Working Hours
+                          </span>
+                          <span className="text-xs font-mono font-bold text-slate-900">
+                            {REPARZO_WORKING_HOURS.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Live Dispatch Stepper Tracker (No more 'Arriving in 18-25m') */}
                       <div className="px-5 py-4 bg-slate-50/70 border-b border-slate-100">
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div className="flex flex-col items-center">
@@ -297,22 +355,24 @@ export const BookingsPage: React.FC = () => {
                                 ? 'bg-[#2563EB] text-white ring-4 ring-blue-100'
                                 : 'bg-slate-200 text-slate-500'
                             }`}>
-                              {order.status === 'technician_assigned' || order.status === 'in_progress' ? '2' : '2'}
+                              {order.status === 'in_progress' ? '✓' : '2'}
                             </div>
-                            <span className="text-[11px] font-bold text-slate-900">En Route</span>
-                            <span className="text-[10px] text-slate-500">Arriving in 18–25m</span>
+                            <span className="text-[11px] font-bold text-slate-900">Service Window</span>
+                            <span className="text-[10px] text-slate-600 font-semibold">{schedule.stepperSubtext}</span>
                           </div>
 
                           <div className="flex flex-col items-center">
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-1 ${
                               order.status === 'in_progress'
-                                ? 'bg-amber-500 text-white ring-4 ring-amber-100'
+                                ? 'bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse'
                                 : 'bg-slate-200 text-slate-400'
                             }`}>
                               3
                             </div>
                             <span className="text-[11px] font-bold text-slate-900">Doorstep Fix</span>
-                            <span className="text-[10px] text-slate-400">Underway</span>
+                            <span className="text-[10px] text-slate-500">
+                              {order.status === 'in_progress' ? 'Underway Now' : 'Inspection & Fix'}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -451,7 +511,7 @@ export const BookingsPage: React.FC = () => {
                             </a>
                             <button
                               onClick={() => {
-                                toast.info(`Live tracking active for ${order.id}. Technician is en route.`);
+                                toast.info(`${order.id}: ${schedule.scheduleTitle} (${schedule.targetDateNumeric}) during working hours (10:00 AM – 06:00 PM)`);
                               }}
                               className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
                             >

@@ -129,6 +129,7 @@ export interface BookingSlot {
   type: 'instant' | 'scheduled';
   dateLabel: string;
   timeSlot: string;
+  scheduledDate?: string;
 }
 
 export interface OrderBooking {
@@ -144,8 +145,9 @@ export interface OrderBooking {
   slot: BookingSlot;
   paymentMethod: 'upi' | 'card' | 'cash';
   paymentStatus: 'paid' | 'pending';
-  status: 'confirmed' | 'technician_assigned' | 'in_progress' | 'completed';
+  status: 'confirmed' | 'technician_assigned' | 'in_progress' | 'completed' | 'cancelled';
   createdAt: string;
   technicianName: string;
   technicianPhone: string;
+  adminNotes?: string;
 }
