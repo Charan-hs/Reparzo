@@ -45,32 +45,28 @@ export const HomePage: React.FC = () => {
       {/* ── 1. Infinite Banner Carousel (Themallige Style) ── */}
       <BannerCarousel />
 
-      {/* ── Non-Serviceable Area Notice Banner ── */}
+      {/* ── Non-Serviceable Area Notice Banner (Compact & Sleek) ── */}
       {location.isServiceable === false && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border border-amber-200/90 text-amber-950 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-100/90 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2 mb-2">
+          <div className="px-3.5 py-2 sm:py-2.5 rounded-2xl bg-amber-50/95 border border-amber-200/90 text-amber-950 shadow-2xs flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-xs text-amber-950 font-medium truncate">
+                  Service currently unavailable in <strong className="font-bold">{location.area}</strong>
+                </span>
+                <span className="hidden sm:inline-block text-amber-700 text-[11px]">
+                  — expanding coverage soon!
+                </span>
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold text-amber-950">
-                    Service Currently Unavailable in Your Location
-                  </h3>
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                    Coming Soon 🚀
-                  </span>
-                </div>
-                <p className="text-xs text-amber-800 leading-relaxed max-w-2xl">
-                  Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are actively working to expand our services to your location soon!
-                </p>
-              </div>
+              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-900 flex-shrink-0 whitespace-nowrap">
+                Coming Soon 🚀
+              </span>
             </div>
 
             <button
               onClick={() => setLocationModalOpen(true)}
-              className="self-start sm:self-center px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs active:scale-95 transition-all whitespace-nowrap cursor-pointer"
+              className="px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold shadow-2xs active:scale-95 transition-all whitespace-nowrap cursor-pointer flex-shrink-0"
             >
               Change Location
             </button>

@@ -231,27 +231,21 @@ export const CartDrawer: React.FC = () => {
           {cart.length > 0 && (
             <div className="p-4 border-t border-slate-200 bg-white">
               {location.isServiceable === false && (
-                <div className="mb-3 p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-950 text-xs space-y-1.5 shadow-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                      <span>Service Unavailable in this Area</span>
-                    </div>
-                    <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 uppercase">
-                      Coming Soon 🚀
+                <div className="mb-3 px-3 py-2 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-950 text-xs flex items-center justify-between gap-2 shadow-2xs">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                    <span className="truncate text-[11px] text-amber-900">
+                      Unavailable in <strong>{location.area}</strong> (Coming Soon 🚀)
                     </span>
                   </div>
-                  <p className="text-[11px] text-amber-800 leading-snug">
-                    Currently service is not available in <strong>{location.area}</strong> ({location.city}). We are working to expand our services here soon!
-                  </p>
                   <button
                     onClick={() => {
                       setCartDrawerOpen(false);
                       setLocationModalOpen(true);
                     }}
-                    className="text-[#2563EB] hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer pt-0.5"
+                    className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline whitespace-nowrap cursor-pointer flex-shrink-0"
                   >
-                    Select or Add Serviceable Address →
+                    Change
                   </button>
                 </div>
               )}
