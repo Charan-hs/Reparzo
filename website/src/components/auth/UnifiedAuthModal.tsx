@@ -16,6 +16,7 @@ import {
   verifyOtpCode, 
   ConfirmationResult 
 } from '../../lib/firebase';
+import { executeRecaptcha } from '../../lib/recaptcha';
 
 export const UnifiedAuthModal: React.FC = () => {
   const navigate = useNavigate();
@@ -107,6 +108,9 @@ export const UnifiedAuthModal: React.FC = () => {
     }
 
     setIsLoading(true);
+    // Execute Google reCAPTCHA Enterprise score assessment for LOGIN
+    await executeRecaptcha('LOGIN');
+
     const isPhone = !identifier.includes('@');
 
     if (isPhone) {
@@ -186,6 +190,8 @@ export const UnifiedAuthModal: React.FC = () => {
     }
 
     setIsLoading(true);
+    // Execute Google reCAPTCHA Enterprise score assessment for OTP verification
+    await executeRecaptcha('VERIFY_OTP');
     try {
       if (confirmationResult) {
         const firebaseUser = await verifyOtpCode(confirmationResult, entered);
@@ -220,6 +226,9 @@ export const UnifiedAuthModal: React.FC = () => {
       return;
     }
     setIsLoading(true);
+    // Execute Google reCAPTCHA Enterprise score assessment for Google Login
+    await executeRecaptcha('GOOGLE_LOGIN');
+
     try {
       const firebaseUser = await signInWithGoogle();
       

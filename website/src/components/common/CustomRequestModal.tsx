@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
+import { executeRecaptcha } from '../../lib/recaptcha';
 import type { CustomCategoryType, CustomRequest } from '../../types';
 
 interface CategoryOption {
@@ -167,7 +168,7 @@ export const CustomRequestModal: React.FC = () => {
     setSubmittedRequest(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isOrderingEnabled) {
@@ -196,6 +197,8 @@ export const CustomRequestModal: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    // Execute Google reCAPTCHA Enterprise score assessment for CUSTOM_REQUEST
+    await executeRecaptcha('CUSTOM_REQUEST');
 
     try {
       const currentOpt = CATEGORY_OPTIONS.find((c) => c.type === selectedCategory) || CATEGORY_OPTIONS[5];

@@ -33,6 +33,7 @@ import {
   REPARZO_WORKING_HOURS 
 } from '../lib/workingHours';
 import { getOrderTypeDetails } from '../lib/orderType';
+import { executeRecaptcha } from '../lib/recaptcha';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -141,7 +142,7 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!isOrderingEnabled) {
       toast.error(upgradeMessage);
       return;
@@ -159,6 +160,9 @@ export const CheckoutPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    // Execute Google reCAPTCHA Enterprise score assessment for BOOKING
+    await executeRecaptcha('BOOKING');
+
     setTimeout(() => {
       setIsSubmitting(false);
 
