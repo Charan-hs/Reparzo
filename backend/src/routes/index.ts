@@ -9,6 +9,7 @@ import { mediaRoutes } from './media.routes';
 import { serviceHubsRoutes } from './serviceHubs.routes';
 import { usersRoutes } from './users.routes';
 import { userAddressesRoutes } from './userAddresses.routes';
+import { systemRoutes } from './system.routes';
 
 export const apiRouter = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -21,3 +22,4 @@ apiRouter.route('/media', mediaRoutes);
 apiRouter.route('/service-hubs', serviceHubsRoutes);
 apiRouter.route('/users', usersRoutes);
 apiRouter.route('/user-addresses', userAddressesRoutes);
+apiRouter.route('/system', systemRoutes);

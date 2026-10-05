@@ -16,7 +16,8 @@ import {
   DollarSign,
   Send,
   Navigation,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -99,7 +100,9 @@ export const CustomRequestModal: React.FC = () => {
     addCustomRequest, 
     location, 
     user,
-    setUser
+    setUser,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const [selectedCategory, setSelectedCategory] = useState<CustomCategoryType>('other');
@@ -166,6 +169,11 @@ export const CustomRequestModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isOrderingEnabled) {
+      toast.error(upgradeMessage);
+      return;
+    }
 
     if (!title.trim()) {
       toast.error('Please enter a brief title for your request.');
@@ -575,12 +583,32 @@ export const CustomRequestModal: React.FC = () => {
 
                 {/* 7. Submit Action Button */}
                 <div className="pt-2">
+                  {!isOrderingEnabled && (
+                    <div className="mb-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs flex items-start gap-2.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-extrabold text-xs block text-amber-950 uppercase tracking-wide">
+                          Service Upgrade In Progress
+                        </span>
+                        <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                          {upgradeMessage}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#2563EB] to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-blue-500/25 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    disabled={isSubmitting || !isOrderingEnabled}
+                    className={`w-full py-3.5 rounded-2xl font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg active:scale-[0.99] transition-all flex items-center justify-center gap-2 ${
+                      !isOrderingEnabled
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed select-none'
+                        : 'bg-gradient-to-r from-[#2563EB] to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25 cursor-pointer disabled:opacity-50'
+                    }`}
                   >
-                    {isSubmitting ? (
+                    {!isOrderingEnabled ? (
+                      <span>Requests Temporarily Paused</span>
+                    ) : isSubmitting ? (
                       <span>Sending to Admin Desk...</span>
                     ) : (
                       <>

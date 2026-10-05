@@ -49,7 +49,9 @@ export const CheckoutPage: React.FC = () => {
     activeAddressId,
     selectSavedAddress,
     setAddressModalOpen,
-    setLocationModalOpen
+    setLocationModalOpen,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const { totalItems, subtotal, inspectionFee, platformFee, discount, grandTotal } = getCartMetrics();
@@ -140,6 +142,11 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const handleConfirmBooking = () => {
+    if (!isOrderingEnabled) {
+      toast.error(upgradeMessage);
+      return;
+    }
+
     if (location.isServiceable === false) {
       toast.error('Currently service is not available in your location. We are working to expand our services here soon!');
       return;
@@ -898,19 +905,36 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Service Upgrade Alert Notice */}
+              {!isOrderingEnabled && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-950 text-xs flex items-start gap-3 shadow-xs">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-extrabold text-xs block text-amber-950 uppercase tracking-wide">
+                      Service Upgrade In Progress
+                    </span>
+                    <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                      {upgradeMessage}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Confirm Booking CTA */}
               <button
                 type="button"
                 onClick={handleConfirmBooking}
-                disabled={isSubmitting || location.isServiceable === false}
+                disabled={isSubmitting || location.isServiceable === false || !isOrderingEnabled}
                 className={`w-full py-4 rounded-2xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
-                  location.isServiceable === false
+                  location.isServiceable === false || !isOrderingEnabled
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none select-none'
                     : 'bg-[#2563EB] hover:bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/25 active:scale-95 cursor-pointer'
                 }`}
               >
                 <span>
-                  {location.isServiceable === false
+                  {!isOrderingEnabled
+                    ? 'Orders Temporarily Paused'
+                    : location.isServiceable === false
                     ? 'Service Unavailable in this Location (Coming Soon)'
                     : isSubmitting
                     ? 'Confirming Dispatch...'

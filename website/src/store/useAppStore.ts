@@ -157,6 +157,12 @@ export interface AppState {
   isCustomRequestModalOpen: boolean;
   customRequestModalInitialCategory: string | null;
   setCustomRequestModalOpen: (open: boolean, initialCategory?: string) => void;
+
+  // Operational Feature Flags & Maintenance Mode
+  isOrderingEnabled: boolean;
+  upgradeMessage: string;
+  toggleOrderingEnabled: (enabled: boolean) => Promise<boolean>;
+  fetchSystemSettings: () => Promise<void>;
 }
 
 export const DEFAULT_DAVANGERE_LOCATION: LocationData = {
@@ -271,10 +277,60 @@ export const useAppStore = create<AppState>()(
           }
 
           set({ isLoadingCatalog: false });
+          // Refresh operational feature flags and service upgrade notice
+          get().fetchSystemSettings();
         } catch (err: any) {
           console.error('[fetchCatalog error]', err);
           set({ isLoadingCatalog: false, catalogError: err?.message || 'Failed to fetch catalog' });
         }
+      },
+
+      // Operational Feature Flag / Maintenance Mode
+      isOrderingEnabled: true,
+      upgradeMessage: 'We are currently upgrading our service. We will be back in no time! Please check back later.',
+
+      fetchSystemSettings: async () => {
+        try {
+          const res = await fetch('/api/system/settings');
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data) {
+              set({
+                isOrderingEnabled: json.data.isOrderingEnabled !== false,
+                upgradeMessage:
+                  json.data.upgradeMessage ||
+                  'We are currently upgrading our service. We will be back in no time! Please check back later.',
+              });
+            }
+          }
+        } catch (err) {
+          console.warn('[fetchSystemSettings notice]', err);
+        }
+      },
+
+      toggleOrderingEnabled: async (enabled) => {
+        set({ isOrderingEnabled: enabled });
+        try {
+          const res = await authFetch('/api/system/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              isOrderingEnabled: enabled,
+              upgradeMessage: get().upgradeMessage,
+            }),
+          });
+          if (res.ok) {
+            toast.success(
+              enabled
+                ? 'Customer ordering resumed successfully.'
+                : 'Service upgrade mode active. Users cannot place new orders.'
+            );
+            return true;
+          }
+        } catch (err) {
+          console.warn('[toggleOrderingEnabled notice]', err);
+        }
+        return false;
       },
 
       // Categories Management (persisting to Cloud API)

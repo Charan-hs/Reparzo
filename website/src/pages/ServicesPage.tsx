@@ -67,7 +67,9 @@ export const ServicesPage: React.FC = () => {
     setLocationModalOpen,
     setCustomRequestModalOpen,
     selectedService,
-    setSelectedService
+    setSelectedService,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const [sortBy, setSortBy] = useState<'popular' | 'price_asc' | 'price_desc' | 'rating' | 'duration'>('popular');
@@ -393,13 +395,16 @@ export const ServicesPage: React.FC = () => {
                         className="cursor-pointer"
                         title="View details"
                       >
-                        <div className="flex items-baseline gap-1.5">
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Starts from</span>
                           <span className="text-lg font-mono font-black text-slate-900">
                             ₹{service.price}
                           </span>
-                          <span className="text-xs font-mono text-slate-400 line-through">
-                            ₹{service.originalPrice}
-                          </span>
+                          {service.originalPrice && service.originalPrice > service.price && (
+                            <span className="text-xs font-mono text-slate-400 line-through">
+                              ₹{service.originalPrice}
+                            </span>
+                          )}
                         </div>
                         <span className="text-[10px] font-bold text-emerald-600 block">
                           Genuine Spares Included
@@ -408,7 +413,14 @@ export const ServicesPage: React.FC = () => {
 
                       {/* Add Button / Quantity Counter */}
                       <div onClick={(e) => e.stopPropagation()}>
-                        {location.isServiceable === false ? (
+                        {!isOrderingEnabled ? (
+                          <span
+                            className="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold uppercase tracking-wider block"
+                            title={upgradeMessage}
+                          >
+                            Paused
+                          </span>
+                        ) : location.isServiceable === false ? (
                           <button
                             type="button"
                             disabled

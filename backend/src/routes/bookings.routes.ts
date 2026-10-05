@@ -11,6 +11,24 @@ export const bookingsRoutes = new Hono<{ Bindings: Env; Variables: Variables }>(
 
 // POST /api/bookings - create a service booking
 bookingsRoutes.post('/', optionalAuth, async (c) => {
+  // Operational Feature Flag: Block new requests when admin pauses ordering
+  if (c.env.CACHE) {
+    try {
+      const cached = await c.env.CACHE.get('system:settings');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.isOrderingEnabled === false) {
+          throw new BadRequestError(
+            parsed.upgradeMessage ||
+              'We are currently upgrading our service. We will be back in no time! Please check back later.'
+          );
+        }
+      }
+    } catch (err) {
+      if (err instanceof BadRequestError) throw err;
+    }
+  }
+
   const body = await c.req.json().catch(() => null);
 
   if (!body) {

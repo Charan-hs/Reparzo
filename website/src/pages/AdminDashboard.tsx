@@ -67,7 +67,10 @@ export const AdminDashboard: React.FC = () => {
     serviceHubs,
     setCategoryManagerOpen,
     setCustomRequestModalOpen,
-    setAuthModalOpen 
+    setAuthModalOpen,
+    isOrderingEnabled,
+    upgradeMessage,
+    toggleOrderingEnabled
   } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<'bookings' | 'custom_requests' | 'services' | 'categories' | 'partners' | 'coverage'>('bookings');
@@ -353,6 +356,20 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Feature Flag: Customer Ordering Control */}
+            <button
+              onClick={() => toggleOrderingEnabled(!isOrderingEnabled)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+                isOrderingEnabled
+                  ? 'bg-emerald-50 border border-emerald-300 text-emerald-800 hover:bg-emerald-100'
+                  : 'bg-rose-600 text-white shadow-rose-600/30 animate-pulse'
+              }`}
+              title={isOrderingEnabled ? "Click to enable Service Upgrade Mode" : "Click to resume customer ordering"}
+            >
+              <Power className="w-3.5 h-3.5" />
+              <span>Ordering: {isOrderingEnabled ? 'LIVE (Accepting)' : 'PAUSED (Upgrade Mode)'}</span>
+            </button>
+
             <button
               onClick={handleToggleSurge}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
@@ -374,6 +391,28 @@ export const AdminDashboard: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* ── Feature Flag Active Alert Banner ──────────── */}
+        {!isOrderingEnabled && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 text-amber-950 flex items-start gap-3 shadow-xs">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="font-extrabold text-sm text-amber-950 uppercase tracking-wide">
+                  ⚠️ Service Upgrade Mode Active (Feature Flag Engaged)
+                </span>
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+                  New Customer Orders Blocked
+                </span>
+              </div>
+              <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                Customers visiting the storefront, cart, checkout, or custom request forms see the notice:
+                <br />
+                <span className="font-semibold italic text-amber-950">"{upgradeMessage}"</span>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── KPI Metric Cards ──────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">

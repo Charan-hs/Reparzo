@@ -36,7 +36,9 @@ export const FullScreenSearch: React.FC = () => {
     updateQuantity,
     setActiveCategorySlug,
     location,
-    setSelectedService
+    setSelectedService,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
@@ -343,7 +345,10 @@ export const FullScreenSearch: React.FC = () => {
                           <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-[#2563EB] transition-colors">
                             {service.title}
                           </h4>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                              Starts from
+                            </span>
                             <span className="text-sm font-mono font-black text-slate-900">
                               ₹{service.price}
                             </span>
@@ -359,7 +364,14 @@ export const FullScreenSearch: React.FC = () => {
 
                       {/* Right: + ADD Counter */}
                       <div className="flex-shrink-0">
-                        {location.isServiceable === false ? (
+                        {!isOrderingEnabled ? (
+                          <span 
+                            className="px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold uppercase tracking-wider block"
+                            title={upgradeMessage}
+                          >
+                            Paused
+                          </span>
+                        ) : location.isServiceable === false ? (
                           <button
                             type="button"
                             disabled

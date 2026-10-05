@@ -14,6 +14,7 @@ import {
   Check,
   AlertTriangle
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
 
 export const CartDrawer: React.FC = () => {
@@ -27,7 +28,9 @@ export const CartDrawer: React.FC = () => {
     getCartMetrics,
     location,
     setLocationModalOpen,
-    setSelectedService
+    setSelectedService,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const navigate = useNavigate();
@@ -36,6 +39,10 @@ export const CartDrawer: React.FC = () => {
   if (!isCartDrawerOpen) return null;
 
   const handleProceedToCheckout = () => {
+    if (!isOrderingEnabled) {
+      toast.error(upgradeMessage);
+      return;
+    }
     setCartDrawerOpen(false);
     navigate('/checkout');
   };
@@ -256,24 +263,42 @@ export const CartDrawer: React.FC = () => {
                 </div>
               )}
 
+              {!isOrderingEnabled && (
+                <div className="mb-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs flex items-start gap-2 shadow-2xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="leading-snug">
+                    <span className="font-extrabold text-[11px] block text-amber-950 uppercase tracking-wide">
+                      Service Upgrade In Progress
+                    </span>
+                    <span className="text-[11px] text-amber-800 font-medium">{upgradeMessage}</span>
+                  </div>
+                </div>
+              )}
+
               <button
-                disabled={location.isServiceable === false}
+                disabled={location.isServiceable === false || !isOrderingEnabled}
                 onClick={handleProceedToCheckout}
                 className={`w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-between transition-all ${
-                  location.isServiceable === false
+                  location.isServiceable === false || !isOrderingEnabled
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none select-none'
                     : 'bg-[#2563EB] hover:bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/25 active:scale-[0.98] cursor-pointer'
                 }`}
               >
                 <div className="text-left leading-tight">
                   <span className="text-[10px] block opacity-80 font-mono">To Pay</span>
-                  <span className={`text-base font-mono font-black ${location.isServiceable === false ? 'text-slate-400' : 'text-white'}`}>
+                  <span className={`text-base font-mono font-black ${location.isServiceable === false || !isOrderingEnabled ? 'text-slate-400' : 'text-white'}`}>
                     ₹{grandTotal}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span>{location.isServiceable === false ? 'Service Unavailable (Coming Soon)' : 'Proceed to Checkout'}</span>
+                  <span>
+                    {!isOrderingEnabled
+                      ? 'Orders Temporarily Paused'
+                      : location.isServiceable === false
+                      ? 'Service Unavailable (Coming Soon)'
+                      : 'Proceed to Checkout'}
+                  </span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </button>

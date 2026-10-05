@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Calendar,
-  HelpCircle
+  HelpCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../../store/useAppStore';
@@ -42,7 +43,9 @@ export const Navbar: React.FC = () => {
     setAuthModalOpen,
     logout,
     setCategoryManagerOpen,
-    setCustomRequestModalOpen
+    setCustomRequestModalOpen,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   const [hintIndex, setHintIndex] = useState(0);
@@ -68,6 +71,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-xs transition-all">
+      {/* ── Service Upgrade Notice Banner (Feature Flag) ── */}
+      {!isOrderingEnabled && (
+        <div className="bg-gradient-to-r from-amber-600 via-[#E32402] to-amber-600 text-white px-4 py-2.5 text-center text-xs sm:text-sm font-bold shadow-md flex items-center justify-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 animate-bounce" />
+          <span>{upgradeMessage}</span>
+        </div>
+      )}
+
       {/* ── Top Micro-Announcement Strip ──────────────── */}
       <div className="bg-[#0E1B4D] border-b border-[#142563] text-[11px] py-1 px-4 text-center font-medium text-slate-300 hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-2 max-w-7xl mx-auto w-full justify-between">

@@ -15,7 +15,8 @@ import {
   ShoppingBag,
   BadgeCheck,
   Zap,
-  Check
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -27,7 +28,9 @@ export const ServiceDetailsModal: React.FC = () => {
     addToCart, 
     updateQuantity, 
     setCartDrawerOpen,
-    location 
+    location,
+    isOrderingEnabled,
+    upgradeMessage
   } = useAppStore();
 
   // Prevent background scrolling when modal is open
@@ -247,7 +250,8 @@ export const ServiceDetailsModal: React.FC = () => {
           <div className="p-4 sm:p-5 border-t border-slate-200 bg-white/95 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 flex-shrink-0 shadow-lg">
             {/* Price Column */}
             <div className="w-full sm:w-auto flex items-center justify-between sm:block">
-              <div className="flex items-baseline gap-2">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Starts from</span>
                 <span className="text-2xl sm:text-3xl font-mono font-black text-slate-900">
                   ₹{selectedService.price}
                 </span>
@@ -263,13 +267,22 @@ export const ServiceDetailsModal: React.FC = () => {
                 )}
               </div>
               <span className="text-[10px] font-bold text-slate-400 block mt-0.5">
-                Inclusive of inspection & genuine spares guarantee
+                Base starting estimate • Inclusive of inspection & genuine spares guarantee
               </span>
             </div>
 
             {/* Buttons Column */}
             <div className="w-full sm:w-auto flex items-center gap-2">
-              {location.isServiceable === false ? (
+              {!isOrderingEnabled ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs uppercase tracking-wider cursor-not-allowed select-none"
+                  title={upgradeMessage}
+                >
+                  Service Upgrade In Progress
+                </button>
+              ) : location.isServiceable === false ? (
                 <button
                   type="button"
                   disabled
