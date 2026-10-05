@@ -75,8 +75,8 @@ export const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Role-Specific Operational Hub Banner ── */}
-      {user && (
+      {/* ── Role-Specific Operational Hub Banner (Admins & Partners only) ── */}
+      {user && (user.role === 'admin' || user.role === 'partner') && (
         <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           {user.role === 'admin' && (
             <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-[#0B132B] to-slate-900 border border-slate-800 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -139,43 +139,6 @@ export const HomePage: React.FC = () => {
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md shadow-amber-500/30 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <span>Open Jobs Board ➔</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {user.role === 'user' && (
-            <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200">
-                    Customer Account
-                  </span>
-                  <span className="text-xs font-bold text-slate-800">Verified Member</span>
-                </div>
-                <h3 className="text-lg font-black text-slate-900">
-                  Welcome back, {user.name.split(' ')[0]}!
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Verified technicians nearby in your area. Doorstep service during working hours (10:00 AM – 06:00 PM) with verified genuine spare parts.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => {
-                    setActiveCategorySlug('all');
-                    navigate('/services');
-                  }}
-                  className="px-4 py-2 rounded-xl bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
-                >
-                  Book Doorstep Service ➔
-                </button>
-                <button
-                  onClick={() => navigate('/checkout')}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
-                >
-                  My Bookings
                 </button>
               </div>
             </div>
