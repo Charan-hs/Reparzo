@@ -26,7 +26,8 @@ export const CartDrawer: React.FC = () => {
     clearCart,
     getCartMetrics,
     location,
-    setLocationModalOpen
+    setLocationModalOpen,
+    setSelectedService
   } = useAppStore();
 
   const navigate = useNavigate();
@@ -116,26 +117,35 @@ export const CartDrawer: React.FC = () => {
                       key={item.service.id}
                       className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between gap-3"
                     >
-                      <img
-                        src={item.service.image}
-                        alt={item.service.title}
-                        className="w-14 h-14 rounded-xl object-cover border border-slate-100 flex-shrink-0"
-                      />
+                      <div 
+                        onClick={() => {
+                          setSelectedService(item.service);
+                          setCartDrawerOpen(false);
+                        }}
+                        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer group"
+                        title="Click to view complete service details"
+                      >
+                        <img
+                          src={item.service.image}
+                          alt={item.service.title}
+                          className="w-14 h-14 rounded-xl object-cover border border-slate-100 flex-shrink-0 group-hover:scale-105 transition-transform"
+                        />
 
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider block">
-                          {item.service.categoryTitle}
-                        </span>
-                        <h4 className="text-xs font-bold text-slate-900 truncate">
-                          {item.service.title}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-xs font-mono font-bold text-slate-900">
-                            ₹{item.service.price * item.quantity}
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider block">
+                            {item.service.categoryTitle}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 line-through">
-                            ₹{item.service.originalPrice * item.quantity}
-                          </span>
+                          <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-[#2563EB] transition-colors">
+                            {item.service.title}
+                          </h4>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs font-mono font-bold text-slate-900">
+                              ₹{item.service.price * item.quantity}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 line-through">
+                              ₹{item.service.originalPrice * item.quantity}
+                            </span>
+                          </div>
                         </div>
                       </div>
 

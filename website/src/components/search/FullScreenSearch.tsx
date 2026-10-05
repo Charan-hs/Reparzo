@@ -35,7 +35,8 @@ export const FullScreenSearch: React.FC = () => {
     addToCart,
     updateQuantity,
     setActiveCategorySlug,
-    location
+    location,
+    setSelectedService
   } = useAppStore();
 
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
@@ -87,6 +88,10 @@ export const FullScreenSearch: React.FC = () => {
   const handleSelectService = (slug: string, categorySlug: string) => {
     addRecentSearch(searchQuery || serviceTitleBySlug(slug));
     setSearchOpen(false);
+    const target = services.find((s) => s.slug === slug);
+    if (target) {
+      setSelectedService(target);
+    }
     setActiveCategorySlug(categorySlug);
     navigate(`/services?item=${slug}`);
   };

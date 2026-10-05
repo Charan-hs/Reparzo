@@ -59,6 +59,8 @@ export interface AppState {
   services: Service[];
   activeCategorySlug: string;
   setActiveCategorySlug: (slug: string) => void;
+  selectedService: Service | null;
+  setSelectedService: (service: Service | null) => void;
 
   // Full-screen Search Experience
   isSearchOpen: boolean;
@@ -181,6 +183,7 @@ export const useAppStore = create<AppState>()(
       services: INITIAL_SERVICES,
       activeCategorySlug: 'all',
       activeSubCategorySlug: 'all',
+      selectedService: null,
 
       fetchCatalog: async () => {
         set({ isLoadingCatalog: true, catalogError: null });
@@ -397,6 +400,7 @@ export const useAppStore = create<AppState>()(
       },
 
       setActiveCategorySlug: (slug) => set({ activeCategorySlug: slug }),
+      setSelectedService: (service) => set({ selectedService: service }),
 
       // Full Screen Search Experience
       isSearchOpen: false,

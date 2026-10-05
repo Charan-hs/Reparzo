@@ -13,6 +13,7 @@ import { UnifiedAuthModal } from './components/auth/UnifiedAuthModal';
 import { CategoryManagerModal } from './components/admin/CategoryManagerModal';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { CustomRequestModal } from './components/common/CustomRequestModal';
+import { ServiceDetailsModal } from './components/services/ServiceDetailsModal';
 import { ScrollManager } from './components/layout/ScrollManager';
 
 import { HomePage } from './pages/HomePage';
@@ -93,6 +94,9 @@ export function App() {
 
         {/* User-to-Admin Custom & Unique Request Modal */}
         <CustomRequestModal />
+
+        {/* Global Service Details & Inspection Modal */}
+        <ServiceDetailsModal />
 
         {/* Main Routed Page Content */}
         <main className="flex-1">
