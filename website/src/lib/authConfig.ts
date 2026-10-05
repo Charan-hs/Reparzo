@@ -19,6 +19,7 @@ export const ADMIN_IDENTIFIERS = [
   '9999999999',
   'admin@reparzo.com',
   'charanengg08@gmail.com',
+  'vinipawa7411@gmail.com',
 ];
 
 export const PARTNER_IDENTIFIERS = [
@@ -39,13 +40,14 @@ export function resolveUserByIdentifier(identifier: string, displayName?: string
     digits === '9999999999' || 
     lower === 'admin@reparzo.com' ||
     lower === 'charanengg08@gmail.com' ||
+    lower === 'vinipawa7411@gmail.com' ||
     lower.startsWith('admin@')
   ) {
     return {
       phone: digits ? `+91 ${digits}` : '+91 99999 99999',
       displayPhone: '99999 99999',
-      email: lower.includes('@') ? lower : (lower === 'charanengg08@gmail.com' ? 'charanengg08@gmail.com' : 'admin@reparzo.com'),
-      name: displayName || (lower === 'charanengg08@gmail.com' ? 'Charan' : 'Reparzo Executive Admin'),
+      email: lower.includes('@') ? lower : 'admin@reparzo.com',
+      name: displayName || (lower === 'vinipawa7411@gmail.com' ? 'Vinayaka HM' : lower === 'charanengg08@gmail.com' ? 'Charan' : 'Reparzo Executive Admin'),
       role: 'admin',
       roleLabel: 'Admin',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',

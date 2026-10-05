@@ -19,6 +19,7 @@ function getRemoteJWKS() {
 const KNOWN_ADMIN_EMAILS = [
   'charanengg08@gmail.com',
   'admin@reparzo.com',
+  'vinipawa7411@gmail.com',
 ];
 
 /**
