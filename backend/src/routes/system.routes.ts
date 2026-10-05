@@ -3,6 +3,7 @@ import type { Env, Variables } from '../types';
 import { successResponse } from '../utils/response';
 import { BadRequestError } from '../utils/AppError';
 import { requireAdmin } from '../middleware/auth';
+import { createAssessment } from '../services/recaptcha.service';
 
 export const systemRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -67,4 +68,22 @@ systemRoutes.post('/settings', requireAdmin, async (c) => {
   }
 
   return c.json(successResponse(newSettings));
+});
+
+// ── POST /api/system/recaptcha-assessment (Verify action risk assessment) ──
+systemRoutes.post('/recaptcha-assessment', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  if (!body?.token || !body?.action) {
+    throw new BadRequestError('Both token and action are required for reCAPTCHA assessment.');
+  }
+
+  const result = await createAssessment(
+    {
+      token: body.token,
+      recaptchaAction: body.action,
+    },
+    c.env
+  );
+
+  return c.json(successResponse(result));
 });

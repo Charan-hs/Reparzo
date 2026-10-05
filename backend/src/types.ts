@@ -14,6 +14,9 @@ export interface Env {
   FRONTEND_URL: string;
   JWT_SECRET: string;
   FIREBASE_PROJECT_ID?: string;
+  RECAPTCHA_PROJECT_ID?: string;
+  RECAPTCHA_SITE_KEY?: string;
+  RECAPTCHA_API_KEY?: string;
 }
 
 export interface Variables {
