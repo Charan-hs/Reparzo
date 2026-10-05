@@ -6,6 +6,7 @@ import { serviceHubs } from '../db/schema/serviceHubs';
 import { successResponse } from '../utils/response';
 import { NotFoundError, BadRequestError } from '../utils/AppError';
 import { calculateDistanceKm, estimateEtaMinutes } from '../utils/geo';
+import { requireAdmin } from '../middleware/auth';
 
 export const serviceHubsRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -100,8 +101,8 @@ serviceHubsRoutes.post('/check-serviceability', async (c) => {
   );
 });
 
-// ── POST /api/service-hubs ────────────────────────────────────
-serviceHubsRoutes.post('/', async (c) => {
+// ── POST /api/service-hubs (Create - Admin only) ──────────────
+serviceHubsRoutes.post('/', requireAdmin, async (c) => {
   const db = getDb(c.env.DB);
   const body = await c.req.json();
 
@@ -132,8 +133,8 @@ serviceHubsRoutes.post('/', async (c) => {
   return c.json(successResponse(record), 201);
 });
 
-// ── PUT /api/service-hubs/:id ─────────────────────────────────
-serviceHubsRoutes.put('/:id', async (c) => {
+// ── PUT /api/service-hubs/:id (Update - Admin only) ───────────
+serviceHubsRoutes.put('/:id', requireAdmin, async (c) => {
   const { id } = c.req.param();
   const db = getDb(c.env.DB);
   const body = await c.req.json();
@@ -167,8 +168,8 @@ serviceHubsRoutes.put('/:id', async (c) => {
   return c.json(successResponse(updated));
 });
 
-// ── DELETE /api/service-hubs/:id ──────────────────────────────
-serviceHubsRoutes.delete('/:id', async (c) => {
+// ── DELETE /api/service-hubs/:id (Delete - Admin only) ────────
+serviceHubsRoutes.delete('/:id', requireAdmin, async (c) => {
   const { id } = c.req.param();
   const db = getDb(c.env.DB);
 

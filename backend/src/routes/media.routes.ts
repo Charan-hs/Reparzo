@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Variables } from '../types';
 import { NotFoundError, BadRequestError } from '../utils/AppError';
 import { successResponse } from '../utils/response';
+import { requireAdmin } from '../middleware/auth';
 
 export const mediaRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -15,8 +16,8 @@ const MIME_TYPES: Record<string, string> = {
   avif: 'image/avif',
 };
 
-// POST /api/media/upload - Upload and store an image in cloud media storage
-mediaRoutes.post('/upload', async (c) => {
+// POST /api/media/upload - Upload and store an image (Admin only)
+mediaRoutes.post('/upload', requireAdmin, async (c) => {
   if (!c.env.MEDIA) {
     throw new NotFoundError('Media storage service is temporarily unavailable. Please try again later.');
   }
@@ -76,8 +77,8 @@ mediaRoutes.post('/upload', async (c) => {
   );
 });
 
-// GET /api/media/list - List stored assets in media storage
-mediaRoutes.get('/list', async (c) => {
+// GET /api/media/list - List stored assets in media storage (Admin only)
+mediaRoutes.get('/list', requireAdmin, async (c) => {
   if (!c.env.MEDIA) {
     return c.json(
       successResponse({
@@ -111,6 +112,26 @@ mediaRoutes.get('/list', async (c) => {
       objects,
     })
   );
+});
+
+// DELETE /api/media/:key - Delete stored asset (Admin only)
+mediaRoutes.delete('/:key{.+}', requireAdmin, async (c) => {
+  if (!c.env.MEDIA) {
+    throw new NotFoundError('Media storage service is temporarily unavailable.');
+  }
+
+  let key = c.req.param('key');
+  if (!key) {
+    throw new BadRequestError('Media key parameter is required.');
+  }
+
+  // Handle optional banners/ prefix
+  await c.env.MEDIA.delete(key);
+  if (!key.startsWith('banners/')) {
+    await c.env.MEDIA.delete(`banners/${key}`);
+  }
+
+  return c.json(successResponse({ deleted: true, key }));
 });
 
 // OPTIONS /* - Preflight support for media endpoints

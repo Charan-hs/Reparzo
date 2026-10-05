@@ -8,6 +8,8 @@
  * - Direct cloud media storage upload pipeline via /api/media/upload
  */
 
+import { authFetch } from './authClient';
+
 export interface CompressionResult {
   blob: Blob;
   previewUrl: string;
@@ -130,7 +132,7 @@ export async function uploadImageToStorage(
   formData.append('file', webpBlob, targetFilename);
   formData.append('filename', targetFilename);
 
-  const response = await fetch('/api/media/upload', {
+  const response = await authFetch('/api/media/upload', {
     method: 'POST',
     body: formData,
   });

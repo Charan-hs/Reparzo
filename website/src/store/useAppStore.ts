@@ -18,6 +18,7 @@ import { resolveUserByIdentifier, RecognizedAccount } from '../lib/authConfig';
 import { signOutFirebase } from '../lib/firebase';
 import { DEFAULT_SERVICE_HUBS, checkServiceability, reverseGeocode, calculateDistanceKm, estimateEtaMinutes } from '../lib/geo';
 import { toast } from 'sonner';
+import { authFetch } from '../lib/authClient';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_SUBCATEGORIES, 
@@ -277,7 +278,7 @@ export const useAppStore = create<AppState>()(
       // Categories Management (persisting to Cloud API)
       addCategory: async (newCat) => {
         try {
-          const res = await fetch('/api/categories', {
+          const res = await authFetch('/api/categories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newCat),
@@ -301,7 +302,7 @@ export const useAppStore = create<AppState>()(
           categories: state.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
         }));
         try {
-          const res = await fetch(`/api/categories/${id}`, {
+          const res = await authFetch(`/api/categories/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates),
@@ -320,7 +321,7 @@ export const useAppStore = create<AppState>()(
           subCategories: state.subCategories.filter((s) => s.categoryId !== id),
         }));
         try {
-          const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+          const res = await authFetch(`/api/categories/${id}`, { method: 'DELETE' });
           if (!res.ok) throw new Error('Failed to delete category');
           return true;
         } catch (err) {
@@ -336,7 +337,7 @@ export const useAppStore = create<AppState>()(
 
       addSubCategory: async (newSub) => {
         try {
-          const res = await fetch('/api/subcategories', {
+          const res = await authFetch('/api/subcategories', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newSub),
@@ -367,7 +368,7 @@ export const useAppStore = create<AppState>()(
           subCategories: state.subCategories.map((s) => (s.id === id ? { ...s, ...updates } : s)),
         }));
         try {
-          const res = await fetch(`/api/subcategories/${id}`, {
+          const res = await authFetch(`/api/subcategories/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates),
@@ -385,7 +386,7 @@ export const useAppStore = create<AppState>()(
           subCategories: state.subCategories.filter((s) => s.id !== id),
         }));
         try {
-          const res = await fetch(`/api/subcategories/${id}`, { method: 'DELETE' });
+          const res = await authFetch(`/api/subcategories/${id}`, { method: 'DELETE' });
           if (!res.ok) throw new Error('Failed to delete subcategory');
           return true;
         } catch (err) {
@@ -785,7 +786,7 @@ export const useAppStore = create<AppState>()(
         const id = `hub-${Date.now()}`;
         const newHub: ServiceHub = { ...hubData, id };
         try {
-          const res = await fetch('/api/service-hubs', {
+          const res = await authFetch('/api/service-hubs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newHub),
@@ -808,7 +809,7 @@ export const useAppStore = create<AppState>()(
           serviceHubs: state.serviceHubs.map((h) => (h.id === id ? { ...h, ...updates } : h)),
         }));
         try {
-          const res = await fetch(`/api/service-hubs/${id}`, {
+          const res = await authFetch(`/api/service-hubs/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updates),
@@ -824,7 +825,7 @@ export const useAppStore = create<AppState>()(
           serviceHubs: state.serviceHubs.filter((h) => h.id !== id),
         }));
         try {
-          const res = await fetch(`/api/service-hubs/${id}`, { method: 'DELETE' });
+          const res = await authFetch(`/api/service-hubs/${id}`, { method: 'DELETE' });
           return res.ok;
         } catch {
           return true;

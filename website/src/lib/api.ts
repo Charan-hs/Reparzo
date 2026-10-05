@@ -42,11 +42,13 @@ export interface BookingPayload {
   scheduledAt?: string;
 }
 
+import { authFetch } from './authClient';
+
 const API_BASE = '/api';
 
 export async function fetchApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',

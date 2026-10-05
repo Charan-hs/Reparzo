@@ -3,6 +3,7 @@ export interface AuthUser {
   email: string;
   role: 'ADMIN' | 'USER' | 'TECHNICIAN';
   name?: string;
+  phone?: string;
 }
 
 export interface Env {
@@ -12,6 +13,7 @@ export interface Env {
   ENVIRONMENT: string;
   FRONTEND_URL: string;
   JWT_SECRET: string;
+  FIREBASE_PROJECT_ID?: string;
 }
 
 export interface Variables {

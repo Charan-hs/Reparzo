@@ -7,6 +7,7 @@ import { subCategories } from '../db/schema/subCategories';
 import { services } from '../db/schema/services';
 import { successResponse } from '../utils/response';
 import { NotFoundError, BadRequestError } from '../utils/AppError';
+import { requireAdmin } from '../middleware/auth';
 
 export const categoriesRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -84,8 +85,8 @@ categoriesRoutes.get('/:idOrSlug', async (c) => {
   );
 });
 
-// ── POST /api/categories (Create) ─────────────────────────────
-categoriesRoutes.post('/', async (c) => {
+// ── POST /api/categories (Create - Admin only) ────────────────
+categoriesRoutes.post('/', requireAdmin, async (c) => {
   const db = getDb(c.env.DB);
   const body = await c.req.json<any>();
 
@@ -116,8 +117,8 @@ categoriesRoutes.post('/', async (c) => {
   return c.json(successResponse(newCat), 201);
 });
 
-// ── PUT /api/categories/:id (Update) ───────────────────────────
-categoriesRoutes.put('/:id', async (c) => {
+// ── PUT /api/categories/:id (Update - Admin only) ─────────────
+categoriesRoutes.put('/:id', requireAdmin, async (c) => {
   const { id } = c.req.param();
   const db = getDb(c.env.DB);
   const body = await c.req.json<any>();
@@ -144,8 +145,8 @@ categoriesRoutes.put('/:id', async (c) => {
   return c.json(successResponse(updated[0]));
 });
 
-// ── DELETE /api/categories/:id ────────────────────────────────
-categoriesRoutes.delete('/:id', async (c) => {
+// ── DELETE /api/categories/:id (Delete - Admin only) ──────────
+categoriesRoutes.delete('/:id', requireAdmin, async (c) => {
   const { id } = c.req.param();
   const db = getDb(c.env.DB);
 
