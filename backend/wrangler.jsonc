@@ -30,7 +30,10 @@
   "vars": {
     "ENVIRONMENT": "development",
     "FRONTEND_URL": "http://localhost:3000",
-    "JWT_SECRET": "reparzo-dev-secret-key-change-in-production-12345678"
+    "JWT_SECRET": "reparzo-dev-secret-key-change-in-production-12345678",
+    "RECAPTCHA_PROJECT_ID": "reparzo",
+    "RECAPTCHA_SITE_KEY": "6LeKwt8tAAAAAK00ZtJ77gSSXaNKWezSXqrNfSwo",
+    "RECAPTCHA_SECRET_KEY": "6LeKwt8tAAAAAO2TwAxiYNI6xUaDUsTTGjaBBXqS"
   },
   "observability": {
     "logs": {

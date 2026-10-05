@@ -38,10 +38,53 @@ export async function createAssessment(
 
   const effectiveProjectID = env?.RECAPTCHA_PROJECT_ID || projectID;
   const effectiveKey = env?.RECAPTCHA_SITE_KEY || recaptchaKey;
+  const secretKey = env?.RECAPTCHA_SECRET_KEY || '6LeKwt8tAAAAAO2TwAxiYNI6xUaDUsTTGjaBBXqS';
   const apiKey = env?.RECAPTCHA_API_KEY;
 
   try {
-    // Cloudflare Workers Native HTTP assessment call to Google reCAPTCHA Enterprise REST API
+    // 1. Primary verification via Google reCAPTCHA Secret Key API (native & zero-config in Cloudflare Workers)
+    if (secretKey) {
+      const params = new URLSearchParams();
+      params.append('secret', secretKey);
+      params.append('response', token);
+
+      const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      });
+
+      if (verifyRes.ok) {
+        const verifyData: any = await verifyRes.json();
+        if (verifyData.success) {
+          if (verifyData.action && recaptchaAction && verifyData.action !== recaptchaAction) {
+            console.warn(`[reCAPTCHA] Action mismatch: expected ${recaptchaAction}, got ${verifyData.action}`);
+            return {
+              valid: false,
+              invalidReason: 'ACTION_MISMATCH',
+            };
+          }
+
+          const score = typeof verifyData.score === 'number' ? verifyData.score : 1.0;
+          return {
+            valid: true,
+            score,
+            action: verifyData.action || recaptchaAction,
+            reasons: [],
+          };
+        } else {
+          const errorCodes = verifyData['error-codes'] || [];
+          return {
+            valid: false,
+            invalidReason: errorCodes.join(', ') || 'INVALID_TOKEN',
+          };
+        }
+      }
+    }
+
+    // 2. Secondary verification via Google Cloud Enterprise REST API
     const endpoint = apiKey
       ? `https://recaptchaenterprise.googleapis.com/v1/projects/${effectiveProjectID}/assessments?key=${apiKey}`
       : `https://recaptchaenterprise.googleapis.com/v1/projects/${effectiveProjectID}/assessments`;

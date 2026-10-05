@@ -17,6 +17,7 @@ export interface Env {
   RECAPTCHA_PROJECT_ID?: string;
   RECAPTCHA_SITE_KEY?: string;
   RECAPTCHA_API_KEY?: string;
+  RECAPTCHA_SECRET_KEY?: string;
 }
 
 export interface Variables {
