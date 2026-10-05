@@ -93,30 +93,29 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
           <div>
-            <h1 className="text-2xl font-black text-white">Admin Privileges Required</h1>
+            <h1 className="text-2xl font-black text-white">Administrator Access Required</h1>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              This executive operations portal is restricted to Reparzo System Administrators. Please log in with admin credentials.
+              {user 
+                ? `Signed in as ${user.name} (${user.email || user.phone}). This account does not have executive operations privileges.`
+                : 'This executive operations portal is restricted to authorized Reparzo System Administrators.'}
             </p>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700 text-left text-xs text-slate-300">
-            <span className="font-bold text-white block mb-0.5">Demo Admin Credentials:</span>
-            <span>Mobile: <strong className="text-rose-400 font-mono">99999 99999</strong> (Auto-detected as Admin)</span>
           </div>
 
           <button
             onClick={() => setAuthModalOpen(true, 'admin')}
             className="w-full py-3.5 rounded-2xl bg-[#E32402] hover:bg-rose-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 active:scale-95 transition-all cursor-pointer"
           >
-            Open Unified Login Screen ➔
+            {user ? 'Switch to Admin Account ➔' : 'Sign In as Administrator ➔'}
           </button>
 
-          <Link
-            to="/"
-            className="inline-block text-xs text-slate-400 hover:text-white transition-colors"
-          >
-            ← Return to Customer Storefront
-          </Link>
+          <div>
+            <Link
+              to="/"
+              className="inline-block text-xs text-slate-400 hover:text-white transition-colors"
+            >
+              ← Return to Customer Storefront
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -544,7 +543,7 @@ export const AdminDashboard: React.FC = () => {
                 ))}
               </div>
 
-              {/* Action Buttons: New Booking & Reset Demo */}
+              {/* Action Buttons: New Booking & Refresh Catalog */}
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   onClick={() => setIsCreateModalOpen(true)}
@@ -556,12 +555,12 @@ export const AdminDashboard: React.FC = () => {
 
                 <button
                   onClick={() => {
-                    if (window.confirm('Reset bookings to initial default dataset?')) {
+                    if (window.confirm('Refresh bookings to standard catalog dataset?')) {
                       resetOrdersToDefault();
-                      toast.success('Bookings reset to default demo dataset');
+                      toast.success('Bookings refreshed successfully');
                     }
                   }}
-                  title="Reset Demo Dataset"
+                  title="Refresh Bookings"
                   className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -812,7 +811,7 @@ export const AdminDashboard: React.FC = () => {
                   <button
                     onClick={() => {
                       resetCustomRequestsToDefault();
-                      toast.success('Reset demo custom requests to standard catalog.');
+                      toast.success('Custom requests synchronized with catalog');
                     }}
                     className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
                     title="Reset to default custom requests"

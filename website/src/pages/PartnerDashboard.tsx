@@ -47,7 +47,7 @@ export const PartnerDashboard: React.FC = () => {
     updateOrderStatus 
   } = useAppStore();
 
-  // Combine static demo jobs with live store orders so all customer bookings can be serviced
+  // Live store orders and active dispatch queue so all customer bookings can be serviced
   const [activeJob, setActiveJob] = useState<PartnerJob | null>(null);
   const [completionOtp, setCompletionOtp] = useState('');
   const [earningsToday, setEarningsToday] = useState(1420);
@@ -112,28 +112,27 @@ export const PartnerDashboard: React.FC = () => {
           <div>
             <h1 className="text-2xl font-black text-slate-900">Partner Access Required</h1>
             <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-              This dashboard is for verified Reparzo technicians to accept nearby repair jobs, start GPS navigation, and track daily payouts.
+              {user
+                ? `Signed in as ${user.name} (${user.email || user.phone}). This account is registered as a customer and does not have technician partner access.`
+                : 'This dashboard is restricted to verified Reparzo technicians to accept nearby repair jobs, start GPS navigation, and track daily payouts.'}
             </p>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200 text-left text-xs text-slate-700">
-            <span className="font-bold text-slate-900 block mb-0.5">Demo Partner Account:</span>
-            <span>Mobile: <strong className="text-amber-700 font-mono">98765 43210</strong> (Auto-detected as Partner)</span>
           </div>
 
           <button
             onClick={() => setAuthModalOpen(true, 'partner')}
             className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
           >
-            Open Unified Login Screen ➔
+            {user ? 'Switch to Partner Account ➔' : 'Technician Sign In ➔'}
           </button>
 
-          <a
-            href="/"
-            className="inline-block text-xs text-slate-400 hover:text-slate-700 transition-colors"
-          >
-            ← Return to Customer Storefront
-          </a>
+          <div>
+            <Link
+              to="/"
+              className="inline-block text-xs text-slate-400 hover:text-slate-700 transition-colors"
+            >
+              ← Return to Customer Storefront
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -271,8 +270,8 @@ export const PartnerDashboard: React.FC = () => {
                   <KeyRound className="w-3.5 h-3.5 text-amber-600" />
                   Service Completion Verification
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  Demo PIN for testing: <strong className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">{activeJob.expectedPin}</strong>
+                <span className="text-[11px] text-slate-500 font-medium">
+                  Ask customer for 4-digit PIN upon service completion
                 </span>
               </div>
 
