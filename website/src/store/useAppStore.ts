@@ -96,6 +96,8 @@ export interface AppState {
   authModalInitialRole: UserRole;
   setAuthModalOpen: (open: boolean, role?: UserRole) => void;
   setUser: (user: UserProfile | null) => void;
+  syncUserToCloud: (user?: UserProfile | null) => Promise<void>;
+  fetchUserAddresses: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   setActiveRole: (role: UserRole) => void;
   loginSimulated: (role: UserRole, phoneOrEmail: string, name: string) => void;
@@ -483,7 +485,7 @@ export const useAppStore = create<AppState>()(
       authModalInitialRole: 'user',
       setAuthModalOpen: (open, role = 'user') =>
         set({ isAuthModalOpen: open, authModalInitialRole: role }),
-      setUser: (user) =>
+      setUser: (user) => {
         set((state) => ({
           user,
           ...(user === null
@@ -497,7 +499,73 @@ export const useAppStore = create<AppState>()(
                 location: DEFAULT_DAVANGERE_LOCATION,
               }
             : {}),
-        })),
+        }));
+        if (user) {
+          setTimeout(() => {
+            get().syncUserToCloud(user);
+          }, 0);
+        }
+      },
+
+      syncUserToCloud: async (userToSync) => {
+        const targetUser = userToSync || get().user;
+        if (!targetUser) return;
+        try {
+          const res = await authFetch('/api/users/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: targetUser.name,
+              email: targetUser.email,
+              phone: targetUser.phone,
+              role: targetUser.role === 'admin' ? 'ADMIN' : targetUser.role === 'partner' ? 'TECHNICIAN' : 'USER',
+              metadata: {
+                avatar: targetUser.avatar,
+                partnerRating: targetUser.partnerRating,
+              },
+            }),
+          });
+          if (res.ok) {
+            await get().fetchUserAddresses();
+          }
+        } catch (err) {
+          console.warn('[syncUserToCloud notice]', err);
+        }
+      },
+
+      fetchUserAddresses: async () => {
+        if (!get().user) return;
+        try {
+          const res = await authFetch('/api/user-addresses');
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json?.data) && json.data.length > 0) {
+              const mapped: UserAddress[] = json.data.map((d: any) => ({
+                id: d.id,
+                label: d.label,
+                fullAddress: d.fullAddress,
+                flatNumber: d.flatNumber || undefined,
+                landmark: d.landmark || undefined,
+                area: d.area,
+                city: d.city,
+                pincode: d.pincode,
+                latitude: typeof d.latitude === 'number' ? d.latitude : 14.4644,
+                longitude: typeof d.longitude === 'number' ? d.longitude : 75.9218,
+                isDefault: Boolean(d.isDefault),
+                createdAt: d.createdAt ? new Date(d.createdAt).toISOString() : new Date().toISOString(),
+              }));
+              set({ savedAddresses: mapped });
+              const def = mapped.find((a) => a.isDefault) || mapped[0];
+              if (def && !get().activeAddressId) {
+                get().selectSavedAddress(def.id);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('[fetchUserAddresses notice]', err);
+        }
+      },
+
       setActiveRole: (role) => set({ activeRole: role }),
       loginSimulated: (role, phoneOrEmail, name) => {
         const newUser: UserProfile = {
@@ -551,6 +619,9 @@ export const useAppStore = create<AppState>()(
           orders: (role === 'admin' || role === 'partner') && state.orders.length === 0 ? INITIAL_ORDERS : state.orders,
           customRequests: role === 'admin' && state.customRequests.length === 0 ? INITIAL_CUSTOM_REQUESTS : state.customRequests,
         }));
+        setTimeout(() => {
+          get().syncUserToCloud(newUser);
+        }, 0);
         return detected;
       },
       updateUserProfile: (updates) => {
@@ -661,6 +732,15 @@ export const useAppStore = create<AppState>()(
           },
         });
 
+        // Cloud sync to D1 if user is authenticated
+        if (get().user) {
+          authFetch('/api/user-addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newAddress),
+          }).catch((err) => console.warn('[addAddress cloud sync error]', err));
+        }
+
         return newAddress;
       },
 
@@ -700,6 +780,15 @@ export const useAppStore = create<AppState>()(
         } else {
           set({ savedAddresses: updatedAddresses });
         }
+
+        // Cloud sync to D1 if user is authenticated
+        if (get().user) {
+          authFetch(`/api/user-addresses/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          }).catch((err) => console.warn('[updateAddress cloud sync error]', err));
+        }
       },
 
       deleteAddress: (id) => {
@@ -707,6 +796,13 @@ export const useAppStore = create<AppState>()(
           savedAddresses: state.savedAddresses.filter((a) => a.id !== id),
           activeAddressId: state.activeAddressId === id ? null : state.activeAddressId,
         }));
+
+        // Cloud sync deletion to D1 if user is authenticated
+        if (get().user) {
+          authFetch(`/api/user-addresses/${id}`, {
+            method: 'DELETE',
+          }).catch((err) => console.warn('[deleteAddress cloud sync error]', err));
+        }
       },
 
       setDefaultAddress: (id) => {
@@ -739,6 +835,15 @@ export const useAppStore = create<AppState>()(
           });
         } else {
           set({ savedAddresses: updated });
+        }
+
+        // Cloud sync default address to D1 if user is authenticated
+        if (get().user) {
+          authFetch(`/api/user-addresses/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isDefault: true }),
+          }).catch((err) => console.warn('[setDefaultAddress cloud sync error]', err));
         }
       },
 
@@ -845,6 +950,10 @@ export const useAppStore = create<AppState>()(
           }
           return;
         }
+
+        // Freshly sync authenticated user and fetch cloud addresses from D1
+        get().syncUserToCloud();
+        get().fetchUserAddresses();
 
         // 1. Check if user has a default saved address:
         const defaultAddress = state.savedAddresses.find((a) => a.isDefault);
