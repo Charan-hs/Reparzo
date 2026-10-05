@@ -1,7 +1,7 @@
 /**
- * Google reCAPTCHA Enterprise Integration
- * Site Key: 6LeKwt8tAAAAAK00ZtJ77gSSXaNKWezSXqrNfSwo
- */
+* Google reCAPTCHA Enterprise Integration
+* Site Key: 6LeKwt8tAAAAAK00ZtJ77gSSXaNKWezSXqrNfSwo
+*/
 
 export const RECAPTCHA_ENTERPRISE_SITE_KEY = '6LeKwt8tAAAAAK00ZtJ77gSSXaNKWezSXqrNfSwo';
 

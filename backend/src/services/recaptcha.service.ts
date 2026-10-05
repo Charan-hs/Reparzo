@@ -38,7 +38,7 @@ export async function createAssessment(
 
   const effectiveProjectID = env?.RECAPTCHA_PROJECT_ID || projectID;
   const effectiveKey = env?.RECAPTCHA_SITE_KEY || recaptchaKey;
-  const secretKey = env?.RECAPTCHA_SECRET_KEY || '6LeKwt8tAAAAAO2TwAxiYNI6xUaDUsTTGjaBBXqS';
+  const secretKey = env?.RECAPTCHA_SECRET_KEY;
   const apiKey = env?.RECAPTCHA_API_KEY;
 
   try {
