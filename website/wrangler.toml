@@ -2,6 +2,11 @@ name = "reparzo-website"
 main = "worker.js"
 compatibility_date = "2026-08-04"
 
+routes = [
+  { pattern = "reparzo.com/*", zone_name = "reparzo.com" },
+  { pattern = "www.reparzo.com/*", zone_name = "reparzo.com" }
+]
+
 [assets]
 directory = "./dist"
 binding = "ASSETS"

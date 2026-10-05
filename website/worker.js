@@ -2,6 +2,12 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // 0. Canonical SEO redirect: www.reparzo.com -> reparzo.com
+    if (url.hostname === 'www.reparzo.com') {
+      url.hostname = 'reparzo.com';
+      return Response.redirect(url.toString(), 301);
+    }
+
     // 1. Direct proxy for API, banners, and media to backend Worker via Service Binding
     if (
       url.pathname.startsWith('/api') ||
