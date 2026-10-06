@@ -63,6 +63,19 @@ export const BookingsPage: React.FC = () => {
     }
   }, [user?.id]);
 
+  // URL query parameter support: /bookings?tab=previous - declared at top level to obey React Rules of Hooks
+  const paramView = searchParams.get('tab') || searchParams.get('view');
+  const initialView: 'live' | 'previous' = paramView === 'previous' ? 'previous' : 'live';
+
+  const [activeTab, setActiveTab] = useState<'live' | 'previous'>(initialView);
+  const [scheduleInfoModalOrder, setScheduleInfoModalOrder] = useState<OrderBooking | null>(null);
+  const [expandedScheduleOrderId, setExpandedScheduleOrderId] = useState<string | null>(null);
+
+  const handleTabChange = (tab: 'live' | 'previous') => {
+    setActiveTab(tab);
+    setSearchParams(tab === 'live' ? {} : { tab });
+  };
+
   // ── Authentication Guard ──────────────────────────────────────────
   // Do not expose any bookings, technician tracking, PINs, or addresses to unauthenticated guests
   if (!user) {
@@ -115,19 +128,6 @@ export const BookingsPage: React.FC = () => {
       </div>
     );
   }
-
-  // URL query parameter support: /bookings?tab=previous
-  const paramView = searchParams.get('tab') || searchParams.get('view');
-  const initialView: 'live' | 'previous' = paramView === 'previous' ? 'previous' : 'live';
-
-  const [activeTab, setActiveTab] = useState<'live' | 'previous'>(initialView);
-  const [scheduleInfoModalOrder, setScheduleInfoModalOrder] = useState<OrderBooking | null>(null);
-  const [expandedScheduleOrderId, setExpandedScheduleOrderId] = useState<string | null>(null);
-
-  const handleTabChange = (tab: 'live' | 'previous') => {
-    setActiveTab(tab);
-    setSearchParams(tab === 'live' ? {} : { tab });
-  };
 
   // Live active orders: confirmed, technician_assigned, in_progress
   const liveOrders = orders.filter(

@@ -57,6 +57,36 @@ export const ProfilePage: React.FC = () => {
     setCartDrawerOpen
   } = useAppStore();
 
+  // Active tab state: 'bookings' | 'addresses' | 'info'
+  const activeTab = (searchParams.get('tab') as 'bookings' | 'addresses' | 'info') || 'bookings';
+
+  const setActiveTab = (tab: 'bookings' | 'addresses' | 'info') => {
+    setSearchParams({ tab });
+  };
+
+  // Profile Edit Modal State - declared at top level to obey React Rules of Hooks
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editPhone, setEditPhone] = useState(user?.phone || '');
+  const [editEmail, setEditEmail] = useState(user?.email || '');
+
+  // Bookings filter - default to active live repairs
+  const [bookingFilter, setBookingFilter] = useState<'all' | 'active' | 'completed'>('active');
+
+  // Safe date formatting helper to prevent 'Invalid Date'
+  const formatOrderDate = (dateStr?: string) => {
+    if (!dateStr) return 'Recently';
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-IN', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+    return dateStr;
+  };
+
   // ── Authentication Guard ──────────────────────────────────────────
   // Disallow viewing profile information, addresses, or history when logged out
   if (!user) {
@@ -109,36 +139,6 @@ export const ProfilePage: React.FC = () => {
       </div>
     );
   }
-
-  // Active tab state: 'bookings' | 'addresses' | 'info'
-  const activeTab = (searchParams.get('tab') as 'bookings' | 'addresses' | 'info') || 'bookings';
-
-  const setActiveTab = (tab: 'bookings' | 'addresses' | 'info') => {
-    setSearchParams({ tab });
-  };
-
-  // Profile Edit Modal State
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editName, setEditName] = useState(user?.name || '');
-  const [editPhone, setEditPhone] = useState(user?.phone || '');
-  const [editEmail, setEditEmail] = useState(user?.email || '');
-
-  // Safe date formatting helper to prevent 'Invalid Date'
-  const formatOrderDate = (dateStr?: string) => {
-    if (!dateStr) return 'Recently';
-    const parsed = new Date(dateStr);
-    if (!isNaN(parsed.getTime())) {
-      return parsed.toLocaleDateString('en-IN', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      });
-    }
-    return dateStr;
-  };
-
-  // Bookings filter - default to active live repairs
-  const [bookingFilter, setBookingFilter] = useState<'all' | 'active' | 'completed'>('active');
 
   const openEditProfile = () => {
     if (!user) {

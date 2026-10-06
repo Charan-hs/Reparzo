@@ -97,6 +97,50 @@ export const AdminDashboard: React.FC = () => {
   const [adminNotesInputs, setAdminNotesInputs] = useState<Record<string, string>>({});
 
 
+  // ── Edit & Create Booking State (Declared at top level for React Rules of Hooks) ──
+  const [editingOrder, setEditingOrder] = useState<OrderBooking | null>(null);
+  const [editForm, setEditForm] = useState<{
+    status: OrderBooking['status'];
+    technicianName: string;
+    technicianPhone: string;
+    scheduledDate: string;
+    timeSlot: string;
+    customerName: string;
+    customerPhone: string;
+    address: string;
+    grandTotal: number;
+    paymentStatus: 'paid' | 'pending';
+    adminNotes: string;
+    completionPin: string;
+  }>({
+    status: 'confirmed',
+    technicianName: '',
+    technicianPhone: '',
+    scheduledDate: '',
+    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    grandTotal: 0,
+    paymentStatus: 'paid',
+    adminNotes: '',
+    completionPin: '8492',
+  });
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    customerName: '',
+    customerPhone: '',
+    address: '',
+    technicianName: '',
+    technicianPhone: '',
+    scheduledDate: new Date().toISOString().slice(0, 10),
+    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
+    grandTotal: 499,
+    status: 'confirmed' as OrderBooking['status'],
+    completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
+  });
+
   // If user is not admin, show permission gate
   if (user?.role !== 'admin') {
     return (
@@ -162,35 +206,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  // ── Edit Booking State ────────────────────────────────
-  const [editingOrder, setEditingOrder] = useState<OrderBooking | null>(null);
-  const [editForm, setEditForm] = useState<{
-    status: OrderBooking['status'];
-    technicianName: string;
-    technicianPhone: string;
-    scheduledDate: string;
-    timeSlot: string;
-    customerName: string;
-    customerPhone: string;
-    address: string;
-    grandTotal: number;
-    paymentStatus: 'paid' | 'pending';
-    adminNotes: string;
-    completionPin: string;
-  }>({
-    status: 'confirmed',
-    technicianName: '',
-    technicianPhone: '',
-    scheduledDate: '',
-    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
-    customerName: '',
-    customerPhone: '',
-    address: '',
-    grandTotal: 0,
-    paymentStatus: 'paid',
-    adminNotes: '',
-    completionPin: '8492',
-  });
+
 
   const handleOpenEdit = (order: OrderBooking) => {
     setEditingOrder(order);
@@ -241,20 +257,6 @@ export const AdminDashboard: React.FC = () => {
     setEditingOrder(null);
   };
 
-  // ── Create Booking State ──────────────────────────────
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createForm, setCreateForm] = useState({
-    customerName: '',
-    customerPhone: '',
-    address: '',
-    technicianName: '',
-    technicianPhone: '',
-    scheduledDate: new Date().toISOString().slice(0, 10),
-    timeSlot: 'Working Hours (10:00 AM - 06:00 PM)',
-    grandTotal: 499,
-    status: 'confirmed' as OrderBooking['status'],
-    completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
-  });
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
