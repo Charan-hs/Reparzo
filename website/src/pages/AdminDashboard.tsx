@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Shield, 
@@ -52,12 +52,16 @@ export const AdminDashboard: React.FC = () => {
   const { 
     user, 
     orders, 
+    isLoadingOrders,
+    fetchOrders,
     addOrder,
     updateOrderStatus, 
     updateOrder,
     deleteOrder,
     resetOrdersToDefault,
     customRequests,
+    isLoadingCustomRequests,
+    fetchCustomRequests,
     updateCustomRequestStatus,
     updateCustomRequest,
     deleteCustomRequest,
@@ -77,6 +81,13 @@ export const AdminDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [surgeActive, setSurgeActive] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchOrders();
+      fetchCustomRequests();
+    }
+  }, [user?.role, activeTab]);
 
   // Custom Requests Tab state
   const [customStatusFilter, setCustomStatusFilter] = useState<string>('all');
@@ -245,7 +256,7 @@ export const AdminDashboard: React.FC = () => {
     completionPin: Math.floor(1000 + Math.random() * 9000).toString(),
   });
 
-  const handleCreateOrder = (e: React.FormEvent) => {
+  const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.customerName.trim() || !createForm.customerPhone.trim() || !createForm.address.trim()) {
       toast.error('Please enter customer name, phone, and address');
@@ -285,7 +296,7 @@ export const AdminDashboard: React.FC = () => {
       completionPin: createForm.completionPin || Math.floor(1000 + Math.random() * 9000).toString(),
     };
 
-    addOrder(newOrder);
+    await addOrder(newOrder);
     toast.success(`Booking ${newOrder.id} created successfully! PIN: ${newOrder.completionPin}`);
     setIsCreateModalOpen(false);
     setCreateForm({
@@ -593,26 +604,36 @@ export const AdminDashboard: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    if (window.confirm('Refresh bookings to standard catalog dataset?')) {
-                      resetOrdersToDefault();
-                      toast.success('Bookings refreshed successfully');
-                    }
+                  onClick={async () => {
+                    await fetchOrders();
+                    toast.success('Live bookings refreshed from database');
                   }}
-                  title="Refresh Bookings"
+                  title="Refresh Bookings from Database"
                   className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className={`w-3.5 h-3.5 ${isLoadingOrders ? 'animate-spin text-[#2563EB]' : ''}`} />
                 </button>
               </div>
             </div>
 
             {/* Bookings Table / Cards */}
             <div className="grid grid-cols-1 gap-3.5">
-              {filteredOrders.length === 0 ? (
+              {isLoadingOrders && orders.length === 0 ? (
+                <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500">
+                  <RotateCcw className="w-8 h-8 mx-auto text-[#2563EB] animate-spin mb-3" />
+                  <p className="text-sm font-bold text-slate-800">Loading Live Bookings from Database...</p>
+                </div>
+              ) : filteredOrders.length === 0 ? (
                 <div className="p-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-500">
                   <Clock className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                  <p className="text-sm font-bold">No bookings found matching current filter</p>
+                  <p className="text-sm font-bold text-slate-800">
+                    {orders.length === 0 ? 'No bookings in database yet' : 'No bookings found matching current filter'}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {orders.length === 0 
+                      ? 'Live database connected. Customer storefront bookings and admin dispatches appear here in real time.'
+                      : 'Try resetting your search query or status filter.'}
+                  </p>
                 </div>
               ) : (
                 filteredOrders.map((order) => {
@@ -848,25 +869,36 @@ export const AdminDashboard: React.FC = () => {
                   </button>
 
                   <button
-                    onClick={() => {
-                      resetCustomRequestsToDefault();
-                      toast.success('Custom requests synchronized with catalog');
+                    onClick={async () => {
+                      await fetchCustomRequests();
+                      toast.success('Custom requests refreshed from live database');
                     }}
                     className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
-                    title="Reset to default custom requests"
+                    title="Refresh custom requests from database"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <RotateCcw className={`w-4 h-4 ${isLoadingCustomRequests ? 'animate-spin text-[#2563EB]' : ''}`} />
                   </button>
                 </div>
               </div>
 
               {/* Requests List */}
               <div className="space-y-4">
-                {filteredCustomRequests.length === 0 ? (
+                {isLoadingCustomRequests && customRequests.length === 0 ? (
+                  <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500 shadow-xs">
+                    <RotateCcw className="w-8 h-8 mx-auto text-[#2563EB] animate-spin mb-3" />
+                    <h4 className="text-sm font-bold text-slate-800">Loading Live Custom Requests from Database...</h4>
+                  </div>
+                ) : filteredCustomRequests.length === 0 ? (
                   <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-500 shadow-xs">
                     <Sparkles className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                    <h4 className="text-base font-bold text-slate-800">No Custom Requests Match Filters</h4>
-                    <p className="text-xs text-slate-400 mt-1">Try resetting your search query or status filter.</p>
+                    <h4 className="text-base font-bold text-slate-800">
+                      {customRequests.length === 0 ? 'No Custom Requests in Database' : 'No Custom Requests Match Filters'}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                      {customRequests.length === 0
+                        ? 'Live database connected. Customer briefs submitted through the storefront will stream in here live.'
+                        : 'Try resetting your search query or status filter.'}
+                    </p>
                   </div>
                 ) : (
                   filteredCustomRequests.map((req: CustomRequest) => {

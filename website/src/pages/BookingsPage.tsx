@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Calendar, 
@@ -46,6 +46,8 @@ export const BookingsPage: React.FC = () => {
   const { 
     orders, 
     customRequests,
+    fetchOrders,
+    fetchCustomRequests,
     updateCustomRequestStatus,
     user, 
     setAuthModalOpen, 
@@ -53,6 +55,13 @@ export const BookingsPage: React.FC = () => {
     setCartDrawerOpen,
     setCustomRequestModalOpen
   } = useAppStore();
+
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+      fetchCustomRequests();
+    }
+  }, [user?.id]);
 
   // ── Authentication Guard ──────────────────────────────────────────
   // Do not expose any bookings, technician tracking, PINs, or addresses to unauthenticated guests

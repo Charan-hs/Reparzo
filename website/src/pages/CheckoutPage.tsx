@@ -163,7 +163,7 @@ export const CheckoutPage: React.FC = () => {
     // Execute Google reCAPTCHA Enterprise score assessment for BOOKING
     await executeRecaptcha('BOOKING');
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsSubmitting(false);
 
       let chosenDateObj = todayObj;
@@ -217,8 +217,8 @@ export const CheckoutPage: React.FC = () => {
         });
       }
 
-      addOrder(newOrder);
-      setCompletedOrder(newOrder);
+      const saved = await addOrder(newOrder);
+      setCompletedOrder(saved || newOrder);
       clearCart();
       toast.success(orderMeta.toastSuccess);
     }, 800);

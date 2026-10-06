@@ -29,6 +29,13 @@
       "when": 1791103827074,
       "tag": "0003_curvy_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791286728466,
+      "tag": "0004_regular_jamie_braddock",
+      "breakpoints": true
     }
   ]
 }

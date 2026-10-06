@@ -139,21 +139,25 @@ export interface AppState {
   partnerIsOnline: boolean;
   setPartnerIsOnline: (online: boolean) => void;
 
-  // Orders
+  // Orders (Live Cloud DB Synchronized)
   orders: OrderBooking[];
-  addOrder: (order: OrderBooking) => void;
-  updateOrderStatus: (orderId: string, status: OrderBooking['status']) => void;
-  updateOrder: (orderId: string, updates: Partial<OrderBooking>) => void;
-  deleteOrder: (orderId: string) => void;
-  resetOrdersToDefault: () => void;
+  isLoadingOrders: boolean;
+  fetchOrders: () => Promise<void>;
+  addOrder: (order: OrderBooking) => Promise<OrderBooking>;
+  updateOrderStatus: (orderId: string, status: OrderBooking['status']) => Promise<void>;
+  updateOrder: (orderId: string, updates: Partial<OrderBooking>) => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
+  resetOrdersToDefault: () => Promise<void>;
 
-  // Custom Requests (Unique on-demand requests submitted by users to admin)
+  // Custom Requests (Live Cloud DB Synchronized)
   customRequests: CustomRequest[];
-  addCustomRequest: (req: Omit<CustomRequest, 'id' | 'createdAt' | 'status'>) => CustomRequest;
-  updateCustomRequestStatus: (id: string, status: CustomRequestStatus, quotedPrice?: number) => void;
-  updateCustomRequest: (id: string, updates: Partial<CustomRequest>) => void;
-  deleteCustomRequest: (id: string) => void;
-  resetCustomRequestsToDefault: () => void;
+  isLoadingCustomRequests: boolean;
+  fetchCustomRequests: () => Promise<void>;
+  addCustomRequest: (req: Omit<CustomRequest, 'id' | 'createdAt' | 'status'>) => Promise<CustomRequest>;
+  updateCustomRequestStatus: (id: string, status: CustomRequestStatus, quotedPrice?: number) => Promise<void>;
+  updateCustomRequest: (id: string, updates: Partial<CustomRequest>) => Promise<void>;
+  deleteCustomRequest: (id: string) => Promise<void>;
+  resetCustomRequestsToDefault: () => Promise<void>;
   isCustomRequestModalOpen: boolean;
   customRequestModalInitialCategory: string | null;
   setCustomRequestModalOpen: (open: boolean, initialCategory?: string) => void;
@@ -279,6 +283,10 @@ export const useAppStore = create<AppState>()(
           set({ isLoadingCatalog: false });
           // Refresh operational feature flags and service upgrade notice
           get().fetchSystemSettings();
+          if (get().user) {
+            get().fetchOrders();
+            get().fetchCustomRequests();
+          }
         } catch (err: any) {
           console.error('[fetchCatalog error]', err);
           set({ isLoadingCatalog: false, catalogError: err?.message || 'Failed to fetch catalog' });
@@ -644,9 +652,11 @@ export const useAppStore = create<AppState>()(
           user: newUser,
           activeRole: role,
           isAuthModalOpen: false,
-          orders: (role === 'admin' || role === 'partner') && state.orders.length === 0 ? INITIAL_ORDERS : state.orders,
-          customRequests: role === 'admin' && state.customRequests.length === 0 ? INITIAL_CUSTOM_REQUESTS : state.customRequests,
         }));
+        setTimeout(() => {
+          get().fetchOrders();
+          get().fetchCustomRequests();
+        }, 0);
       },
       loginWithFirebaseUser: (firebaseUser) => {
         const email = firebaseUser.email || '';
@@ -672,11 +682,11 @@ export const useAppStore = create<AppState>()(
           user: newUser,
           activeRole: role,
           isAuthModalOpen: false,
-          orders: (role === 'admin' || role === 'partner') && state.orders.length === 0 ? INITIAL_ORDERS : state.orders,
-          customRequests: role === 'admin' && state.customRequests.length === 0 ? INITIAL_CUSTOM_REQUESTS : state.customRequests,
         }));
         setTimeout(() => {
           get().syncUserToCloud(newUser);
+          get().fetchOrders();
+          get().fetchCustomRequests();
         }, 0);
         return detected;
       },
@@ -1092,26 +1102,134 @@ export const useAppStore = create<AppState>()(
       partnerIsOnline: true,
       setPartnerIsOnline: (online) => set({ partnerIsOnline: online }),
 
-      // Orders: default empty for guests & unauthenticated users
+      // Orders: Live database persistence with optimistic local state
       orders: [],
-      addOrder: (order) => set((state) => ({ orders: [order, ...state.orders] })),
-      updateOrderStatus: (orderId, status) =>
+      isLoadingOrders: false,
+      fetchOrders: async () => {
+        set({ isLoadingOrders: true });
+        try {
+          const res = await authFetch('/api/bookings');
+          if (res.ok) {
+            const json = await res.json();
+            const data = json?.data;
+            if (Array.isArray(data)) {
+              // Ensure legacy mock order IDs are purged
+              const cleanOrders = data.filter(
+                (o: any) =>
+                  o.id !== 'ORD-8821' &&
+                  o.id !== 'ORD-8819' &&
+                  o.id !== 'ORD-8812' &&
+                  o.id !== 'ORD-8492' &&
+                  o.id !== 'ORD-8488' &&
+                  o.id !== 'ORD-8470'
+              );
+              set({ orders: cleanOrders, isLoadingOrders: false });
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('[fetchOrders error]', err);
+        }
+        set({ isLoadingOrders: false });
+      },
+      addOrder: async (order) => {
+        set((state) => ({ orders: [order, ...state.orders] }));
+        try {
+          const res = await authFetch('/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(order),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            const saved = json?.data?.booking;
+            if (saved) {
+              set((state) => ({
+                orders: state.orders.map((o) => (o.id === order.id ? saved : o)),
+              }));
+              return saved;
+            }
+          }
+        } catch (err) {
+          console.warn('[addOrder DB persist warning]', err);
+        }
+        return order;
+      },
+      updateOrderStatus: async (orderId, status) => {
         set((state) => ({
           orders: state.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
-        })),
-      updateOrder: (orderId, updates) =>
+        }));
+        try {
+          await authFetch(`/api/bookings/${orderId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+          });
+        } catch (err) {
+          console.warn('[updateOrderStatus DB sync warning]', err);
+        }
+      },
+      updateOrder: async (orderId, updates) => {
         set((state) => ({
           orders: state.orders.map((o) => (o.id === orderId ? { ...o, ...updates } : o)),
-        })),
-      deleteOrder: (orderId) =>
+        }));
+        try {
+          await authFetch(`/api/bookings/${orderId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+        } catch (err) {
+          console.warn('[updateOrder DB sync warning]', err);
+        }
+      },
+      deleteOrder: async (orderId) => {
         set((state) => ({
           orders: state.orders.filter((o) => o.id !== orderId),
-        })),
-      resetOrdersToDefault: () =>
-        set({ orders: INITIAL_ORDERS }),
+        }));
+        try {
+          await authFetch(`/api/bookings/${orderId}`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          console.warn('[deleteOrder DB sync warning]', err);
+        }
+      },
+      resetOrdersToDefault: async () => {
+        await get().fetchOrders();
+      },
 
-      // Custom Requests: default empty for guests & unauthenticated users
+      // Custom Requests: Live database persistence with optimistic local state
       customRequests: [],
+      isLoadingCustomRequests: false,
+      fetchCustomRequests: async () => {
+        set({ isLoadingCustomRequests: true });
+        try {
+          const res = await authFetch('/api/custom-requests');
+          if (res.ok) {
+            const json = await res.json();
+            const data = json?.data;
+            if (Array.isArray(data)) {
+              // Ensure legacy mock custom request IDs are purged
+              const cleanRequests = data.filter(
+                (r: any) =>
+                  r.id !== 'REQ-9102' &&
+                  r.id !== 'REQ-9088' &&
+                  r.id !== 'REQ-9071' &&
+                  r.id !== 'REQ-9064' &&
+                  r.customerName !== 'Aakash Verma' &&
+                  r.customerName !== 'Pooja Sundaram' &&
+                  r.customerName !== 'Raghavendra Rao'
+              );
+              set({ customRequests: cleanRequests, isLoadingCustomRequests: false });
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('[fetchCustomRequests error]', err);
+        }
+        set({ isLoadingCustomRequests: false });
+      },
       isCustomRequestModalOpen: false,
       customRequestModalInitialCategory: null,
       setCustomRequestModalOpen: (open, initialCategory) =>
@@ -1120,21 +1238,40 @@ export const useAppStore = create<AppState>()(
           customRequestModalInitialCategory: initialCategory ?? null 
         }),
 
-      addCustomRequest: (reqData) => {
-        const newId = `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
-        const newReq: CustomRequest = {
+      addCustomRequest: async (reqData) => {
+        const tempId = `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
+        const tempReq: CustomRequest = {
           ...reqData,
-          id: newId,
+          id: tempId,
           status: 'submitted',
           createdAt: new Date().toISOString(),
         };
         set((state) => ({
-          customRequests: [newReq, ...state.customRequests],
+          customRequests: [tempReq, ...state.customRequests],
         }));
-        return newReq;
+        try {
+          const res = await authFetch('/api/custom-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reqData),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            const serverReq = json?.data;
+            if (serverReq) {
+              set((state) => ({
+                customRequests: state.customRequests.map((r) => (r.id === tempId ? serverReq : r)),
+              }));
+              return serverReq;
+            }
+          }
+        } catch (err) {
+          console.warn('[addCustomRequest DB persist warning]', err);
+        }
+        return tempReq;
       },
 
-      updateCustomRequestStatus: (id, status, quotedPrice) =>
+      updateCustomRequestStatus: async (id, status, quotedPrice) => {
         set((state) => ({
           customRequests: state.customRequests.map((r) =>
             r.id === id
@@ -1146,9 +1283,19 @@ export const useAppStore = create<AppState>()(
                 }
               : r
           ),
-        })),
+        }));
+        try {
+          await authFetch(`/api/custom-requests/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, quotedPrice }),
+          });
+        } catch (err) {
+          console.warn('[updateCustomRequestStatus DB sync warning]', err);
+        }
+      },
 
-      updateCustomRequest: (id, updates) =>
+      updateCustomRequest: async (id, updates) => {
         set((state) => ({
           customRequests: state.customRequests.map((r) =>
             r.id === id
@@ -1159,15 +1306,34 @@ export const useAppStore = create<AppState>()(
                 }
               : r
           ),
-        })),
+        }));
+        try {
+          await authFetch(`/api/custom-requests/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+        } catch (err) {
+          console.warn('[updateCustomRequest DB sync warning]', err);
+        }
+      },
 
-      deleteCustomRequest: (id) =>
+      deleteCustomRequest: async (id) => {
         set((state) => ({
           customRequests: state.customRequests.filter((r) => r.id !== id),
-        })),
+        }));
+        try {
+          await authFetch(`/api/custom-requests/${id}`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          console.warn('[deleteCustomRequest DB sync warning]', err);
+        }
+      },
 
-      resetCustomRequestsToDefault: () =>
-        set({ customRequests: INITIAL_CUSTOM_REQUESTS }),
+      resetCustomRequestsToDefault: async () => {
+        await get().fetchCustomRequests();
+      },
     }),
     {
       name: 'reparzo-app-storage',
@@ -1184,6 +1350,33 @@ export const useAppStore = create<AppState>()(
         customRequests: state.customRequests,
       }),
       onRehydrateStorage: () => (state) => {
+        // Clean out legacy mock data from persisted localStorage
+        if (state) {
+          if (state.orders && Array.isArray(state.orders)) {
+            state.orders = state.orders.filter(
+              (o) =>
+                o.id !== 'ORD-8821' &&
+                o.id !== 'ORD-8819' &&
+                o.id !== 'ORD-8812' &&
+                o.id !== 'ORD-8492' &&
+                o.id !== 'ORD-8488' &&
+                o.id !== 'ORD-8470'
+            );
+          }
+          if (state.customRequests && Array.isArray(state.customRequests)) {
+            state.customRequests = state.customRequests.filter(
+              (r) =>
+                r.id !== 'REQ-9102' &&
+                r.id !== 'REQ-9088' &&
+                r.id !== 'REQ-9071' &&
+                r.id !== 'REQ-9064' &&
+                r.customerName !== 'Aakash Verma' &&
+                r.customerName !== 'Pooja Sundaram' &&
+                r.customerName !== 'Raghavendra Rao'
+            );
+          }
+        }
+
         // If there is no authenticated user, strictly purge all orders, custom requests, saved addresses, and location
         if (state && !state.user) {
           state.orders = [];

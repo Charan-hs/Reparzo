@@ -203,7 +203,7 @@ export const CustomRequestModal: React.FC = () => {
     try {
       const currentOpt = CATEGORY_OPTIONS.find((c) => c.type === selectedCategory) || CATEGORY_OPTIONS[5];
 
-      const newRequest = addCustomRequest({
+      const newRequest = await addCustomRequest({
         customerName: customerName.trim() || 'Guest Customer',
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim() || undefined,

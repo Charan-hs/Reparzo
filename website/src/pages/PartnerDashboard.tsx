@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Wrench, 
@@ -44,8 +44,13 @@ export const PartnerDashboard: React.FC = () => {
     setPartnerIsOnline, 
     setAuthModalOpen,
     orders,
+    fetchOrders,
     updateOrderStatus 
   } = useAppStore();
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   // Live store orders and active dispatch queue so all customer bookings can be serviced
   const [activeJob, setActiveJob] = useState<PartnerJob | null>(null);
