@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppStore } from '../store/useAppStore';
-import type { OrderBooking, CustomRequest, CustomRequestStatus } from '../types';
+import type { OrderBooking, CustomRequest, CustomRequestStatus, Service } from '../types';
 import { AdminGeoCoverageTab } from '../components/admin/AdminGeoCoverageTab';
 import { 
   getOrderWorkingSchedule, 
@@ -68,6 +68,8 @@ export const AdminDashboard: React.FC = () => {
     resetCustomRequestsToDefault,
     categories, 
     services, 
+    updateService,
+    fetchCatalog,
     serviceHubs,
     setCategoryManagerOpen,
     setCustomRequestModalOpen,
@@ -95,6 +97,12 @@ export const AdminDashboard: React.FC = () => {
   const [quoteInputs, setQuoteInputs] = useState<Record<string, string>>({});
   const [partnerInputs, setPartnerInputs] = useState<Record<string, { name: string; phone: string }>>({});
   const [adminNotesInputs, setAdminNotesInputs] = useState<Record<string, string>>({});
+
+  // ── Service Price Book State ──
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [servicePriceInput, setServicePriceInput] = useState<string>('');
+  const [serviceOriginalPriceInput, setServiceOriginalPriceInput] = useState<string>('');
+  const [isSavingServicePrice, setIsSavingServicePrice] = useState(false);
 
 
   // ── Edit & Create Booking State (Declared at top level for React Rules of Hooks) ──
@@ -1173,9 +1181,21 @@ export const AdminDashboard: React.FC = () => {
                 <h3 className="text-sm font-bold text-slate-900">Service Price Book</h3>
                 <p className="text-xs text-slate-500">Live pricing served to customer cart and checkout</p>
               </div>
-              <span className="text-xs font-mono font-bold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-lg">
-                {services.length} Services Listed
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    await fetchCatalog();
+                    toast.success('Catalog prices refreshed from live database');
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Refresh Prices</span>
+                </button>
+                <span className="text-xs font-mono font-bold text-[#2563EB] bg-blue-50 px-2.5 py-1 rounded-lg">
+                  {services.length} Services Listed
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1202,13 +1222,115 @@ export const AdminDashboard: React.FC = () => {
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                     <div>
                       <span className="text-lg font-mono font-black text-slate-900">₹{service.price}</span>
-                      <span className="text-xs font-mono text-slate-400 line-through ml-1.5">₹{service.originalPrice}</span>
+                      {service.originalPrice ? (
+                        <span className="text-xs font-mono text-slate-400 line-through ml-1.5">₹{service.originalPrice}</span>
+                      ) : null}
                     </div>
-                    <span className="text-[11px] font-bold text-emerald-600">Reparzo Assured</span>
+                    <button
+                      onClick={() => {
+                        setEditingService(service);
+                        setServicePriceInput(String(service.price));
+                        setServiceOriginalPriceInput(service.originalPrice ? String(service.originalPrice) : '');
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit Price</span>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Quick Service Price Editor Modal */}
+            {editingService && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+                <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 p-6 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-50 text-[#2563EB]">
+                        {editingService.categoryTitle}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900 mt-1">{editingService.title}</h4>
+                    </div>
+                    <button
+                      onClick={() => setEditingService(null)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Active Price to Charge Customers (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        value={servicePriceInput}
+                        onChange={(e) => setServicePriceInput(e.target.value)}
+                        placeholder="e.g. 499"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-mono font-bold focus:outline-none focus:border-[#2563EB]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Original Price / MRP for Discount Strikethrough (₹)
+                      </label>
+                      <input
+                        type="number"
+                        value={serviceOriginalPriceInput}
+                        onChange={(e) => setServiceOriginalPriceInput(e.target.value)}
+                        placeholder="e.g. 899 (Optional)"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-sm font-mono focus:outline-none focus:border-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
+                    <button
+                      onClick={() => setEditingService(null)}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      disabled={isSavingServicePrice || !servicePriceInput}
+                      onClick={async () => {
+                        const newPrice = Number(servicePriceInput);
+                        if (isNaN(newPrice) || newPrice <= 0) {
+                          toast.error('Please enter a valid price');
+                          return;
+                        }
+                        setIsSavingServicePrice(true);
+                        try {
+                          const orig = serviceOriginalPriceInput ? Number(serviceOriginalPriceInput) : null;
+                          const ok = await updateService(editingService.id, {
+                            price: newPrice,
+                            originalPrice: orig || undefined,
+                          });
+                          if (ok) {
+                            toast.success(`Price updated to ₹${newPrice}! Live for all customers.`);
+                            setEditingService(null);
+                          } else {
+                            toast.error('Failed to update service price');
+                          }
+                        } catch (err: any) {
+                          toast.error(err?.message || 'Error updating price');
+                        } finally {
+                          setIsSavingServicePrice(false);
+                        }
+                      }}
+                      className="px-5 py-2 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-bold cursor-pointer disabled:opacity-50 transition-colors shadow-sm"
+                    >
+                      {isSavingServicePrice ? 'Saving & Hydrating...' : 'Save & Publish Price'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

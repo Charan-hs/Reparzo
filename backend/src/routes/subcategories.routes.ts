@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, asc, and } from 'drizzle-orm';
+import { eq, asc, and, or } from 'drizzle-orm';
 import type { Env, Variables } from '../types';
 import { getDb } from '../db';
 import { subCategories } from '../db/schema/subCategories';
@@ -123,6 +123,43 @@ subcategoriesRoutes.post('/', requireAdmin, async (c) => {
   };
 
   await db.insert(subCategories).values(newSub);
+
+  // Automatically ensure matching service exists in services table
+  try {
+    const existingSrv = await db
+      .select({ id: services.id })
+      .from(services)
+      .where(or(eq(services.subCategoryId, id), eq(services.slug, slug)))
+      .limit(1);
+
+    if (existingSrv.length === 0) {
+      await db.insert(services).values({
+        id: `srv-${slug}`,
+        slug,
+        title: newSub.title,
+        description: newSub.description || `Professional ${newSub.title} service.`,
+        category: catSlug || 'services',
+        categoryId: catId,
+        categorySlug: catSlug,
+        categoryTitle: catSlug,
+        subCategoryId: id,
+        subCategorySlug: slug,
+        subCategoryTitle: newSub.title,
+        priceEstimated: newSub.startingPrice,
+        originalPrice: newSub.originalPrice,
+        durationMinutes: newSub.durationMinutes,
+        warrantyDays: newSub.warrantyDays,
+        icon: newSub.iconName || 'Wrench',
+        image: newSub.image || '/banners/ac-service.jpg',
+        inclusions: newSub.features,
+        isPopular: false,
+        isActive: newSub.isActive,
+      });
+    }
+  } catch (err) {
+    console.warn('[subcategories:post auto-create service notice]', err);
+  }
+
   return c.json(successResponse(newSub), 201);
 });
 
@@ -159,8 +196,51 @@ subcategoriesRoutes.put('/:id', requireAdmin, async (c) => {
   }
   if (body.categoryId !== undefined) updateData.categoryId = body.categoryId;
   if (body.categorySlug !== undefined) updateData.categorySlug = body.categorySlug;
+  updateData.updatedAt = new Date();
 
   await db.update(subCategories).set(updateData).where(eq(subCategories.id, id));
+
+  // ── Cascade price and metadata updates to linked services in `services` table ──
+  const serviceCascadeUpdates: any = {
+    updatedAt: new Date(),
+  };
+  if (body.startingPrice !== undefined) {
+    serviceCascadeUpdates.priceEstimated = Number(body.startingPrice);
+  }
+  if (body.originalPrice !== undefined) {
+    serviceCascadeUpdates.originalPrice = body.originalPrice ? Number(body.originalPrice) : null;
+  }
+  if (body.title !== undefined) {
+    serviceCascadeUpdates.subCategoryTitle = body.title.trim();
+  }
+  if (body.image !== undefined) {
+    serviceCascadeUpdates.image = body.image;
+  }
+  if (body.warrantyDays !== undefined) {
+    serviceCascadeUpdates.warrantyDays = Number(body.warrantyDays);
+  }
+  if (body.durationMinutes !== undefined) {
+    serviceCascadeUpdates.durationMinutes = Number(body.durationMinutes);
+  }
+  if (body.isActive !== undefined) {
+    serviceCascadeUpdates.isActive = body.isActive;
+  }
+
+  try {
+    const existingSlug = existing[0].slug;
+    await db
+      .update(services)
+      .set(serviceCascadeUpdates)
+      .where(
+        or(
+          eq(services.subCategoryId, id),
+          eq(services.subCategorySlug, existingSlug),
+          ...(body.slug ? [eq(services.subCategorySlug, body.slug)] : [])
+        )
+      );
+  } catch (err) {
+    console.warn('[subcategories:put cascade service price warning]', err);
+  }
 
   const updated = await db.select().from(subCategories).where(eq(subCategories.id, id)).limit(1);
   return c.json(successResponse(updated[0]));

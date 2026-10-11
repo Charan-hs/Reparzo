@@ -35,6 +35,16 @@ app.use(
   })
 );
 
+// ── Cache Prevention for Dynamic API Endpoints ─────────
+app.use('/api/*', async (c, next) => {
+  await next();
+  if (!c.req.path.startsWith('/api/media')) {
+    c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    c.header('Pragma', 'no-cache');
+    c.header('Expires', '0');
+  }
+});
+
 // ── Root Endpoint ──────────────────────────────────────
 app.get('/', (c) => {
   return c.json(

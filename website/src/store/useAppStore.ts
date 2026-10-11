@@ -62,6 +62,7 @@ export interface AppState {
   setActiveCategorySlug: (slug: string) => void;
   selectedService: Service | null;
   setSelectedService: (service: Service | null) => void;
+  updateService: (id: string, updates: Partial<Service>) => Promise<boolean>;
 
   // Full-screen Search Experience
   isSearchOpen: boolean;
@@ -201,9 +202,10 @@ export const useAppStore = create<AppState>()(
       fetchCatalog: async () => {
         set({ isLoadingCatalog: true, catalogError: null });
         try {
+          const timestamp = Date.now();
           const [catRes, srvRes] = await Promise.all([
-            fetch('/api/categories?include=all'),
-            fetch('/api/services'),
+            fetch(`/api/categories?include=all&_t=${timestamp}`, { cache: 'no-store' }),
+            fetch(`/api/services?_t=${timestamp}`, { cache: 'no-store' }),
           ]);
 
           let hasUpdatedCategories = false;
@@ -276,7 +278,35 @@ export const useAppStore = create<AppState>()(
               const existingSrvSlugs = new Set(normalizedServices.map((s: any) => s.slug));
               const missingSrvFallbacks = INITIAL_SERVICES.filter((s) => !existingSrvSlugs.has(s.slug));
               const mergedServices = [...normalizedServices, ...missingSrvFallbacks];
-              set({ services: mergedServices });
+
+              // Hydrate active cart: reconcile persisted cart items with freshly fetched prices
+              set((state) => {
+                const refreshedCart = state.cart.map((cartItem) => {
+                  const latest = mergedServices.find(
+                    (s) => s.id === cartItem.service.id || s.slug === cartItem.service.slug
+                  );
+                  if (
+                    latest &&
+                    (latest.price !== cartItem.service.price ||
+                      latest.originalPrice !== cartItem.service.originalPrice)
+                  ) {
+                    return {
+                      ...cartItem,
+                      service: {
+                        ...cartItem.service,
+                        price: latest.price,
+                        originalPrice: latest.originalPrice,
+                      },
+                    };
+                  }
+                  return cartItem;
+                });
+
+                return {
+                  services: mergedServices,
+                  cart: refreshedCart,
+                };
+              });
             }
           }
 
@@ -429,10 +459,31 @@ export const useAppStore = create<AppState>()(
       },
 
       updateSubCategory: async (id, updates) => {
-        // Optimistic update
-        set((state) => ({
-          subCategories: state.subCategories.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-        }));
+        // Optimistic update of subcategory and linked services
+        set((state) => {
+          const updatedSubs = state.subCategories.map((s) => (s.id === id ? { ...s, ...updates } : s));
+          const targetSub = state.subCategories.find((s) => s.id === id);
+          const targetSlug = targetSub?.slug || updates.slug;
+
+          const updatedServices = state.services.map((srv) => {
+            if (srv.subCategoryId === id || (targetSlug && srv.subCategorySlug === targetSlug)) {
+              return {
+                ...srv,
+                price: updates.startingPrice !== undefined ? updates.startingPrice : srv.price,
+                originalPrice: updates.originalPrice !== undefined ? updates.originalPrice : srv.originalPrice,
+                title: updates.title !== undefined ? updates.title : srv.title,
+                subCategoryTitle: updates.title !== undefined ? updates.title : srv.subCategoryTitle,
+              };
+            }
+            return srv;
+          });
+
+          return {
+            subCategories: updatedSubs,
+            services: updatedServices,
+          };
+        });
+
         try {
           const res = await authFetch(`/api/subcategories/${id}`, {
             method: 'PUT',
@@ -440,9 +491,33 @@ export const useAppStore = create<AppState>()(
             body: JSON.stringify(updates),
           });
           if (!res.ok) throw new Error('Failed to update subcategory');
+          // Re-hydrate full catalog to ensure complete state synchronization
+          await get().fetchCatalog();
           return true;
         } catch (err) {
           console.warn('[updateSubCategory network error]', err);
+          return false;
+        }
+      },
+
+      updateService: async (id, updates) => {
+        // Optimistic update of service
+        set((state) => ({
+          services: state.services.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+        }));
+
+        try {
+          const res = await authFetch(`/api/services/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+          });
+          if (!res.ok) throw new Error('Failed to update service');
+          // Re-hydrate full catalog to ensure cart and services are synced
+          await get().fetchCatalog();
+          return true;
+        } catch (err) {
+          console.warn('[updateService network error]', err);
           return false;
         }
       },

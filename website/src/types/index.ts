@@ -37,8 +37,10 @@ export interface Service {
   id: string;
   slug: string;
   title: string;
+  categoryId?: string;
   categorySlug: string;
   categoryTitle: string;
+  subCategoryId?: string;
   subCategorySlug?: string;
   subCategoryTitle?: string;
   description: string;
